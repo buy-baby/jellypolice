@@ -5,24 +5,27 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
-const { createClient } = require("@supabase/supabase-js");
+
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// -------------------- SUPABASE 설정 --------------------
-const SUPABASE_URL = "https://tcbvisutzyirtopyxsxj.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYnZpc3V0enlpcnRvcHl4c3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTg3ODMsImV4cCI6MjA3OTk5NDc4M30._C77yIQ73L_fQhH89nVS4UxZ3myhvRWsOjeppSXPAgs";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-const SUPABASE_BUCKET = "complaints-files"; // 네가 만든 버킷 이름
+// -------------------- Cloudflare R2 설정 --------------------
+const r2 = new S3Client({
+  region: "auto",
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY,
+    secretAccessKey: process.env.R2_SECRET_KEY
+  }
+});
+
+const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
 // -------------------- 폴더 자동 생성 --------------------
 const dbDir = "./database";
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
-
-// (예전 uploads 폴더는 더 안 써도 되지만, 있어도 상관 없음)
-const uploadDir = "./uploads";
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 // -------------------- DB --------------------
 const db = new sqlite3.Database("./database/complaints.db", (err) => {
@@ -45,15 +48,11 @@ const db = new sqlite3.Database("./database/complaints.db", (err) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
-// 업로드 폴더는 이제 안 써도 되지만, 드문 경우를 대비해 남겨둬도 됨
-app.use("/uploads", express.static("uploads"));
-
 app.set("view engine", "ejs");
 app.set("views", "./public/views");
 
-// -------------------- multer (메모리에만 저장) --------------------
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// multer 메모리 업로드 (R2로 바로 업로드)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------- 관리자 인증 --------------------
 const ADMIN_PASSWORD = "jellypolice1234";
@@ -65,70 +64,54 @@ function requireAdmin(req, res, next) {
 
 // -------------------- 라우팅 --------------------
 
-// 메인 페이지 (고객센터 홈)
+// 메인 페이지
 app.get("/", (req, res) => {
   res.render("main/main");
 });
 
-// 민원 안내 페이지
+// 민원 소개 페이지
 app.get("/inquiry", (req, res) => {
   res.render("inquiry/index");
 });
 
-// 민원 접수 페이지
+// 민원 제출 페이지
 app.get("/submit", (req, res) => {
   res.render("inquiry/submit");
 });
 
-// -------------------- 민원 제출 처리 (Supabase에 파일 업로드) --------------------
+// 민원 제출 처리
 app.post("/submit", upload.single("file"), async (req, res) => {
   const { name, identity, content } = req.body;
-  let fileUrl = null;
+  let fileKey = null;
 
-  try {
-    if (req.file) {
-      const fileName = Date.now() + "_" + req.file.originalname;
+  if (req.file) {
+    fileKey = Date.now() + "_" + req.file.originalname;
 
-      // Supabase Storage에 업로드
-      const { data, error } = await supabase.storage
-        .from(SUPABASE_BUCKET)
-        .upload(fileName, req.file.buffer, {
-          contentType: req.file.mimetype,
-        });
-
-      if (error) {
-        console.error("Supabase upload error:", error);
-      } else {
-        const { data: publicData } = supabase.storage
-          .from(SUPABASE_BUCKET)
-          .getPublicUrl(fileName);
-
-        fileUrl = publicData.publicUrl;
-      }
-    }
-
-    // DB 저장 (file 컬럼에 Supabase URL 저장)
-    db.run(
-      `INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)`,
-      [name, identity, content, fileUrl],
-      function () {
-        res.render("inquiry/index", {
-          message: "민원이 성공적으로 접수되었습니다!",
-        });
-      }
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: fileKey,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype
+      })
     );
-  } catch (e) {
-    console.error("Submit error:", e);
-    res.status(500).send("민원 접수 중 오류가 발생했습니다.");
   }
+
+  db.run(
+    `INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)`,
+    [name, identity, content, fileKey],
+    () => {
+      res.render("inquiry/index", { message: "민원이 성공적으로 접수되었습니다!" });
+    }
+  );
 });
 
-// 건의 사항 페이지
+// 건의 사항
 app.get("/suggest", (req, res) => {
   res.render("suggest/suggest");
 });
 
-// 고객센터 안내 / FAQ
+// FAQ
 app.get("/faq", (req, res) => {
   res.render("faq/faq");
 });
@@ -152,11 +135,11 @@ app.post("/login", (req, res) => {
 // 관리자 메인
 app.get("/admin", requireAdmin, (req, res) => {
   db.all(`SELECT * FROM complaints ORDER BY id DESC`, (err, rows) => {
-    return res.render("admin/admin", { complaints: rows });
+    res.render("admin/admin", { complaints: rows });
   });
 });
 
-// 민원 상세 보기
+// 민원 상세 페이지
 app.get("/view/:id", requireAdmin, (req, res) => {
   const id = req.params.id;
 
@@ -166,7 +149,27 @@ app.get("/view/:id", requireAdmin, (req, res) => {
   });
 });
 
-// 민원 삭제
+// 첨부파일 다운로드 (R2)
+app.get("/file/:key", requireAdmin, async (req, res) => {
+  const key = req.params.key;
+
+  try {
+    const data = await r2.send(
+      new GetObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key
+      })
+    );
+
+    res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
+    data.Body.pipe(res);
+  } catch (e) {
+    console.error(e);
+    res.send("파일을 찾을 수 없습니다.");
+  }
+});
+
+// 삭제
 app.get("/delete/:id", requireAdmin, (req, res) => {
   const id = req.params.id;
 
