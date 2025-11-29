@@ -3,31 +3,62 @@
 <head>
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="/style.css"/>
-  <title>민원 상세</title>
+  <title>민원 상세보기</title>
 </head>
 
 <body>
 <header>
-  <img src="/logo.png"/>
-  <h1>민원 상세</h1>
+  <img src="/logo.png" />
+  <h1>민원 상세보기</h1>
 </header>
 
 <div class="container">
 
-  <p><strong>이름:</strong> <%= c.name %></p>
-<p><strong>고유번호:</strong> <%= c.identity %></p>
-<p><strong>작성일:</strong> <%= c.created %></p>
-<p><strong>내용:</strong></p>
-<p><%= c.content %></p>
+  <table class="table">
+    <tr>
+      <th>ID</th>
+      <td><%= c.id %></td>
+    </tr>
 
+    <tr>
+      <th>이름</th>
+      <td><%= c.name %></td>
+    </tr>
 
-  <% if (c.file) { %>
-    <p><strong>첨부파일:</strong>  
-      <a href="/uploads/<%= c.file %>" download>다운로드</a>
-    </p>
-  <% } %>
+    <tr>
+      <th>고유번호</th>
+      <td><%= c.identity %></td>
+    </tr>
 
-  <a href="/admin"><button>목록으로</button></a>
+    <tr>
+      <th>작성일</th>
+      <td><%= c.created %></td>
+    </tr>
+
+    <tr>
+      <th>내용</th>
+      <td><pre><%= c.content %></pre></td>
+    </tr>
+
+    <tr>
+      <th>첨부파일</th>
+      <td>
+        <% if (c.file) { %>
+          <a href="<%= c.file %>" target="_blank" download>첨부파일 다운로드</a>
+        <% } else { %>
+          없음
+        <% } %>
+      </td>
+    </tr>
+  </table>
+
+  <div style="margin-top:20px;">
+    <a href="/admin" class="btn">목록으로</a>
+    <a href="/delete/<%= c.id %>" class="btn danger" onclick="return confirm('삭제하시겠습니까?')">
+      삭제하기
+    </a>
+  </div>
+
 </div>
 
 </body>
