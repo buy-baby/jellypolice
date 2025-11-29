@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <title>관리자 페이지</title>
+</head>
+
+<body>
+<header>
+  <img src="/logo.png"/>
+  <h1>민원 목록</h1>
+</header>
+
+<div class="container">
+  <table class="table">
+    <tr>
+      <th>ID</th>
+      <th>이름</th>
+      <th>고유번호</th>
+      <th>작성일</th>
+      <th>보기</th>
+      <th>삭제</th>
+    </tr>
+
+    <% complaints.forEach(c => { %>
+      <tr>
+        <td><%= c.id %></td>
+        <td><%= c.name %></td>
+        <td><%= c.identity %></td>
+        <td><%= c.created %></td>
+        <td><a href="/view/<%= c.id %>">열람</a></td>
+        <td><a href="/delete/<%= c.id %>" onclick="return confirm('삭제하시겠습니까?')">삭제</a></td>
+      </tr>
+    <% }) %>
+
+  </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <title>민원 접수</title>
+</head>
+
+<body>
+<header>
+  <img src="/logo.png"/>
+  <h1>젤리 경찰 민원실</h1>
+</header>
+
+<div class="container">
+  <form action="/submit" method="post" enctype="multipart/form-data">
+    <label>이름</label>
+    <input name="name" required />
+
+    <label>고유번호</label>
+    <input name="identity" required />
+
+    <label>내용</label>
+    <textarea name="content" rows="6" required></textarea>
+
+    <label>첨부 파일</label>
+    <input type="file" name="file"/>
+
+    <button type="submit">제출하기</button>
+  </form>
+</div>
+</body>
+</html>
