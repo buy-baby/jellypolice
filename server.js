@@ -37,6 +37,7 @@ const db = new sqlite3.Database("./database/complaints.db", (err) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
 
 app.set("view engine", "ejs");
 app.set("views", "./public/views");
