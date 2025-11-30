@@ -58,70 +58,100 @@ button:hover {
   border-bottom: 1px solid #ccc;
 }
 
-/* 메뉴 영역 */
+/* 메뉴 바 */
 .menu {
   width: 100%;
   background: #1a4bd9;
-  padding: 12px 0;
+  padding: 14px 0;
   display: flex;
   justify-content: center;
-  gap: 60px;
+  gap: 80px;
   position: relative;
 }
 
-/* 드롭다운 컨테이너 */
-.dropdown {
+.menu > .mega-dropdown > a {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.menu > .mega-dropdown > a:hover {
+  text-decoration: underline;
+}
+
+/* 메가 메뉴 전체 컨테이너 */
+.mega-dropdown {
   position: relative;
 }
 
-/* 애니메이션 키프레임 */
-@keyframes dropdownSlide {
-  0% {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 드롭다운 박스 */
-.dropdown-content {
+/* 아래로 크게 내려오는 박스 */
+.mega-menu {
   display: none;
   position: absolute;
   top: 100%;
-  left: 0;
-  background-color: #1a4bd9;
-  min-width: 150px;
-  padding: 10px 0;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  left: 50%;
+  transform: translateX(-50%);
+  
+  width: 70%;              /* 화면의 70% 정도 = 정부24 스타일 */
+  background: white;
+  border-radius: 10px;
+  padding: 25px 35px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
   z-index: 999;
 
-  /* 애니메이션 옵션 */
+  /* 애니메이션 초깃값 */
   opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform-origin: top;
+  transform: translate(-50%, -20px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-/* 드롭다운 텍스트 */
-.dropdown-content a {
-  color: white;
-  padding: 10px 20px;
-  text-decoration: none;
-  display: block;
-  font-size: 15px;
+/* 제목 */
+.mega-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 18px;
+  color: #0b3fa7;
 }
 
-.dropdown-content a:hover {
-  background: rgba(255,255,255,0.15);
+/* 카드 3개 정렬 */
+.mega-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
 }
 
-/* hover 시 애니메이션 발동 */
-.dropdown:hover .dropdown-content {
+/* 카드 박스 */
+.mega-card {
+  background: #eef2f9;
+  border-radius: 12px;
+  padding: 18px;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.mega-card:hover {
+  background: #dbe5f5;
+  transform: translateY(-3px);
+}
+
+.mega-card h4 {
+  margin: 0 0 10px 0;
+  color: #1a4bd9;
+  font-size: 17px;
+}
+
+.mega-card p {
+  margin: 0;
+  color: #333;
+  font-size: 14px;
+}
+
+/* hover 시 내려오는 효과 */
+.mega-dropdown:hover .mega-menu {
   display: block;
   opacity: 1;
-  transform: translateY(0);
-  animation: dropdownSlide 0.18s ease-out;
+  transform: translate(-50%, 0);
 }
+
