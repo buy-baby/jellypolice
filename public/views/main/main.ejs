@@ -13,32 +13,31 @@
       background: #eef2f9;
     }
 
-    /* ===== 상단 바 ===== */
+    /* 상단바 */
     .topbar {
       width: 100%;
       background: #0b3fa7;
       color: white;
-      padding: 10px 25px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
+      padding: 14px 30px;
       font-size: 22px;
       font-weight: bold;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .topbar img {
-      height: 40px;
+      height: 32px;
     }
 
-    /* ===== 메뉴 ===== */
+    /* 메뉴 영역 */
     .menu {
       width: 100%;
       background: #1a4bd9;
-      padding: 14px 0;
       display: flex;
       justify-content: center;
-      gap: 60px;
+      gap: 80px;
+      padding: 12px 0;
       position: relative;
     }
 
@@ -47,126 +46,134 @@
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
-      user-select: none;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      user-select: none;
     }
 
-    .menu-item:hover {
-      opacity: 0.85;
-    }
-
-    /* ↓ / ↑ 화살표 스타일 */
+    /* ▼ / ▲ 아이콘 */
     .arrow {
-      font-size: 14px;
-      transition: 0.2s;
+      transition: transform 0.25s;
     }
 
-    /* ===== 드롭다운 박스 ===== */
-    .dropdown-box {
-      display: none;
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    /* 드롭다운 영역 */
+    .dropdown {
       width: 100%;
       background: #1a4bd9;
-      padding: 20px 0;
       position: absolute;
-      top: 55px;
       left: 0;
-      animation: dropdown 0.25s ease-out;
+      top: 100%;
+      display: none; /* 기본은 숨김 */
+      padding: 20px 0;
+      animation: slideDown 0.28s ease forwards;
     }
 
-    @keyframes dropdown {
+    /* 드롭다운 항목들 */
+    .dropdown-content {
+      display: flex;
+      justify-content: center;
+      gap: 120px;
+      color: white;
+      font-size: 17px;
+      text-align: center;
+    }
+
+    .dropdown-content a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin-top: 6px;
+      transition: 0.2s;
+    }
+    .dropdown-content a:hover {
+      text-decoration: underline;
+      filter: brightness(1.15);
+    }
+
+    /* 애니메이션 */
+    @keyframes slideDown {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    .dropdown-content {
-      width: 70%;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-around;
-      color: white;
-      text-align: center;
-      font-size: 15px;
-    }
-
-    .dropdown-content div {
-      cursor: pointer;
-      padding: 8px 0;
-    }
-
-    .dropdown-content div:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- 상단 바 -->
+  <!-- 상단 타이틀 -->
   <div class="topbar">
-    <img src="/images/logo2.png" alt="로고" />
+    <img src="/logo2.png" alt="로고">
     젤리 경찰청
   </div>
 
-  <!-- 메뉴 -->
+  <!-- 메뉴 영역 -->
   <div class="menu">
-
-    <div class="menu-item" onclick="toggleMenu('intro')">
-      소개 <span id="icon-intro" class="arrow">▼</span>
+    <div class="menu-item" onclick="toggleDropdown('sogae')">
+      소개 <span id="arrow-sogae" class="arrow">▼</span>
     </div>
 
-    <div class="menu-item" onclick="toggleMenu('recruit')">
-      채용공고 <span id="icon-recruit" class="arrow">▼</span>
+    <div class="menu-item" onclick="toggleDropdown('job')">
+      채용공고 <span id="arrow-job" class="arrow">▼</span>
     </div>
 
-    <div class="menu-item" onclick="toggleMenu('center')">
-      고객센터 <span id="icon-center" class="arrow">▼</span>
-    </div>
-
-  </div>
-
-  <!-- 소개 Dropdown -->
-  <div id="dropdown-intro" class="dropdown-box">
-    <div class="dropdown-content">
-      <div onclick="location.href='/intro-police'">경찰청 소개</div>
-      <div onclick="location.href='/rank'">직급표</div>
-      <div onclick="location.href='/departments'">부서 소개</div>
+    <div class="menu-item" onclick="toggleDropdown('cs')">
+      고객센터 <span id="arrow-cs" class="arrow">▼</span>
     </div>
   </div>
 
-  <!-- 채용공고 Dropdown -->
-  <div id="dropdown-recruit" class="dropdown-box">
+  <!-- 드롭다운 1 : 소개 -->
+  <div id="drop-sogae" class="dropdown">
     <div class="dropdown-content">
-      <div onclick="location.href='/criteria'">지원 자격</div>
-      <div onclick="location.href='/apply'">지원서</div>
+      <div>
+        <a href="/police">경찰청 소개</a>
+      </div>
+      <div>
+        <a href="/rank">직급표</a>
+      </div>
+      <div>
+        <a href="/depart">부서 소개</a>
+      </div>
     </div>
   </div>
 
-  <!-- 고객센터 Dropdown -->
-  <div id="dropdown-center" class="dropdown-box">
+  <!-- 드롭다운 2 : 채용공고 -->
+  <div id="drop-job" class="dropdown">
     <div class="dropdown-content">
-      <div onclick="location.href='/inquiry'">민원실</div>
-      <div onclick="location.href='/suggest'">건의실</div>
+      <div><a href="/apply">지원 자격</a></div>
+      <div><a href="/applyform">지원서</a></div>
+    </div>
+  </div>
+
+  <!-- 드롭다운 3 : 고객센터 -->
+  <div id="drop-cs" class="dropdown">
+    <div class="dropdown-content">
+      <div><a href="/inquiry">민원실</a></div>
+      <div><a href="/suggest">건의실</a></div>
     </div>
   </div>
 
   <script>
-    function toggleMenu(menu) {
-      const dropdown = document.getElementById("dropdown-" + menu);
-      const icon = document.getElementById("icon-" + menu);
+    function toggleDropdown(target) {
+      const ids = ["sogae", "job", "cs"];
 
-      const isOpen = dropdown.style.display === "block";
+      ids.forEach(id => {
+        const drop = document.getElementById("drop-" + id);
+        const arrow = document.getElementById("arrow-" + id);
 
-      // 모든 드롭다운 닫기
-      document.querySelectorAll('.dropdown-box').forEach(d => d.style.display = 'none');
-      document.querySelectorAll('.arrow').forEach(a => a.textContent = "▼");
-
-      // 클릭한 메뉴만 다시 열기
-      if (!isOpen) {
-        dropdown.style.display = "block";
-        icon.textContent = "▲";
-      }
+        if (id === target) {
+          const isOpen = drop.style.display === "block";
+          drop.style.display = isOpen ? "none" : "block";
+          arrow.classList.toggle("open", !isOpen);
+        } else {
+          drop.style.display = "none";
+          arrow.classList.remove("open");
+        }
+      });
     }
   </script>
 
