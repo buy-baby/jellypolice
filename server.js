@@ -178,6 +178,42 @@ app.get("/delete/:id", requireAdmin, (req, res) => {
   });
 });
 
+// -------------------- 소개 페이지 --------------------
+app.get("/intro/agency", (req, res) => {
+  res.render("intro/intro_agency");
+});
+
+app.get("/intro/rank", (req, res) => {
+  res.render("intro/intro_rank");
+});
+
+app.get("/intro/department", (req, res) => {
+  res.render("intro/intro_department");
+});
+
+// -------------------- 채용 페이지 --------------------
+app.get("/apply/conditions", (req, res) => {
+  res.render("apply/apply_conditions");
+});
+
+app.get("/apply/apply", (req, res) => {
+  res.render("apply/apply_apply");
+});
+
+// -------------------- 민원 / 건의 --------------------
+app.get("/inquiry", (req, res) => {
+  res.render("inquiry/index");
+});
+
+app.get("/suggest", (req, res) => {
+  res.render("suggest/suggest");
+});
+
+// -------------------- 메인 --------------------
+app.get("/", (req, res) => {
+  res.render("main/main");
+});
+
 // -------------------- 서버 실행 --------------------
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

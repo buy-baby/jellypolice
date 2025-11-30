@@ -1,9 +1,11 @@
+/* 기본 설정 */
 body {
   font-family: "Noto Sans KR", sans-serif;
   margin: 0;
   background: #f6f9ff;
 }
 
+/* 헤더 */
 header {
   display: flex;
   align-items: center;
@@ -22,42 +24,6 @@ h1 {
   font-size: 24px;
 }
 
-.container {
-  width: 80%;
-  margin: 30px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-}
-
-button {
-  padding: 10px 20px;
-  background: #003c8f;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #002d66;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th, .table td {
-  padding: 12px;
-  border-bottom: 1px solid #ccc;
-}
-
 /* 메뉴 바 */
 .menu {
   width: 100%;
@@ -74,37 +40,42 @@ button:hover {
   font-size: 18px;
   font-weight: bold;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .menu > .mega-dropdown > a:hover {
   text-decoration: underline;
 }
 
-/* 메가 메뉴 전체 컨테이너 */
+/* Mega Menu Base */
 .mega-dropdown {
   position: relative;
 }
 
-/* 아래로 크게 내려오는 박스 */
 .mega-menu {
   display: none;
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%);
-  
-  width: 70%;              /* 화면의 70% 정도 = 정부24 스타일 */
+  transform: translate(-50%, -20px);   /* transform 중복 해결됨 */
+
+  width: 70%;
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 25px 35px;
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
   z-index: 999;
 
-  /* 애니메이션 초깃값 */
   opacity: 0;
   transform-origin: top;
-  transform: translate(-50%, -20px);
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Mega Menu 열린 상태 */
+.mega-menu.show {
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 /* 제목 */
@@ -122,7 +93,7 @@ button:hover {
   gap: 25px;
 }
 
-/* 카드 박스 */
+/* 카드 스타일 */
 .mega-card {
   background: #eef2f9;
   border-radius: 12px;
@@ -148,9 +119,11 @@ button:hover {
   font-size: 14px;
 }
 
-/* 클릭으로 열린 상태 */
-.mega-menu.show {
-  display: block;
-  opacity: 1;
-  transform: translate(-50%, 0);
+/* 공용 container */
+.container {
+  width: 80%;
+  margin: 30px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
 }
