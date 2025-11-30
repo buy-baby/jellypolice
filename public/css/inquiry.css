@@ -1,31 +1,97 @@
+/* 페이지 배경 */
 body {
-  font-family: "Noto Sans KR", sans-serif;
   margin: 0;
+  padding: 0;
+  font-family: "Noto Sans KR", sans-serif;
   background: #f6f9ff;
 }
 
-header {
+/* 헤더 */
+.inquiry-header {
   display: flex;
   align-items: center;
-  padding: 16px 24px;
   background: #003c8f;
+  padding: 16px 24px;
   color: white;
 }
 
 .inquiry-logo {
-  width: 85px;   /* 로고 크기 */
+  width: 80px;
   margin-right: 20px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 28px;
+/* 메인 컨테이너 */
+.submit-container {
+  width: 60%;
+  margin: 40px auto;
+  background: white;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.1);
 }
 
-.container {
-  width: 80%;
-  margin: 40px auto;
-  padding: 30px;
-  background: white;
-  border-radius: 10px;
+.submit-container h2 {
+  margin-top: 0;
+  font-size: 26px;
+  color: #003c8f;
+  margin-bottom: 25px;
+}
+
+/* form 기본 */
+.submit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* input, textarea */
+.submit-form input[type="text"],
+.submit-form textarea,
+.submit-form input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccd5e0;
+  font-size: 15px;
+}
+
+.submit-form textarea {
+  height: 120px;
+  resize: none;
+}
+
+/* 버튼 정렬 */
+.btn-row {
+  margin-top: 10px;
+}
+
+/* 제출 버튼 */
+.submit-btn {
+  background: #003c8f;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.submit-btn:hover {
+  background: #002d66;
+}
+
+.back-btn {
+  background: #003c8f;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.back-btn:hover {
+  background: #002d66;
 }

@@ -1,26 +1,43 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <title>민원 접수</title>
   <link rel="stylesheet" href="/css/inquiry.css">
-  <title>민원 안내</title>
 </head>
 
 <body>
-<header>
-  <img src="/images/logo3.png" class="inquiry-logo">
-  <h1>젤리 경찰청 민원실</h1>
-</header>
 
-<div class="container">
-  <h2>민원 접수 시스템</h2>
+  <header class="inquiry-header">
+      <img src="/images/logo3.png" class="inquiry-logo">
+      <h1>젤리 경찰청 민원 접수</h1>
+  </header>
 
-  <% if (typeof message !== "undefined") { %>
-    <p style="color: green;"><%= message %></p>
-  <% } %>
+  <div class="submit-container">
 
-  <p>아래 버튼을 눌러 민원을 접수할 수 있습니다.</p>
-  <a href="/submit"><button>민원 접수하기</button></a>
-</div>
+    <h2>민원 접수하기</h2>
+
+    <form class="submit-form" action="/submit" method="POST" enctype="multipart/form-data">
+
+      <label>이름</label>
+      <input type="text" name="name" required>
+
+      <label>고유번호</label>
+      <input type="text" name="identity" required>
+
+      <label>내용</label>
+      <textarea name="content" required></textarea>
+
+      <label>첨부 파일</label>
+      <input type="file" name="file">
+
+      <div class="btn-row">
+        <button type="submit" class="submit-btn">민원 접수하기</button>
+      </div>
+
+    </form>
+
+  </div>
+
 </body>
 </html>
