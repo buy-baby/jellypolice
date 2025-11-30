@@ -2,14 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
-  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/css/inquiry.css"/>
   <title>민원 접수</title>
 </head>
 
 <body>
 <header>
-  <img src="/images/logo.png"/>
-  <h1>젤리 경찰 민원실</h1>
+  <img src="/images/logo.png" class="inquiry-logo"/>
+  <h1>젤리 경찰청 민원실</h1>
 </header>
 
 <div class="container">
@@ -17,14 +17,30 @@
     <label>이름</label>
     <input name="name" required />
 
+    <br>
+    <br>
+    <br>
+
     <label>고유번호</label>
     <input name="identity" required />
 
+    <br>
+    <br>
+    <br>
+
     <label>내용</label>
-    <textarea name="content" rows="6" required></textarea>
+    <textarea name="content" rows="5" required></textarea>
+
+    <br>
+    <br>
+    <br>
 
     <label>첨부 파일</label>
     <input type="file" name="file"/>
+
+    <br>
+    <br>
+    <br>
 
     <button type="submit">제출하기</button>
   </form>
