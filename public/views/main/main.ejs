@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>젤리 경찰청 고객센터</title>
-
+  <title>젤리 경찰청</title>
   <style>
     body {
       margin: 0;
@@ -13,7 +12,7 @@
       background: #eef2f9;
     }
 
-    /* 상단 메인 바 */
+    /* 상단 타이틀 바 */
     .topbar {
       width: 100%;
       background: #0b3fa7;
@@ -24,7 +23,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
-    /* 카테고리 메뉴 */
+    /* 상단 메뉴 바 */
     .menu {
       width: 100%;
       background: #1a4bd9;
@@ -32,82 +31,129 @@
       display: flex;
       justify-content: center;
       gap: 60px;
+      position: relative;
     }
 
-    .menu a {
+    .menu > .dropdown > a {
       color: white;
       text-decoration: none;
       font-size: 18px;
       font-weight: bold;
     }
 
-    .menu a:hover {
+    .menu > .dropdown > a:hover {
       text-decoration: underline;
     }
 
-    /* 중앙 빈 화면 */
+    /* 드롭다운 컨테이너 */
+    .dropdown {
+      position: relative;
+    }
+
+    /* 애니메이션 */
+    @keyframes dropdownSlide {
+      0% {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 드롭다운 박스 */
+    .dropdown-content {
+      display: none;              /* 기본적으로 숨김 */
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, -8px);
+      background-color: #1a4bd9;
+      min-width: 160px;
+      padding: 10px 0;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .dropdown-content a {
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      display: block;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .dropdown-content a:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* hover 시 드롭다운 열림 + 애니메이션 */
+    .dropdown:hover .dropdown-content {
+      display: block;
+      opacity: 1;
+      transform: translate(-50%, 0);
+      animation: dropdownSlide 0.18s ease-out;
+    }
+
+    /* 중앙은 비워둔 영역 */
     .center-empty {
       width: 100%;
-      height: 400px;  /* 중앙 영역 비워둠 */
+      height: 400px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      color: #444;
+      justify-content: center;
+      color: #666;
       font-size: 18px;
     }
   </style>
 </head>
-
 <body>
 
   <!-- 상단 타이틀 -->
   <div class="topbar">젤리 경찰청</div>
 
-  <!-- 카테고리 메뉴 -->
+  <!-- 상단 메뉴 + 드롭다운 -->
   <div class="menu">
-    <a href="#">소개</a>
-    <a href="#">채용공고</a>
-    <a href="/inquiry">고객센터</a>
+
+    <!-- 소개 -->
+    <div class="dropdown">
+      <a href="#">소개</a>
+      <div class="dropdown-content">
+        <a href="#">경찰청 소개</a>
+        <a href="#">직급표</a>
+        <a href="#">부서 소개</a>
+      </div>
+    </div>
+
+    <!-- 채용공고 -->
+    <div class="dropdown">
+      <a href="#">채용공고</a>
+      <div class="dropdown-content">
+        <a href="#">지원 자격</a>
+        <a href="#">지원서</a>
+      </div>
+    </div>
+
+    <!-- 고객센터 -->
+    <div class="dropdown">
+      <a href="/inquiry">고객센터</a>
+      <div class="dropdown-content">
+        <a href="/inquiry">민원실</a>
+        <a href="/suggest">건의실</a>
+      </div>
+    </div>
+
   </div>
 
-  <!-- 중앙 영역 (비워둠) -->
+  <!-- 중앙 비워둔 영역 -->
   <div class="center-empty">
-    <!-- 필요하면 안내 문구 삽입 가능 -->
-    <!-- 예: 젤리 경찰청 홈페이지에 오신 것을 환영합니다 -->
+    <!-- 필요하면 나중에 배너나 공지 넣을 자리 -->
   </div>
-
-  <div class="menu">
-
-  <!-- 소개 -->
-  <div class="dropdown">
-    <a href="#">소개</a>
-    <div class="dropdown-content">
-      <a href="#">경찰청 소개</a>
-      <a href="#">직급표</a>
-      <a href="#">부서 소개</a>
-    </div>
-  </div>
-
-  <!-- 채용공고 -->
-  <div class="dropdown">
-    <a href="#">채용공고</a>
-    <div class="dropdown-content">
-      <a href="#">지원 자격</a>
-      <a href="#">지원서</a>
-    </div>
-  </div>
-
-  <!-- 고객센터 -->
-  <div class="dropdown">
-    <a href="/inquiry">고객센터</a>
-    <div class="dropdown-content">
-      <a href="/inquiry">민원실</a>
-      <a href="/suggest">건의실</a>
-    </div>
-  </div>
-
-</div>
-
 
 </body>
 </html>
