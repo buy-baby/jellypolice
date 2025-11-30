@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>젤리 경찰청</title>
+
   <style>
     body {
       margin: 0;
@@ -12,193 +13,162 @@
       background: #eef2f9;
     }
 
-    /* 상단 타이틀 바 */
+    /* ===== 상단 바 ===== */
     .topbar {
       width: 100%;
       background: #0b3fa7;
       color: white;
-      padding: 14px 30px;
+      padding: 10px 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
       font-size: 22px;
       font-weight: bold;
       box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
-    /* 상단 메뉴 바 */
+    .topbar img {
+      height: 40px;
+    }
+
+    /* ===== 메뉴 ===== */
     .menu {
       width: 100%;
       background: #1a4bd9;
-      padding: 12px 0;
+      padding: 14px 0;
       display: flex;
       justify-content: center;
       gap: 60px;
       position: relative;
     }
 
-    .menu > .dropdown > a {
+    .menu-item {
       color: white;
-      text-decoration: none;
       font-size: 18px;
       font-weight: bold;
-    }
-
-    .menu > .dropdown > a:hover {
-      text-decoration: underline;
-    }
-
-    /* 드롭다운 컨테이너 */
-    .dropdown {
-      position: relative;
-    }
-
-    /* 애니메이션 */
-    @keyframes dropdownSlide {
-      0% {
-        opacity: 0;
-        transform: translateY(-8px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* 드롭다운 박스 */
-    .dropdown-content {
-      display: none;              /* 기본적으로 숨김 */
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translate(-50%, -8px);
-      background-color: #1a4bd9;
-      min-width: 160px;
-      padding: 10px 0;
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.15s ease, transform 0.15s ease;
-    }
-
-    .dropdown-content a {
-      color: white;
-      padding: 10px 20px;
-      text-decoration: none;
-      display: block;
-      font-size: 15px;
-      white-space: nowrap;
-    }
-
-    .dropdown-content a:hover {
-      background: rgba(255,255,255,0.15);
-    }
-
-    /* hover 시 드롭다운 열림 + 애니메이션 */
-    .dropdown:hover .dropdown-content {
-      display: block;
-      opacity: 1;
-      transform: translate(-50%, 0);
-      animation: dropdownSlide 0.18s ease-out;
-    }
-
-    /* 중앙은 비워둔 영역 */
-    .center-empty {
-      width: 100%;
-      height: 400px;
+      cursor: pointer;
+      user-select: none;
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: #666;
-      font-size: 18px;
+      gap: 5px;
+    }
+
+    .menu-item:hover {
+      opacity: 0.85;
+    }
+
+    /* ↓ / ↑ 화살표 스타일 */
+    .arrow {
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    /* ===== 드롭다운 박스 ===== */
+    .dropdown-box {
+      display: none;
+      width: 100%;
+      background: #1a4bd9;
+      padding: 20px 0;
+      position: absolute;
+      top: 55px;
+      left: 0;
+      animation: dropdown 0.25s ease-out;
+    }
+
+    @keyframes dropdown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-content {
+      width: 70%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      color: white;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .dropdown-content div {
+      cursor: pointer;
+      padding: 8px 0;
+    }
+
+    .dropdown-content div:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
+
 <body>
 
-  <!-- 상단 타이틀 -->
-  <div class="topbar">젤리 경찰청</div>
+  <!-- 상단 바 -->
+  <div class="topbar">
+    <img src="/images/logo2.png" alt="로고" />
+    젤리 경찰청
+  </div>
 
-  <!-- 상단 메뉴 + 드롭다운 -->
-<div class="menu">
+  <!-- 메뉴 -->
+  <div class="menu">
 
-  <!-- 소개 -->
-  <div class="mega-dropdown">
-    <a href="#">소개</a>
+    <div class="menu-item" onclick="toggleMenu('intro')">
+      소개 <span id="icon-intro" class="arrow">▼</span>
+    </div>
 
-    <div class="mega-menu">
-      <div class="mega-title">소개</div>
+    <div class="menu-item" onclick="toggleMenu('recruit')">
+      채용공고 <span id="icon-recruit" class="arrow">▼</span>
+    </div>
 
-      <div class="mega-grid">
-        <div class="mega-card">
-          <h4>경찰청 소개</h4>
-          <p>젤리 경찰청의 조직과 역할을 소개합니다.</p>
-        </div>
+    <div class="menu-item" onclick="toggleMenu('center')">
+      고객센터 <span id="icon-center" class="arrow">▼</span>
+    </div>
 
-        <div class="mega-card">
-          <h4>직급표</h4>
-          <p>경찰 내부 직급 체계를 확인할 수 있습니다.</p>
-        </div>
+  </div>
 
-        <div class="mega-card">
-          <h4>부서 소개</h4>
-          <p>부서별 기능과 담당 업무 안내.</p>
-        </div>
-      </div>
+  <!-- 소개 Dropdown -->
+  <div id="dropdown-intro" class="dropdown-box">
+    <div class="dropdown-content">
+      <div onclick="location.href='/intro-police'">경찰청 소개</div>
+      <div onclick="location.href='/rank'">직급표</div>
+      <div onclick="location.href='/departments'">부서 소개</div>
     </div>
   </div>
 
-  <!-- 채용공고 -->
-  <div class="mega-dropdown">
-    <a href="#">채용공고</a>
-
-    <div class="mega-menu">
-      <div class="mega-title">채용공고</div>
-
-      <div class="mega-grid">
-        <div class="mega-card">
-          <h4>지원 자격</h4>
-          <p>지원 가능한 조건을 안내합니다.</p>
-        </div>
-
-        <div class="mega-card">
-          <h4>지원서</h4>
-          <p>지원서 양식을 확인하고 제출하세요.</p>
-        </div>
-      </div>
+  <!-- 채용공고 Dropdown -->
+  <div id="dropdown-recruit" class="dropdown-box">
+    <div class="dropdown-content">
+      <div onclick="location.href='/criteria'">지원 자격</div>
+      <div onclick="location.href='/apply'">지원서</div>
     </div>
   </div>
 
-  <!-- 고객센터 -->
-  <div class="mega-dropdown">
-    <a href="/inquiry">고객센터</a>
-
-    <div class="mega-menu">
-      <div class="mega-title">고객센터</div>
-
-      <div class="mega-grid">
-        <div class="mega-card">
-          <h4>민원실</h4>
-          <p>민원을 접수하고 처리 현황을 확인하세요.</p>
-        </div>
-
-        <div class="mega-card">
-          <h4>건의실</h4>
-          <p>개선 건의 및 의견을 제출할 수 있습니다.</p>
-        </div>
-      </div>
+  <!-- 고객센터 Dropdown -->
+  <div id="dropdown-center" class="dropdown-box">
+    <div class="dropdown-content">
+      <div onclick="location.href='/inquiry'">민원실</div>
+      <div onclick="location.href='/suggest'">건의실</div>
     </div>
   </div>
 
-</div>
+  <script>
+    function toggleMenu(menu) {
+      const dropdown = document.getElementById("dropdown-" + menu);
+      const icon = document.getElementById("icon-" + menu);
 
-</div>
+      const isOpen = dropdown.style.display === "block";
 
+      // 모든 드롭다운 닫기
+      document.querySelectorAll('.dropdown-box').forEach(d => d.style.display = 'none');
+      document.querySelectorAll('.arrow').forEach(a => a.textContent = "▼");
 
-  </div>
-
-  <!-- 중앙 비워둔 영역 -->
-  <div class="center-empty">
-    <!-- 필요하면 나중에 배너나 공지 넣을 자리 -->
-  </div>
+      // 클릭한 메뉴만 다시 열기
+      if (!isOpen) {
+        dropdown.style.display = "block";
+        icon.textContent = "▲";
+      }
+    }
+  </script>
 
 </body>
 </html>
