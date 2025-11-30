@@ -8,173 +8,244 @@
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: #eef2f9;
+      font-family: "Noto Sans KR", sans-serif;
+      background: #f6f9ff;
     }
 
-    /* 상단바 */
-    .topbar {
-      width: 100%;
-      background: #0b3fa7;
+    /* 상단 헤더 */
+    .header {
+      background: #003c8f;
       color: white;
-      padding: 14px 30px;
-      font-size: 22px;
-      font-weight: bold;
+      padding: 10px 20px;
       display: flex;
       align-items: center;
-      gap: 12px;
     }
 
-    .topbar img {
-      height: 32px;
+    .header img {
+      width: 80px;
+      margin-right: 12px;
     }
 
-    /* 메뉴 영역 */
+    .header-title {
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    /* 메뉴 바 */
     .menu {
       width: 100%;
       background: #1a4bd9;
+      padding: 15px 0;
       display: flex;
       justify-content: center;
-      gap: 80px;
-      padding: 12px 0;
+      gap: 100px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .menu a {
+      color: white;
+      font-size: 19px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .arrow {
+      margin-left: 5px;
+      font-size: 14px;
+    }
+
+    /* 메가 메뉴 전체 상자 */
+    .mega-dropdown {
       position: relative;
     }
 
-    .menu-item {
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      user-select: none;
-    }
-
-    /* ▼ / ▲ 아이콘 */
-    .arrow {
-      transition: transform 0.25s;
-    }
-
-    .arrow.open {
-      transform: rotate(180deg);
-    }
-
-    /* 드롭다운 영역 */
-    .dropdown {
-      width: 100%;
-      background: #1a4bd9;
+    .mega-menu {
+      display: none;
       position: absolute;
-      left: 0;
       top: 100%;
-      display: none; /* 기본은 숨김 */
-      padding: 20px 0;
-      animation: slideDown 0.28s ease forwards;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+
+      width: 70%;
+      background: white;
+      padding: 25px 35px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1000;
     }
 
-    /* 드롭다운 항목들 */
-    .dropdown-content {
-      display: flex;
-      justify-content: center;
-      gap: 120px;
-      color: white;
-      font-size: 17px;
-      text-align: center;
-    }
-
-    .dropdown-content a {
-      color: white;
-      text-decoration: none;
+    /* 클릭 시 등장 */
+    .mega-menu.show {
       display: block;
-      margin-top: 6px;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* 제목 */
+    .mega-title {
+      font-size: 21px;
+      font-weight: bold;
+      color: #0b3fa7;
+      margin-bottom: 18px;
+    }
+
+    /* 카드 그리드 (3칸) */
+    .mega-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+    }
+
+    /* 카드 */
+    .mega-card {
+      background: #eef2f9;
+      padding: 18px;
+      border-radius: 10px;
+      cursor: pointer;
       transition: 0.2s;
     }
-    .dropdown-content a:hover {
-      text-decoration: underline;
-      filter: brightness(1.15);
+
+    .mega-card:hover {
+      background: #dbe5f5;
+      transform: translateY(-3px);
     }
 
-    /* 애니메이션 */
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .mega-card h4 {
+      margin: 0 0 10px 0;
+      font-size: 17px;
+      color: #1a4bd9;
+    }
+
+    .mega-card p {
+      margin: 0;
+      color: #333;
+      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- 상단 타이틀 -->
-  <div class="topbar">
-    <img src="/images/logo2.png" alt="로고">
-    젤리 경찰청
+  <!-- 상단 로고 + 타이틀 -->
+  <div class="header">
+    <img src="/images/logo3.png" alt="로고" />
+    <div class="header-title">젤리 경찰청</div>
   </div>
 
-  <!-- 메뉴 영역 -->
+  <!-- 메뉴 -->
   <div class="menu">
-    <div class="menu-item" onclick="toggleDropdown('sogae')">
-      소개 <span id="arrow-sogae" class="arrow">▼</span>
-    </div>
 
-    <div class="menu-item" onclick="toggleDropdown('job')">
-      채용공고 <span id="arrow-job" class="arrow">▼</span>
-    </div>
+    <!-- 소개 -->
+    <div class="mega-dropdown">
+      <a class="dropdown-toggle">소개 <span class="arrow">▼</span></a>
 
-    <div class="menu-item" onclick="toggleDropdown('cs')">
-      고객센터 <span id="arrow-cs" class="arrow">▼</span>
-    </div>
-  </div>
+      <div class="mega-menu">
+        <div class="mega-title">소개</div>
 
-  <!-- 드롭다운 1 : 소개 -->
-  <div id="drop-sogae" class="dropdown">
-    <div class="dropdown-content">
-      <div>
-        <a href="/police">경찰청 소개</a>
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/intro-agency'">
+            <h4>경찰청 소개</h4>
+            <p>젤리 경찰청의 역할과 기능</p>
+          </div>
+
+          <div class="mega-card" onclick="location.href='/intro-rank'">
+            <h4>직급표</h4>
+            <p>경찰 계급 및 구조 안내</p>
+          </div>
+
+          <div class="mega-card" onclick="location.href='/intro-dept'">
+            <h4>부서 소개</h4>
+            <p>각 부서의 역할과 업무 설명</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <a href="/rank">직급표</a>
+    </div>
+
+    <!-- 채용공고 -->
+    <div class="mega-dropdown">
+      <a class="dropdown-toggle">채용공고 <span class="arrow">▼</span></a>
+
+      <div class="mega-menu">
+        <div class="mega-title">채용공고</div>
+
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/apply-conditions'">
+            <h4>지원 자격</h4>
+            <p>지원 가능 요건 확인하기</p>
+          </div>
+
+          <div class="mega-card" onclick="location.href='/apply-form'">
+            <h4>지원서</h4>
+            <p>지원서 작성 및 제출</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <a href="/department">부서 소개</a>
+    </div>
+
+    <!-- 고객센터 -->
+    <div class="mega-dropdown">
+      <a class="dropdown-toggle">고객센터 <span class="arrow">▼</span></a>
+
+      <div class="mega-menu">
+        <div class="mega-title">고객센터</div>
+
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/inquiry'">
+            <h4>민원실</h4>
+            <p>민원 접수 및 처리 안내</p>
+          </div>
+
+          <div class="mega-card" onclick="location.href='/suggest'">
+            <h4>건의실</h4>
+            <p>불편사항 및 개선사항 제출</p>
+          </div>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <!-- 드롭다운 2 : 채용공고 -->
-  <div id="drop-job" class="dropdown">
-    <div class="dropdown-content">
-      <div><a href="/apply">지원 자격</a></div>
-      <div><a href="/applyform">지원서</a></div>
-    </div>
-  </div>
 
-  <!-- 드롭다운 3 : 고객센터 -->
-  <div id="drop-cs" class="dropdown">
-    <div class="dropdown-content">
-      <div><a href="/inquiry">민원실</a></div>
-      <div><a href="/suggest">건의실</a></div>
-    </div>
-  </div>
-
+  <!-- JS : 클릭 드롭다운 기능 -->
   <script>
-    function toggleDropdown(target) {
-      const ids = ["sogae", "job", "cs"];
+    document.querySelectorAll('.dropdown-toggle').forEach(button => {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
 
-      ids.forEach(id => {
-        const drop = document.getElementById("drop-" + id);
-        const arrow = document.getElementById("arrow-" + id);
+        const parent = this.parentElement;
+        const menu = parent.querySelector('.mega-menu');
 
-        if (id === target) {
-          const isOpen = drop.style.display === "block";
-          drop.style.display = isOpen ? "none" : "block";
-          arrow.classList.toggle("open", !isOpen);
-        } else {
-          drop.style.display = "none";
-          arrow.classList.remove("open");
-        }
+        // 다른 드롭다운 닫기
+        document.querySelectorAll('.mega-menu').forEach(m => {
+          if (m !== menu) m.classList.remove('show');
+        });
+
+        // 토글
+        menu.classList.toggle('show');
+
+        // 화살표 초기화
+        document.querySelectorAll('.dropdown-toggle .arrow').forEach(ar => {
+          if (ar !== this.querySelector('.arrow')) ar.textContent = "▼";
+        });
+
+        // 선택된 화살표 토글
+        const arrow = this.querySelector('.arrow');
+        arrow.textContent = arrow.textContent === "▼" ? "▲" : "▼";
       });
-    }
+    });
+
+    // 메뉴 외부 클릭하면 드롭다운 닫힘
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".mega-dropdown")) {
+        document.querySelectorAll(".mega-menu").forEach(menu => menu.classList.remove("show"));
+        document.querySelectorAll(".dropdown-toggle .arrow").forEach(ar => ar.textContent = "▼");
+      }
+    });
   </script>
 
 </body>

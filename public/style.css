@@ -148,10 +148,9 @@ button:hover {
   font-size: 14px;
 }
 
-/* hover 시 내려오는 효과 */
-.mega-dropdown:hover .mega-menu {
+/* 클릭으로 열린 상태 */
+.mega-menu.show {
   display: block;
   opacity: 1;
   transform: translate(-50%, 0);
 }
-
