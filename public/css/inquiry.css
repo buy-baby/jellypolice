@@ -1,0 +1,31 @@
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  margin: 0;
+  background: #f6f9ff;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background: #003c8f;
+  color: white;
+}
+
+.inquiry-logo {
+  width: 180px;   /* 로고 크기 */
+  margin-right: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.container {
+  width: 80%;
+  margin: 40px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 10px;
+}
