@@ -35,17 +35,13 @@ h1 {
   position: relative;
 }
 
-.menu a,
-.menu .menu-btn {
+.menu a {
   color: white;
   font-size: 18px;
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
   user-select: none;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .arrow {
@@ -53,62 +49,58 @@ h1 {
   margin-left: 4px;
 }
 
-/* Mega Menu Base */
+/* mega dropdown */
 .mega-dropdown {
   position: relative;
-  display: inline-block;
 }
 
+/* 메가 메뉴 (정부24 스타일) */
 .mega-menu {
   display: none;
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translate(-50%, -20px);
-
+  transform: translateX(-50%) translateY(-20px);
   width: 70%;
   background: white;
   border-radius: 12px;
-  padding: 25px 35px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  padding: 30px 40px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   z-index: 999;
 
   opacity: 0;
-  transform-origin: top;
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-/* Mega Menu 열린 상태 */
+/* 열린 상태 */
 .mega-menu.show {
   display: block;
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateX(-50%) translateY(0);
 }
 
 /* 제목 */
 .mega-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   color: #0b3fa7;
-  padding-bottom: 10px;
 }
 
-/* 카드 3개 정렬 */
+/* 카드 3열 */
 .mega-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
+  gap: 30px;
 }
 
-/* 카드 스타일 */
+/* 카드 */
 .mega-card {
   background: #eef2f9;
   border-radius: 12px;
   padding: 18px;
   transition: 0.2s;
   cursor: pointer;
-  display: block;
 }
 
 .mega-card:hover {
@@ -117,15 +109,15 @@ h1 {
 }
 
 .mega-card h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   color: #1a4bd9;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .mega-card p {
   margin: 0;
-  color: #333;
   font-size: 14px;
+  color: #333;
 }
 
 /* 공용 container */
