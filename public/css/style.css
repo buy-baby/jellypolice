@@ -28,28 +28,35 @@ h1 {
 .menu {
   width: 100%;
   background: #1a4bd9;
-  padding: 14px 0;
+  padding: 16px 0;
   display: flex;
   justify-content: center;
-  gap: 80px;
+  gap: 90px;
   position: relative;
 }
 
-.menu > .mega-dropdown > a {
+.menu a,
+.menu .menu-btn {
   color: white;
   font-size: 18px;
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.menu > .mega-dropdown > a:hover {
-  text-decoration: underline;
+.arrow {
+  font-size: 14px;
+  margin-left: 4px;
 }
 
 /* Mega Menu Base */
 .mega-dropdown {
   position: relative;
+  display: inline-block;
 }
 
 .mega-menu {
@@ -57,7 +64,7 @@ h1 {
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translate(-50%, -20px);   /* transform 중복 해결됨 */
+  transform: translate(-50%, -20px);
 
   width: 70%;
   background: white;
@@ -84,6 +91,7 @@ h1 {
   font-weight: bold;
   margin-bottom: 18px;
   color: #0b3fa7;
+  padding-bottom: 10px;
 }
 
 /* 카드 3개 정렬 */
@@ -100,6 +108,7 @@ h1 {
   padding: 18px;
   transition: 0.2s;
   cursor: pointer;
+  display: block;
 }
 
 .mega-card:hover {
