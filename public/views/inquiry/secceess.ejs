@@ -4,28 +4,97 @@
   <meta charset="UTF-8">
   <title>민원 접수 완료</title>
   <link rel="stylesheet" href="/css/inquiry.css">
+
+  <style>
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      margin: 0;
+      background: #f2f6ff;
+      text-align: center;
+    }
+
+    header {
+      background: #003c8f;
+      padding: 18px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    header img {
+      width: 70px;
+    }
+
+    .success-box {
+      width: 60%;
+      background: white;
+      margin: 80px auto;
+      padding: 40px 50px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .success-icon {
+      font-size: 60px;
+      color: #1a4bd9;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #0b3fa7;
+      margin-bottom: 14px;
+    }
+
+    p {
+      color: #444;
+      font-size: 17px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: #1a4bd9;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-size: 17px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      filter: brightness(1.15);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 
 <body>
 
-  <header class="inquiry-header">
-      <img src="/images/logo3.png" class="inquiry-logo">
-      <h1>젤리 경찰청 민원실</h1>
-  </header>
+<header>
+  <img src="/images/logo3.png">
+  <h1>민원 접수 완료</h1>
+</header>
 
-  <div class="submit-container">
+<div class="success-box">
+  <div class="success-icon">✔</div>
+  <h2><%= name %>님, 민원이 정상적으로 접수되었습니다.</h2>
+  <p>
+    접수하신 민원은 담당 부서에서 검토 후 순차적으로 처리될 예정입니다.  
+    처리 결과는 관리자 확인을 통해 안내될 수 있습니다.
+  </p>
 
-    <h2 style="color:#003c8f;">민원이 정상적으로 접수되었습니다</h2>
-
-    <p style="font-size:17px; margin-top:20px;">
-      제출하신 민원은 담당자가 확인 후 접수 처리됩니다.
-    </p>
-
-    <div style="margin-top:40px;">
-      <a href="/inquiry" class="back-btn">← 민원실로 돌아가기</a>
-    </div>
-
-  </div>
+  <a href="/"><button>홈으로 돌아가기</button></a>
+</div>
 
 </body>
 </html>
