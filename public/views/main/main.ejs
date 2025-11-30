@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>젤리 경찰청</title>
 
+  <!-- 외부 CSS -->
   <link rel="stylesheet" href="/css/style.css">
 
 </head>
@@ -93,7 +94,7 @@
   <!-- 중앙 빈 공간 -->
   <div style="height: 500px;"></div>
 
-  <!-- ========== 드롭다운 JS ========== -->
+  <!-- 드롭다운 JS -->
   <script>
     document.querySelectorAll(".mega-dropdown").forEach(drop => {
       const btn = drop.querySelector(".menu-btn");
@@ -103,26 +104,22 @@
       btn.addEventListener("click", (e) => {
         e.preventDefault();
 
-        // 이미 열려 있으면 닫기
         if (menu.classList.contains("show")) {
           menu.classList.remove("show");
           arrow.textContent = "▼";
           return;
         }
 
-        // 다른 메뉴들 닫기
         document.querySelectorAll(".mega-menu.show").forEach(m => {
           m.classList.remove("show");
           m.parentElement.querySelector(".arrow").textContent = "▼";
         });
 
-        // 현재 메뉴 열기
         menu.classList.add("show");
         arrow.textContent = "▲";
       });
     });
 
-    // 화면 클릭하면 메뉴 닫기
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".mega-dropdown")) {
         document.querySelectorAll(".mega-menu.show").forEach(m => {
