@@ -34,7 +34,7 @@ h1 {
   justify-content: center;   /* 가로 중앙 정렬 */
   align-items: center;
 
-  gap: 200px;                  /* 메뉴 간 거리 */
+  gap: 120px;                  /* 메뉴 간 거리 */
   position: relative;
 }
 
@@ -54,9 +54,7 @@ h1 {
 
 /* mega dropdown */
 .mega-dropdown {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: relative;
 }
 
 .menu > .mega-dropdown > a {
