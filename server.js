@@ -63,7 +63,6 @@ function requireAdmin(req, res, next) {
 }
 
 // -------------------- 라우팅 --------------------
-
 // 메인 페이지
 app.get("/", (req, res) => {
   res.render("main/main");
@@ -101,21 +100,14 @@ app.post("/submit", upload.single("file"), async (req, res) => {
     `INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)`,
     [name, identity, content, fileKey],
     () => {
-      // 성공 시 success 페이지 렌더링
-      res.render("inquiry/success");
+      res.render("inquiry/success", { name });
     }
   );
 });
 
-
 // 건의 사항
 app.get("/suggest", (req, res) => {
   res.render("suggest/suggest");
-});
-
-// FAQ
-app.get("/faq", (req, res) => {
-  res.render("faq/faq");
 });
 
 // 로그인 페이지
@@ -200,20 +192,6 @@ app.get("/apply/conditions", (req, res) => {
 
 app.get("/apply/apply", (req, res) => {
   res.render("apply/apply_apply");
-});
-
-// -------------------- 민원 / 건의 --------------------
-app.get("/inquiry", (req, res) => {
-  res.render("inquiry/index");
-});
-
-app.get("/suggest", (req, res) => {
-  res.render("suggest/suggest");
-});
-
-// -------------------- 메인 --------------------
-app.get("/", (req, res) => {
-  res.render("main/main");
 });
 
 // -------------------- 서버 실행 --------------------
