@@ -101,10 +101,12 @@ app.post("/submit", upload.single("file"), async (req, res) => {
     `INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)`,
     [name, identity, content, fileKey],
     () => {
-      res.render("inquiry/index", { message: "민원이 성공적으로 접수되었습니다!" });
+      // 성공 시 success 페이지 렌더링
+      res.render("inquiry/success");
     }
   );
 });
+
 
 // 건의 사항
 app.get("/suggest", (req, res) => {
