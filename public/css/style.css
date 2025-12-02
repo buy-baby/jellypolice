@@ -87,7 +87,7 @@ h1 {
 
 
 .mega-menu.show {
-  opacity: 1;
+  opacity: 1; 
   transform: translateY(0);
 }
 
@@ -97,6 +97,10 @@ h1 {
   font-weight: bold;
   margin-bottom: 22px;
   color: #0b3fa7;
+
+  width: 100%;          /* 🔥 가로 공간 전체 사용 */
+  text-align: left;     /* 🔥 가로로 자연스럽게 */
+  white-space: nowrap;  /* 🔥 줄바꿈 방지 (세로로 깨지는 문제 해결) */
 }
 
 /* 카드 3열 */
