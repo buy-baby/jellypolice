@@ -70,7 +70,7 @@ h1 {
   top: 100%;
   left: 50%;                /* 부모(.mega-dropdown)의 정중앙 */
   transform: translateX(-50%) translateY(-20px); 
-  width: 700px;             /* 적당한 고정폭 */
+  width: 1000px;             /* 적당한 고정폭 */
   max-width: 90%;           
   background: white;
   border-radius: 20px;
