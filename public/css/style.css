@@ -72,17 +72,16 @@ h1 {
   background: white;
   border-radius: 20px;
   padding: 30px 35px;
-
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
 
-  /* 🔥 핵심: 높이가 내용에 맞게 자동으로 늘어나게 한다 */
-  display: flex;
-  flex-direction: column;
-  gap: 20px; /* 제목과 카드 사이 간격 */
+  display: flex;            /* 🔥 세로로 전체 배치 */
+  flex-direction: column;   /* 🔥 제목 → 그 아래 카드 */
+  gap: 20px;                /* 제목과 카드 간격 */
+
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .mega-menu.show {
@@ -91,30 +90,24 @@ h1 {
   transform: translateX(-50%) translateY(0);
 }
 
-
-/* 제목 */
+/* 🔥 제목이 전체 가로 다 쓰도록 */
 .mega-title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 22px;
-  color: #0b3fa7;
-
   width: 100%;
   text-align: left;
-
-  /* 🔥 세로로 깨지는 문제 완전 차단 */
   white-space: nowrap;
+  font-size: 22px;
+  font-weight: bold;
+  color: #0b3fa7;
 }
 
-/* 카드 3열 */
+/* 🔥 카드 3개도 전체폭에서 균등하게 정렬 */
 .mega-grid {
+  width: 100%;           /* ← 이게 핵심 */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
-
-  /* 🔥 카드 영역이 화면 크기로 인해 줄바꿈 되지 않도록 */
-  min-width: 650px;
+  gap: 30px;
 }
+
 
 /* 카드 */
 .mega-card {
