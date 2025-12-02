@@ -52,43 +52,33 @@ h1 {
   margin-left: 4px;
 }
 
-/* mega dropdown */
 .mega-dropdown {
-  position: relative;
+  position: static;   /* 여기서 부모 기준 positioning 제거 */
 }
 
-/* 드롭다운 박스 */
 .mega-menu {
-  box-sizing: border-box;
+  position: absolute;
+  top: 100%;
+  left: 50%;                     /* 화면 중앙 기준 */
+  transform: translateX(-50%);   /* 중앙 정렬 */
 
   width: 900px;
   max-width: 90%;
 
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(10px);
-
   background: white;
   border-radius: 20px;
-  padding: 30px 35px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  padding: 30px 40px;
 
   opacity: 0;
   pointer-events: none;
 
-  display: flex;            /* 🔥 세로로 전체 배치 */
-  flex-direction: column;   /* 🔥 제목 → 그 아래 카드 */
-  gap: 20px;                /* 제목과 카드 간격 */
-
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  display: block;                /* flex 금지 → 세로 찌그러짐 방지 */
 }
-
 .mega-menu.show {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
 }
+
 
 /* 🔥 제목이 전체 가로 다 쓰도록 */
 .mega-title {
