@@ -66,8 +66,6 @@ h1 {
 
   position: absolute;
   top: 100%;
-  
-  /* 🔥 버튼 기준으로 정확히 가운데 정렬 */
   left: 50%;
   transform: translateX(-50%) translateY(10px);
 
@@ -76,18 +74,23 @@ h1 {
   padding: 30px 35px;
 
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+
   opacity: 0;
   pointer-events: none;
-
   transition: opacity 0.25s ease, transform 0.25s ease;
+
+  /* 🔥 핵심: 높이가 내용에 맞게 자동으로 늘어나게 한다 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 제목과 카드 사이 간격 */
 }
 
-/* 드롭다운 활성화 */
 .mega-menu.show {
   opacity: 1;
   pointer-events: auto;
   transform: translateX(-50%) translateY(0);
 }
+
 
 /* 제목 */
 .mega-title {
