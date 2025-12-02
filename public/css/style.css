@@ -57,38 +57,36 @@ h1 {
   position: relative;
 }
 
-.menu > .mega-dropdown > a {
-  display: inline-block;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
+/* 드롭다운 박스 */
 .mega-menu {
-  box-sizing: border-box;   /* ← 이게 핵심 */
+  box-sizing: border-box;
 
-  width: 900px;             
+  width: 900px;
   max-width: 90%;
 
   position: absolute;
   top: 100%;
-  left: 0%;
-  transform: translateY(0px);
+  
+  /* 🔥 버튼 기준으로 정확히 가운데 정렬 */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
 
   background: white;
   border-radius: 20px;
-  padding: 25px 30px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  padding: 30px 35px;
 
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
   opacity: 0;
+  pointer-events: none;
+
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-
+/* 드롭다운 활성화 */
 .mega-menu.show {
-  opacity: 1; 
-  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* 제목 */
@@ -98,17 +96,21 @@ h1 {
   margin-bottom: 22px;
   color: #0b3fa7;
 
-  width: 100%;          /* 🔥 가로 공간 전체 사용 */
-  text-align: left;     /* 🔥 가로로 자연스럽게 */
-  white-space: nowrap;  /* 🔥 줄바꿈 방지 (세로로 깨지는 문제 해결) */
+  width: 100%;
+  text-align: left;
+
+  /* 🔥 세로로 깨지는 문제 완전 차단 */
+  white-space: nowrap;
 }
 
 /* 카드 3열 */
 .mega-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-  min-width: 600px;
+  gap: 25px;
+
+  /* 🔥 카드 영역이 화면 크기로 인해 줄바꿈 되지 않도록 */
+  min-width: 650px;
 }
 
 /* 카드 */
@@ -118,13 +120,13 @@ h1 {
   padding: 18px;
   transition: 0.2s;
   cursor: pointer;
-  min-width: 160px;
 }
 
 .mega-card:hover {
   background: #dbe5f5;
   transform: translateY(-3px);
 }
+
 
 .mega-card h4 {
   margin: 0 0 10px;
