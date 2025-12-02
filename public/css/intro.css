@@ -58,3 +58,54 @@
   font-size: 20px;
   color: #003c8f;
 }
+
+.intro-container {
+  width: 70%;
+  margin: 40px auto;
+  padding-bottom: 60px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #003c8f;
+  margin-bottom: 30px;
+}
+
+.rank-section {
+  margin-bottom: 40px;
+}
+
+.rank-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.rank-title.high { color: #d62828; }   /* 빨강 */
+.rank-title.mid { color: #0057d9; }    /* 파랑 */
+.rank-title.normal { color: #0077cc; } /* 하늘 */
+
+.rank-subtitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 18px 0 10px;
+  color: #003c8f;
+}
+
+.rank-card {
+  background: #eef2f9;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.total-count {
+  margin-top: 40px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #003c8f;
+  text-align: center;
+}
