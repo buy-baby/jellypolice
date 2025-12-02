@@ -109,3 +109,49 @@
   color: #003c8f;
   text-align: center;
 }
+
+/* 부서 소개 페이지 공통 */
+.intro-container {
+  width: 70%;
+  margin: 40px auto;
+  background: white;
+  padding: 40px 50px;
+  border-radius: 15px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.1);
+}
+
+.intro-title {
+  font-size: 30px;
+  margin-bottom: 12px;
+  color: #003c8f;
+  font-weight: 700;
+}
+
+.intro-desc {
+  font-size: 16px;
+  color: #444;
+  margin-bottom: 35px;
+  line-height: 1.6;
+}
+
+/* 부서 박스 */
+.dept-box {
+  margin-bottom: 40px;
+  padding: 25px 30px;
+  border-left: 6px solid #1a4bd9;
+  background: #f2f5fc;
+  border-radius: 10px;
+}
+
+.dept-title {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #0b3fa7;
+  font-weight: bold;
+}
+
+.dept-text {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.7;
+}
