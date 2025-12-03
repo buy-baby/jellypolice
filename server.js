@@ -1,15 +1,10 @@
 const express = require("express");
 const path = require("path");
-const Database = require("better-sqlite3");
+const fs = require("fs");
 const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const fs = require("fs");
-const {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand
-} = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,30 +15,28 @@ const r2 = new S3Client({
   endpoint: process.env.R2_ENDPOINT,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY,
-    secretAccessKey: process.env.R2_SECRET_KEY
-  }
+    secretAccessKey: process.env.R2_SECRET_KEY,
+  },
 });
-
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- DB 폴더 자동 생성 --------------------
-const dbDir = "./database";
-if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
+// -------------------- JSON DB 설정 --------------------
+const DB_PATH = "./database/complaints.json";
 
-// -------------------- better-sqlite3 DB --------------------
-const db = new Database("./database/complaints.db");
+// DB 없으면 자동 생성
+if (!fs.existsSync("./database")) fs.mkdirSync("./database");
+if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify([]));
 
-// 테이블 생성
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS complaints (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    identity TEXT,
-    content TEXT,
-    file TEXT,
-    created DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`).run();
+// DB 읽기
+function readDB() {
+  const data = fs.readFileSync(DB_PATH, "utf8");
+  return JSON.parse(data);
+}
+
+// DB 저장
+function writeDB(data) {
+  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+}
 
 // -------------------- 미들웨어 --------------------
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -52,7 +45,6 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", "./public/views");
 
-// multer 메모리 업로드 (R2 저장 방식)
 const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------- 관리자 인증 --------------------
@@ -70,9 +62,7 @@ app.get("/", (req, res) => {
   res.render("main/main");
 });
 
-// -------------------- 민원 --------------------
-
-// 민원 소개 페이지
+// 민원 안내 페이지
 app.get("/inquiry", (req, res) => {
   res.render("inquiry/index");
 });
@@ -82,12 +72,12 @@ app.get("/submit", (req, res) => {
   res.render("inquiry/submit");
 });
 
-// 민원 제출 처리
+// 민원 제출 처리(JSON DB 저장)
 app.post("/submit", upload.single("file"), async (req, res) => {
   const { name, identity, content } = req.body;
   let fileKey = null;
 
-  // 첨부파일 R2 업로드
+  // 파일 업로드가 있는 경우 R2로 전송
   if (req.file) {
     fileKey = Date.now() + "_" + req.file.originalname;
 
@@ -96,29 +86,34 @@ app.post("/submit", upload.single("file"), async (req, res) => {
         Bucket: R2_BUCKET,
         Key: fileKey,
         Body: req.file.buffer,
-        ContentType: req.file.mimetype
+        ContentType: req.file.mimetype,
       })
     );
   }
 
-  // DB 저장
-  const stmt = db.prepare(
-    "INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)"
-  );
-  stmt.run(name, identity, content, fileKey);
+  const db = readDB();
 
-  // 성공 페이지로 이동
+  const newComplaint = {
+    id: Date.now(), // JSON DB라서 시간 기반 ID 사용
+    name,
+    identity,
+    content,
+    file: fileKey,
+    created: new Date().toISOString(),
+  };
+
+  db.push(newComplaint);
+  writeDB(db);
+
   res.render("inquiry/success", { name });
 });
 
-// -------------------- 건의 --------------------
+// 건의 사항
 app.get("/suggest", (req, res) => {
   res.render("suggest/suggest");
 });
 
-// -------------------- 관리자 --------------------
-
-// 로그인 페이지
+// 로그인
 app.get("/login", (req, res) => {
   res.render("admin/login");
 });
@@ -133,71 +128,64 @@ app.post("/login", (req, res) => {
   return res.render("admin/login", { error: "비밀번호가 틀렸습니다." });
 });
 
-// 관리자 메인
+// 관리자 메인(JSON DB 조회)
 app.get("/admin", requireAdmin, (req, res) => {
-  const rows = db.prepare("SELECT * FROM complaints ORDER BY id DESC").all();
-  res.render("admin/admin", { complaints: rows });
+  const db = readDB();
+  const list = db.sort((a, b) => b.id - a.id);
+  res.render("admin/admin", { complaints: list });
 });
 
-// 민원 상세 보기
+// 민원 상세 페이지
 app.get("/view/:id", requireAdmin, (req, res) => {
-  const id = req.params.id;
-  const row = db.prepare("SELECT * FROM complaints WHERE id = ?").get(id);
+  const id = Number(req.params.id);
+  const db = readDB();
+  const complaint = db.find((x) => x.id === id);
 
-  if (!row) return res.send("NOT FOUND");
-  res.render("admin/view", { c: row });
+  if (!complaint) return res.send("NOT FOUND");
+
+  res.render("admin/view", { c: complaint });
 });
 
-// 첨부파일 다운로드 (R2)
+// R2 파일 다운로드
 app.get("/file/:key", requireAdmin, async (req, res) => {
-  const key = req.params.key;
-
   try {
+    const key = req.params.key;
+
     const data = await r2.send(
       new GetObjectCommand({
         Bucket: R2_BUCKET,
-        Key: key
+        Key: key,
       })
     );
 
     res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
     data.Body.pipe(res);
   } catch (e) {
-    console.error(e);
     res.send("파일을 찾을 수 없습니다.");
   }
 });
 
-// 민원 삭제
+// 삭제
 app.get("/delete/:id", requireAdmin, (req, res) => {
-  const id = req.params.id;
-  db.prepare("DELETE FROM complaints WHERE id = ?").run(id);
+  const id = Number(req.params.id);
+  let db = readDB();
+
+  db = db.filter((x) => x.id !== id);
+
+  writeDB(db);
   res.redirect("/admin");
 });
 
-// -------------------- 소개 페이지 --------------------
-app.get("/intro/agency", (req, res) => {
-  res.render("intro/intro_agency");
-});
+// 소개 페이지
+app.get("/intro/agency", (req, res) => res.render("intro/intro_agency"));
+app.get("/intro/rank", (req, res) => res.render("intro/intro_rank"));
+app.get("/intro/department", (req, res) => res.render("intro/intro_department"));
 
-app.get("/intro/rank", (req, res) => {
-  res.render("intro/intro_rank");
-});
+// 채용 페이지
+app.get("/apply/conditions", (req, res) => res.render("apply/apply_conditions"));
+app.get("/apply/apply", (req, res) => res.render("apply/apply_apply"));
 
-app.get("/intro/department", (req, res) => {
-  res.render("intro/intro_department");
-});
-
-// -------------------- 채용 페이지 --------------------
-app.get("/apply/conditions", (req, res) => {
-  res.render("apply/apply_conditions");
-});
-
-app.get("/apply/apply", (req, res) => {
-  res.render("apply/apply_apply");
-});
-
-// -------------------- 서버 실행 --------------------
+// 서버 실행
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
