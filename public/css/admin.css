@@ -68,3 +68,44 @@ h1 {
 .back-btn:hover {
   background: #002d66;
 }
+
+.admin-container {
+  width: 80%;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.admin-grid {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+}
+
+.admin-box {
+  width: 260px;
+  padding: 30px 25px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  text-decoration: none;
+  color: black;
+  transition: 0.25s;
+}
+
+.admin-box:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+}
+
+.admin-box h2 {
+  margin: 0 0 10px;
+  color: #1a4bd9;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.admin-box p {
+  margin: 0;
+  color: #555;
+  font-size: 15px;
+}

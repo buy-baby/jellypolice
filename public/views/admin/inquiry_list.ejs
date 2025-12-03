@@ -2,34 +2,33 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>건의 목록</title>
+  <title>민원 목록</title>
   <link rel="stylesheet" href="/css/admin.css">
 </head>
 
 <body>
   <div class="admin-container">
-    <h1>💡 건의 목록</h1>
+    <h1>📄 민원 목록</h1>
     <a href="/admin" class="back-btn">← 관리자 메인</a>
 
     <table class="admin-table">
       <tr>
-        <th>#</th>
+        <th>ID</th>
+        <th>이름</th>
         <th>고유번호</th>
-        <th>내용</th>
         <th>날짜</th>
         <th>보기</th>
       </tr>
 
-      <% suggestions.forEach((s, i) => { %>
+      <% complaints.forEach(c => { %>
         <tr>
-          <td><%= i %></td>
-          <td><%= s.identity %></td>
-          <td class="ellipsis"><%= s.content %></td>
-          <td><%= s.created.substring(0,10) %></td>
-          <td><a class="view-btn" href="/admin/suggest/view/<%= i %>">보기</a></td>
+          <td><%= c.id %></td>
+          <td><%= c.name %></td>
+          <td><%= c.identity %></td>
+          <td><%= c.created.substring(0,10) %></td>
+          <td><a class="view-btn" href="/admin/inquiry/view/<%= c.id %>">보기</a></td>
         </tr>
       <% }) %>
-
     </table>
   </div>
 </body>

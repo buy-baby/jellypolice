@@ -2,24 +2,26 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>건의 상세보기</title>
+  <title>건의 상세</title>
   <link rel="stylesheet" href="/css/admin.css">
 </head>
+
 <body>
+  <div class="admin-container">
+    <h1>💡 건의 상세</h1>
+    <a href="/admin/suggest" class="back-btn">← 목록으로</a>
 
-  <h1>건의 상세보기</h1>
+    <div class="detail-box">
+      <p><strong>고유번호:</strong> <%= item.identity %></p>
+      <p><strong>내용:</strong><br><%= item.content %></p>
+      <p><strong>제출일:</strong> <%= item.created.substring(0,10) %></p>
 
-  <div class="info-box">
-    <p><strong>이름:</strong> <%= item.name %></p>
-    <p><strong>고유번호:</strong> <%= item.identity %></p>
-    <p><strong>작성일:</strong> <%= item.created.substring(0, 10) %></p>
-    <p><strong>건의 내용:</strong></p>
-    <div class="content-box"><%= item.content %></div>
+      <a class="delete-btn" href="/admin/suggest/delete/<%= id %>"
+         onclick="return confirm('정말 삭제하시겠습니까?')">
+        삭제
+      </a>
+    </div>
+
   </div>
-
-  <a href="/admin/suggest" class="back-btn">목록으로</a>
-  <a href="/admin/suggest/delete/<%= id %>" class="delete-btn"
-     onclick="return confirm('정말 삭제하시겠습니까?');">건의 삭제</a>
-
 </body>
 </html>

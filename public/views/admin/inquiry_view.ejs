@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>민원 상세</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+  <div class="admin-container">
+    <h1>📄 민원 상세</h1>
+    <a href="/admin/inquiry" class="back-btn">← 목록으로</a>
+
+    <div class="detail-box">
+      <p><strong>이름:</strong> <%= c.name %></p>
+      <p><strong>고유번호:</strong> <%= c.identity %></p>
+      <p><strong>내용:</strong><br><%= c.content %></p>
+      <p><strong>제출일:</strong> <%= c.created.substring(0,10) %></p>
+
+      <% if (c.file) { %>
+        <a class="file-btn" href="/file/<%= c.file %>">첨부파일 다운로드</a>
+      <% } %>
+
+      <a class="delete-btn" href="/admin/inquiry/delete/<%= c.id %>" onclick="return confirm('정말 삭제할까요?')">삭제</a>
+    </div>
+
+  </div>
+</body>
+</html>

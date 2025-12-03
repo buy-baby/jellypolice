@@ -60,21 +60,19 @@ function requireAdmin(req, res, next) {
 }
 
 // -------------------- 메인 메뉴 --------------------
-app.get("/", (req, res) => {
-  res.render("main/main");
-});
+app.get("/", (req, res) => res.render("main/main"));
 
-// -------------------- 민원 --------------------
+// -------------------- 민원 제출 --------------------
 app.get("/inquiry", (req, res) => res.render("inquiry/index"));
 app.get("/submit", (req, res) => res.render("inquiry/submit"));
 
-// 제출
 app.post("/submit", upload.single("file"), async (req, res) => {
   const { name, identity, content } = req.body;
-  let fileKey = null;
 
+  let fileKey = null;
   if (req.file) {
     fileKey = Date.now() + "_" + req.file.originalname;
+
     await r2.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET,
@@ -100,19 +98,16 @@ app.post("/submit", upload.single("file"), async (req, res) => {
   res.render("inquiry/success", { name });
 });
 
-// -------------------- 건의 --------------------
-app.get("/suggest", (req, res) => {
-  res.render("suggest/suggest");
-});
+// -------------------- 건의 제출 --------------------
+app.get("/suggest", (req, res) => res.render("suggest/suggest"));
 
 app.post("/suggest", (req, res) => {
-  const { name, identity, content } = req.body;
+  const { identity, content } = req.body;
 
   const list = readJSON(SUGGEST_DB);
 
   list.push({
     id: Date.now(),
-    name,
     identity,
     content,
     created: new Date().toISOString(),
@@ -128,38 +123,56 @@ app.get("/intro/rank", (req, res) => res.render("intro/intro_rank"));
 app.get("/intro/department", (req, res) => res.render("intro/intro_department"));
 
 // -------------------- 채용 --------------------
-app.get("/apply/conditions", (req, res) => res.render("apply/apply_conditions"));
+app.get("/apply/conditions", (req, res) =>
+  res.render("apply/apply_conditions")
+);
 app.get("/apply/apply", (req, res) => res.render("apply/apply_apply"));
 
 // -------------------- 관리자 로그인 --------------------
-app.get("/login", (req, res) => res.render("admin/login"));
+app.get("/login", (req, res) => res.render("admin/admin_login"));
 
 app.post("/login", (req, res) => {
   if (req.body.password === ADMIN_PASSWORD) {
     res.cookie("admin", "loggedin");
     return res.redirect("/admin");
   }
-  res.render("admin/login", { error: "비밀번호가 틀렸습니다." });
+  res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
 });
 
-// -------------------- 민원 관리자 --------------------
+// -------------------- 관리자 메인 --------------------
 app.get("/admin", requireAdmin, (req, res) => {
-  const list = readJSON(COMPLAINT_DB).sort((a, b) => b.id - a.id);
-  res.render("admin/admin", { complaints: list });
+  res.render("admin/admin_main");
 });
 
-app.get("/view/:id", requireAdmin, (req, res) => {
+// ------------------------------------------------------
+// -------------------- 민원 관리자 ---------------------
+// ------------------------------------------------------
+app.get("/admin/inquiry", requireAdmin, (req, res) => {
+  const list = readJSON(COMPLAINT_DB).sort((a, b) => b.id - a.id);
+  res.render("admin/inquiry_list", { complaints: list });
+});
+
+app.get("/admin/inquiry/view/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const item = readJSON(COMPLAINT_DB).find((x) => x.id === id);
   if (!item) return res.send("존재하지 않는 민원입니다.");
-  res.render("admin/view", { c: item });
+
+  res.render("admin/inquiry_view", { c: item });
+});
+
+app.get("/admin/inquiry/delete/:id", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const list = readJSON(COMPLAINT_DB);
+
+  writeJSON(COMPLAINT_DB, list.filter((x) => x.id !== id));
+  res.redirect("/admin/inquiry");
 });
 
 // 파일 다운로드
 app.get("/file/:key", requireAdmin, async (req, res) => {
-  const key = req.params.key;
-
   try {
+    const key = req.params.key;
+
     const data = await r2.send(
       new GetObjectCommand({
         Bucket: R2_BUCKET,
@@ -174,18 +187,9 @@ app.get("/file/:key", requireAdmin, async (req, res) => {
   }
 });
 
-// 민원 삭제
-app.get("/delete/:id", requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const list = readJSON(COMPLAINT_DB);
-  writeJSON(
-    COMPLAINT_DB,
-    list.filter((x) => x.id !== id)
-  );
-  res.redirect("/admin");
-});
-
-// -------------------- 건의 관리자 --------------------
+// ------------------------------------------------------
+// -------------------- 건의 관리자 ----------------------
+// ------------------------------------------------------
 app.get("/admin/suggest", requireAdmin, (req, res) => {
   const list = readJSON(SUGGEST_DB).sort((a, b) => b.id - a.id);
   res.render("admin/suggest_list", { suggestions: list });
@@ -194,6 +198,7 @@ app.get("/admin/suggest", requireAdmin, (req, res) => {
 app.get("/admin/suggest/view/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const item = readJSON(SUGGEST_DB).find((x) => x.id === id);
+
   if (!item) return res.send("존재하지 않는 건의입니다.");
   res.render("admin/suggest_view", { item });
 });
@@ -201,10 +206,8 @@ app.get("/admin/suggest/view/:id", requireAdmin, (req, res) => {
 app.get("/admin/suggest/delete/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const list = readJSON(SUGGEST_DB);
-  writeJSON(
-    SUGGEST_DB,
-    list.filter((x) => x.id !== id)
-  );
+
+  writeJSON(SUGGEST_DB, list.filter((x) => x.id !== id));
   res.redirect("/admin/suggest");
 });
 
