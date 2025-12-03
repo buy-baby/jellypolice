@@ -108,11 +108,6 @@ app.post("/submit", upload.single("file"), async (req, res) => {
   res.render("inquiry/success", { name });
 });
 
-// 건의 사항
-app.get("/suggest", (req, res) => {
-  res.render("suggest/suggest");
-});
-
 // 로그인
 app.get("/login", (req, res) => {
   res.render("admin/login");
@@ -190,23 +185,30 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// 건의 작성 페이지
+app.get("/suggest", (req, res) => {
+  res.render("suggest/suggest");
+});
+
 // 건의 제출 처리
 app.post("/suggest", (req, res) => {
-  const { content } = req.body;
+  const { name, identity, content } = req.body;
 
-  const filePath = "./database/suggest.json";
+  const suggestions = JSON.parse(
+    fs.readFileSync("./database/suggest.json", "utf8")
+  );
 
-  let list = [];
-  if (fs.existsSync(filePath)) {
-    list = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  }
-
-  list.push({
+  suggestions.push({
+    name,
+    identity,
     content,
-    date: new Date().toISOString()
+    created: new Date().toISOString()
   });
 
-  fs.writeFileSync(filePath, JSON.stringify(list, null, 2));
+  fs.writeFileSync(
+    "./database/suggest.json",
+    JSON.stringify(suggestions, null, 2)
+  );
 
-  res.render("suggest/success");   // name 없음
+  res.render("suggest/success");
 });
