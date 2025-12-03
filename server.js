@@ -1,12 +1,15 @@
 const express = require("express");
 const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
 const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const fs = require("fs");
-
-const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand
+} = require("@aws-sdk/client-s3");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,26 +26,24 @@ const r2 = new S3Client({
 
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- 폴더 자동 생성 --------------------
+// -------------------- DB 폴더 자동 생성 --------------------
 const dbDir = "./database";
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 
-// -------------------- DB --------------------
-const db = new sqlite3.Database("./database/complaints.db", (err) => {
-  if (err) console.error("DB ERROR:", err);
-  else {
-    db.run(
-      `CREATE TABLE IF NOT EXISTS complaints (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         name TEXT,
-         identity TEXT,
-         content TEXT,
-         file TEXT,
-         created DATETIME DEFAULT CURRENT_TIMESTAMP
-       )`
-    );
-  }
-});
+// -------------------- better-sqlite3 DB --------------------
+const db = new Database("./database/complaints.db");
+
+// 테이블 생성
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS complaints (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    identity TEXT,
+    content TEXT,
+    file TEXT,
+    created DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
 
 // -------------------- 미들웨어 --------------------
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -51,7 +52,7 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.set("views", "./public/views");
 
-// multer 메모리 업로드 (R2로 바로 업로드)
+// multer 메모리 업로드 (R2 저장 방식)
 const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------- 관리자 인증 --------------------
@@ -63,10 +64,13 @@ function requireAdmin(req, res, next) {
 }
 
 // -------------------- 라우팅 --------------------
+
 // 메인 페이지
 app.get("/", (req, res) => {
   res.render("main/main");
 });
+
+// -------------------- 민원 --------------------
 
 // 민원 소개 페이지
 app.get("/inquiry", (req, res) => {
@@ -83,6 +87,7 @@ app.post("/submit", upload.single("file"), async (req, res) => {
   const { name, identity, content } = req.body;
   let fileKey = null;
 
+  // 첨부파일 R2 업로드
   if (req.file) {
     fileKey = Date.now() + "_" + req.file.originalname;
 
@@ -96,26 +101,28 @@ app.post("/submit", upload.single("file"), async (req, res) => {
     );
   }
 
-  db.run(
-    `INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)`,
-    [name, identity, content, fileKey],
-    () => {
-      res.render("inquiry/success", { name });
-    }
+  // DB 저장
+  const stmt = db.prepare(
+    "INSERT INTO complaints (name, identity, content, file) VALUES (?, ?, ?, ?)"
   );
+  stmt.run(name, identity, content, fileKey);
+
+  // 성공 페이지로 이동
+  res.render("inquiry/success", { name });
 });
 
-// 건의 사항
+// -------------------- 건의 --------------------
 app.get("/suggest", (req, res) => {
   res.render("suggest/suggest");
 });
+
+// -------------------- 관리자 --------------------
 
 // 로그인 페이지
 app.get("/login", (req, res) => {
   res.render("admin/login");
 });
 
-// 로그인 처리
 app.post("/login", (req, res) => {
   const { password } = req.body;
 
@@ -128,19 +135,17 @@ app.post("/login", (req, res) => {
 
 // 관리자 메인
 app.get("/admin", requireAdmin, (req, res) => {
-  db.all(`SELECT * FROM complaints ORDER BY id DESC`, (err, rows) => {
-    res.render("admin/admin", { complaints: rows });
-  });
+  const rows = db.prepare("SELECT * FROM complaints ORDER BY id DESC").all();
+  res.render("admin/admin", { complaints: rows });
 });
 
-// 민원 상세 페이지
+// 민원 상세 보기
 app.get("/view/:id", requireAdmin, (req, res) => {
   const id = req.params.id;
+  const row = db.prepare("SELECT * FROM complaints WHERE id = ?").get(id);
 
-  db.get(`SELECT * FROM complaints WHERE id = ?`, [id], (err, row) => {
-    if (!row) return res.send("NOT FOUND");
-    res.render("admin/view", { c: row });
-  });
+  if (!row) return res.send("NOT FOUND");
+  res.render("admin/view", { c: row });
 });
 
 // 첨부파일 다운로드 (R2)
@@ -163,13 +168,11 @@ app.get("/file/:key", requireAdmin, async (req, res) => {
   }
 });
 
-// 삭제
+// 민원 삭제
 app.get("/delete/:id", requireAdmin, (req, res) => {
   const id = req.params.id;
-
-  db.run(`DELETE FROM complaints WHERE id = ?`, id, () => {
-    res.redirect("/admin");
-  });
+  db.prepare("DELETE FROM complaints WHERE id = ?").run(id);
+  res.redirect("/admin");
 });
 
 // -------------------- 소개 페이지 --------------------
