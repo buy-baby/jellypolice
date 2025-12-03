@@ -20,23 +20,27 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- JSON DB 설정 --------------------
-const DB_PATH = "./database/complaints.json";
-
-// DB 없으면 자동 생성
-if (!fs.existsSync("./database")) fs.mkdirSync("./database");
-if (!fs.existsSync(DB_PATH)) fs.writeFileSync(DB_PATH, JSON.stringify([]));
-
-// DB 읽기
-function readDB() {
-  const data = fs.readFileSync(DB_PATH, "utf8");
-  return JSON.parse(data);
+// -------------------- JSON DB 공통 함수 --------------------
+function ensureDB(file) {
+  if (!fs.existsSync("./database")) fs.mkdirSync("./database");
+  if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify([]));
 }
 
-// DB 저장
-function writeDB(data) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+function readJSON(file) {
+  return JSON.parse(fs.readFileSync(file, "utf8"));
 }
+
+function writeJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
+
+// DB 파일 경로
+const COMPLAINT_DB = "./database/complaints.json";
+const SUGGEST_DB = "./database/suggest.json";
+
+// DB 자동 생성
+ensureDB(COMPLAINT_DB);
+ensureDB(SUGGEST_DB);
 
 // -------------------- 미들웨어 --------------------
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -52,35 +56,25 @@ const ADMIN_PASSWORD = "jellypolice1234";
 
 function requireAdmin(req, res, next) {
   if (req.cookies.admin === "loggedin") return next();
-  return res.redirect("/login");
+  res.redirect("/login");
 }
 
-// -------------------- 라우팅 --------------------
-
-// 메인 페이지
+// -------------------- 메인 메뉴 --------------------
 app.get("/", (req, res) => {
   res.render("main/main");
 });
 
-// 민원 안내 페이지
-app.get("/inquiry", (req, res) => {
-  res.render("inquiry/index");
-});
+// -------------------- 민원 --------------------
+app.get("/inquiry", (req, res) => res.render("inquiry/index"));
+app.get("/submit", (req, res) => res.render("inquiry/submit"));
 
-// 민원 제출 페이지
-app.get("/submit", (req, res) => {
-  res.render("inquiry/submit");
-});
-
-// 민원 제출 처리(JSON DB 저장)
+// 제출
 app.post("/submit", upload.single("file"), async (req, res) => {
   const { name, identity, content } = req.body;
   let fileKey = null;
 
-  // 파일 업로드가 있는 경우 R2로 전송
   if (req.file) {
     fileKey = Date.now() + "_" + req.file.originalname;
-
     await r2.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET,
@@ -91,61 +85,81 @@ app.post("/submit", upload.single("file"), async (req, res) => {
     );
   }
 
-  const db = readDB();
+  const list = readJSON(COMPLAINT_DB);
 
-  const newComplaint = {
-    id: Date.now(), // JSON DB라서 시간 기반 ID 사용
+  list.push({
+    id: Date.now(),
     name,
     identity,
     content,
     file: fileKey,
     created: new Date().toISOString(),
-  };
+  });
 
-  db.push(newComplaint);
-  writeDB(db);
-
+  writeJSON(COMPLAINT_DB, list);
   res.render("inquiry/success", { name });
 });
 
-// 로그인
-app.get("/login", (req, res) => {
-  res.render("admin/login");
+// -------------------- 건의 --------------------
+app.get("/suggest", (req, res) => {
+  res.render("suggest/suggest");
 });
 
-app.post("/login", (req, res) => {
-  const { password } = req.body;
+app.post("/suggest", (req, res) => {
+  const { name, identity, content } = req.body;
 
-  if (password === ADMIN_PASSWORD) {
+  const list = readJSON(SUGGEST_DB);
+
+  list.push({
+    id: Date.now(),
+    name,
+    identity,
+    content,
+    created: new Date().toISOString(),
+  });
+
+  writeJSON(SUGGEST_DB, list);
+  res.render("suggest/success");
+});
+
+// -------------------- 소개 페이지 --------------------
+app.get("/intro/agency", (req, res) => res.render("intro/intro_agency"));
+app.get("/intro/rank", (req, res) => res.render("intro/intro_rank"));
+app.get("/intro/department", (req, res) => res.render("intro/intro_department"));
+
+// -------------------- 채용 --------------------
+app.get("/apply/conditions", (req, res) => res.render("apply/apply_conditions"));
+app.get("/apply/apply", (req, res) => res.render("apply/apply_apply"));
+
+// -------------------- 관리자 로그인 --------------------
+app.get("/login", (req, res) => res.render("admin/login"));
+
+app.post("/login", (req, res) => {
+  if (req.body.password === ADMIN_PASSWORD) {
     res.cookie("admin", "loggedin");
     return res.redirect("/admin");
   }
-  return res.render("admin/login", { error: "비밀번호가 틀렸습니다." });
+  res.render("admin/login", { error: "비밀번호가 틀렸습니다." });
 });
 
-// 관리자 메인(JSON DB 조회)
+// -------------------- 민원 관리자 --------------------
 app.get("/admin", requireAdmin, (req, res) => {
-  const db = readDB();
-  const list = db.sort((a, b) => b.id - a.id);
+  const list = readJSON(COMPLAINT_DB).sort((a, b) => b.id - a.id);
   res.render("admin/admin", { complaints: list });
 });
 
-// 민원 상세 페이지
 app.get("/view/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
-  const db = readDB();
-  const complaint = db.find((x) => x.id === id);
-
-  if (!complaint) return res.send("NOT FOUND");
-
-  res.render("admin/view", { c: complaint });
+  const item = readJSON(COMPLAINT_DB).find((x) => x.id === id);
+  if (!item) return res.send("존재하지 않는 민원입니다.");
+  res.render("admin/view", { c: item });
 });
 
-// R2 파일 다운로드
+// 파일 다운로드
 app.get("/file/:key", requireAdmin, async (req, res) => {
-  try {
-    const key = req.params.key;
+  const key = req.params.key;
 
+  try {
     const data = await r2.send(
       new GetObjectCommand({
         Bucket: R2_BUCKET,
@@ -160,99 +174,39 @@ app.get("/file/:key", requireAdmin, async (req, res) => {
   }
 });
 
-// 삭제
+// 민원 삭제
 app.get("/delete/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
-  let db = readDB();
-
-  db = db.filter((x) => x.id !== id);
-
-  writeDB(db);
+  const list = readJSON(COMPLAINT_DB);
+  writeJSON(
+    COMPLAINT_DB,
+    list.filter((x) => x.id !== id)
+  );
   res.redirect("/admin");
 });
 
-// 소개 페이지
-app.get("/intro/agency", (req, res) => res.render("intro/intro_agency"));
-app.get("/intro/rank", (req, res) => res.render("intro/intro_rank"));
-app.get("/intro/department", (req, res) => res.render("intro/intro_department"));
-
-// 채용 페이지
-app.get("/apply/conditions", (req, res) => res.render("apply/apply_conditions"));
-app.get("/apply/apply", (req, res) => res.render("apply/apply_apply"));
-
-// 서버 실행
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// 건의 작성 페이지
-app.get("/suggest", (req, res) => {
-  res.render("suggest/suggest");
-});
-
-// 건의 제출 처리
-app.post("/suggest", (req, res) => {
-  const { name, identity, content } = req.body;
-
-  const suggestions = JSON.parse(
-    fs.readFileSync("./database/suggest.json", "utf8")
-  );
-
-  suggestions.push({
-    name,
-    identity,
-    content,
-    created: new Date().toISOString()
-  });
-
-  fs.writeFileSync(
-    "./database/suggest.json",
-    JSON.stringify(suggestions, null, 2)
-  );
-
-  res.render("suggest/success");
-});
-
-// 건의 관리자 메인
+// -------------------- 건의 관리자 --------------------
 app.get("/admin/suggest", requireAdmin, (req, res) => {
-  const suggestions = JSON.parse(
-    fs.readFileSync("./database/suggest.json", "utf8")
-  );
-
-  // 최신순 정렬
-  suggestions.reverse();
-
-  res.render("admin/suggest_list", { suggestions });
+  const list = readJSON(SUGGEST_DB).sort((a, b) => b.id - a.id);
+  res.render("admin/suggest_list", { suggestions: list });
 });
 
 app.get("/admin/suggest/view/:id", requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const suggestions = JSON.parse(
-    fs.readFileSync("./database/suggest.json", "utf8")
-  );
-
-  const item = suggestions[id];
+  const id = Number(req.params.id);
+  const item = readJSON(SUGGEST_DB).find((x) => x.id === id);
   if (!item) return res.send("존재하지 않는 건의입니다.");
-
-  res.render("admin/suggest_view", { id, item });
+  res.render("admin/suggest_view", { item });
 });
 
 app.get("/admin/suggest/delete/:id", requireAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-
-  const suggestions = JSON.parse(
-    fs.readFileSync("./database/suggest.json", "utf8")
+  const id = Number(req.params.id);
+  const list = readJSON(SUGGEST_DB);
+  writeJSON(
+    SUGGEST_DB,
+    list.filter((x) => x.id !== id)
   );
-
-  // 삭제
-  suggestions.splice(id, 1);
-
-  // 저장
-  fs.writeFileSync(
-    "./database/suggest.json",
-    JSON.stringify(suggestions, null, 2)
-  );
-
   res.redirect("/admin/suggest");
 });
+
+// -------------------- 서버 실행 --------------------
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
