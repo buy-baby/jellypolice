@@ -212,3 +212,47 @@ app.post("/suggest", (req, res) => {
 
   res.render("suggest/success");
 });
+
+// 건의 관리자 메인
+app.get("/admin/suggest", requireAdmin, (req, res) => {
+  const suggestions = JSON.parse(
+    fs.readFileSync("./database/suggest.json", "utf8")
+  );
+
+  // 최신순 정렬
+  suggestions.reverse();
+
+  res.render("admin/suggest_list", { suggestions });
+});
+
+app.get("/admin/suggest/view/:id", requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const suggestions = JSON.parse(
+    fs.readFileSync("./database/suggest.json", "utf8")
+  );
+
+  const item = suggestions[id];
+  if (!item) return res.send("존재하지 않는 건의입니다.");
+
+  res.render("admin/suggest_view", { id, item });
+});
+
+app.get("/admin/suggest/delete/:id", requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const suggestions = JSON.parse(
+    fs.readFileSync("./database/suggest.json", "utf8")
+  );
+
+  // 삭제
+  suggestions.splice(id, 1);
+
+  // 저장
+  fs.writeFileSync(
+    "./database/suggest.json",
+    JSON.stringify(suggestions, null, 2)
+  );
+
+  res.redirect("/admin/suggest");
+});

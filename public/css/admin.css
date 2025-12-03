@@ -1,0 +1,70 @@
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  background: #f6f9ff;
+  margin: 0;
+  padding: 30px;
+}
+
+h1 {
+  text-align: center;
+  color: #003c8f;
+}
+
+.list-table {
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.list-table th, .list-table td {
+  border: 1px solid #d5d5d5;
+  padding: 12px;
+  text-align: center;
+}
+
+.list-table th {
+  background: #003c8f;
+  color: white;
+}
+
+.info-box {
+  width: 60%;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.1);
+}
+
+.content-box {
+  background: #f0f4ff;
+  padding: 15px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  margin-top: 10px;
+}
+
+.back-btn, .delete-btn {
+  display: inline-block;
+  background: #003c8f;
+  padding: 10px 18px;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  margin: 10px;
+}
+
+.delete-btn {
+  background: #c62828;
+}
+
+.delete-btn:hover {
+  background: #9b1f1f;
+}
+
+.back-btn:hover {
+  background: #002d66;
+}

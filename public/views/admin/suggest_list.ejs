@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>건의사항 목록</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+  <h1>건의사항 목록</h1>
+
+  <table class="list-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>이름</th>
+        <th>고유번호</th>
+        <th>작성일</th>
+        <th>보기</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% suggestions.forEach((item, idx) => { %>
+        <tr>
+          <td><%= suggestions.length - idx %></td>
+          <td><%= item.name %></td>
+          <td><%= item.identity %></td>
+          <td><%= item.created.substring(0, 10) %></td>
+
+          <td>
+            <a href="/admin/suggest/view/<%= suggestions.length - 1 - idx %>">
+              상세
+            </a>
+          </td>
+          <td>
+            <a href="/admin/suggest/delete/<%= suggestions.length - 1 - idx %>" 
+               onclick="return confirm('정말 삭제할까요?')">
+              삭제
+            </a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <a href="/admin" class="back-btn">관리자 홈으로</a>
+</body>
+</html>
