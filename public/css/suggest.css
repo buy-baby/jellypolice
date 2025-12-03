@@ -1,9 +1,9 @@
-/* 페이지 배경 */
+/* 페이지 전체 */
 body {
-  background: #f6f9ff;
-  font-family: "Noto Sans KR", sans-serif;
   margin: 0;
   padding: 0;
+  font-family: "Noto Sans KR", sans-serif;
+  background: #f6f9ff;
 }
 
 /* 헤더 */
@@ -31,26 +31,20 @@ body {
 }
 
 .suggest-container h2 {
+  margin-top: 0;
   font-size: 26px;
   color: #003c8f;
-  margin-bottom: 20px;
-}
-
-.suggest-description {
-  font-size: 15px;
-  color: #444;
   margin-bottom: 25px;
-  line-height: 1.6;
 }
 
-/* form */
+/* input / textarea */
 .suggest-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
-.suggest-form input[type="text"],
+.suggest-form input,
 .suggest-form textarea {
   width: 100%;
   padding: 12px;
@@ -60,14 +54,12 @@ body {
 }
 
 .suggest-form textarea {
-  height: 130px;
+  height: 150px;
   resize: none;
 }
 
 /* 버튼 */
 .btn-row {
-  display: flex;
-  justify-content: space-between;
   margin-top: 10px;
 }
 
@@ -95,9 +87,26 @@ body {
   text-decoration: none;
   font-size: 16px;
   font-weight: bold;
+  margin-left: 10px;
 }
 
 .back-btn:hover {
   background: #002d66;
 }
-    
+
+/* 성공 페이지 */
+.success-box {
+  width: 50%;
+  margin: 100px auto;
+  text-align: center;
+  background: white;
+  padding: 40px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.12);
+}
+
+.success-icon {
+  font-size: 55px;
+  color: #1a4bd9;
+  margin-bottom: 20px;
+}
