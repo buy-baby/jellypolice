@@ -189,3 +189,24 @@ app.get("/apply/apply", (req, res) => res.render("apply/apply_apply"));
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// 건의 제출 처리
+app.post("/suggest", (req, res) => {
+  const { content } = req.body;
+
+  const filePath = "./database/suggest.json";
+
+  let list = [];
+  if (fs.existsSync(filePath)) {
+    list = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  }
+
+  list.push({
+    content,
+    date: new Date().toISOString()
+  });
+
+  fs.writeFileSync(filePath, JSON.stringify(list, null, 2));
+
+  res.render("suggest/success");   // name 없음
+});
