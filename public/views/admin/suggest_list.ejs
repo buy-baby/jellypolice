@@ -14,6 +14,7 @@
     <table class="admin-table">
       <tr>
         <th>#</th>
+        <th>이름</th>
         <th>고유번호</th>
         <th>내용</th>
         <th>날짜</th>
@@ -22,11 +23,18 @@
 
       <% suggestions.forEach((s, i) => { %>
         <tr>
-          <td><%= i %></td>
+          <td><%= i + 1 %></td>
+          <td><%= s.name %></td>
           <td><%= s.identity %></td>
           <td class="ellipsis"><%= s.content %></td>
           <td><%= s.created.substring(0,10) %></td>
-          <td><a class="view-btn" href="/admin/suggest/view/<%= i %>">보기</a></td>
+
+          <!-- index(i) ❌  실제 저장된 unique ID(s.id) 사용 ⭕ -->
+          <td>
+            <a class="view-btn" href="/admin/suggest/view/<%= s.id %>">
+              보기
+            </a>
+          </td>
         </tr>
       <% }) %>
 

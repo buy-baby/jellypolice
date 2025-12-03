@@ -1,24 +1,37 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>건의 상세</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <meta charset="UTF-8" />
+  <title>건의 상세보기</title>
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
 
 <body>
   <div class="admin-container">
-    <h1>💡 건의 상세</h1>
+
+    <h1>📄 건의 상세보기</h1>
     <a href="/admin/suggest" class="back-btn">← 목록으로</a>
 
-    <div class="detail-box">
+    <div class="view-box">
+      <p><strong>이름:</strong> <%= item.name %></p>
       <p><strong>고유번호:</strong> <%= item.identity %></p>
-      <p><strong>내용:</strong><br><%= item.content %></p>
-      <p><strong>제출일:</strong> <%= item.created.substring(0,10) %></p>
+      <p><strong>작성일:</strong> <%= item.created.substring(0, 10) %></p>
 
-      <a class="delete-btn" href="/admin/suggest/delete/<%= id %>"
-         onclick="return confirm('정말 삭제하시겠습니까?')">
-        삭제
+      <hr />
+
+      <p><strong>내용:</strong></p>
+      <div class="content-box">
+        <%= item.content.replace(/\n/g, "<br>") %>
+      </div>
+    </div>
+
+    <div class="delete-area">
+      <a 
+        class="delete-btn" 
+        href="/admin/suggest/delete/<%= item.id %>"
+        onclick="return confirm('정말 삭제하시겠습니까?');"
+      >
+        ❌ 삭제하기
       </a>
     </div>
 
