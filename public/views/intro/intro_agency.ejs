@@ -1,45 +1,8 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="/css/style.css">
-  <title>젤리 경찰청 - 경찰청 소개</title>
-</head>
-<body>
+<%- include("../partials/header") %>
 
-  <header>
-    <img src="/images/logo3.png" alt="로고">
-    <h1>젤리 경찰청</h1>
-  </header>
+<div class="container">
+  <h1><%= data.title %></h1>
+  <p><%= data.content %></p>
+</div>
 
-  <div class="container">
-    <h2 class="page-title">경찰청 소개</h2>
-
-    <p class="intro-text">
-      젤리 경찰청은 시민의 안전과 질서를 수호하기 위해 설립된 기관으로,
-      범죄 예방, 사건 수사, 교통 관리 등 다양한 공공 치안 업무를 담당합니다.
-    </p>
-
-    <div class="info-box">
-      <h3>📌 주요 역할</h3>
-      <ul>
-        <li>치안 유지 및 범죄 예방 활동</li>
-        <li>범죄 수사 및 검거</li>
-        <li>교통 관리 및 안전 지도</li>
-        <li>지역사회 협력 및 민원 처리</li>
-      </ul>
-    </div>
-
-    <div class="info-box">
-      <h3>🏛 조직 구성</h3>
-      <p>
-        젤리 경찰청은 다양한 부서로 구성되어 있으며, 각 부서가 전문적인 역할을 수행합니다.
-        상세한 부서 정보는 <strong>"부서 소개"</strong> 페이지에서 확인하실 수 있습니다.
-      </p>
-    </div>
-
-    <a href="/" class="back-btn">홈으로 돌아가기</a>
-  </div>
-
-</body>
-</html>
+<%- include("../partials/footer") %>

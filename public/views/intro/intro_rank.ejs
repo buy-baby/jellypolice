@@ -1,123 +1,16 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>젤리 경찰청 — 직급표</title>
+<%- include("../partials/header") %>
 
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/intro.css">
+<div class="container">
+  <h1><%= data.title %></h1>
 
-</head>
+  <% data.ranks.forEach(r => { %>
+    <h2><%= r.group %></h2>
+    <ul>
+      <% r.items.forEach(item => { %>
+        <li><%= item %></li>
+      <% }) %>
+    </ul>
+  <% }) %>
+</div>
 
-<body>
-
-  <div class="intro-container">
-    <h1 class="page-title">👮 젤리 경찰청 직급표</h1>
-
-    <!-- 고위직 -->
-    <section class="rank-section">
-      <h2 class="rank-title high">🔴 고위직</h2>
-
-      <div class="rank-card">
-        <h3>👮 치안총감</h3>
-        <p>디오</p>
-      </div>
-
-      <div class="rank-card">
-        <h3>👮 치안정감</h3>
-        <p>찬란</p>
-      </div>
-
-      <div class="rank-card">
-        <h3>👮 치안감</h3>
-        <p>빡표, 철이</p>
-      </div>
-    </section>
-
-    <!-- 간부직 -->
-    <section class="rank-section">
-      <h2 class="rank-title mid">🔵 간부직</h2>
-
-      <div class="rank-card">
-        <h3>👮 경무관</h3>
-        <p>(공석)</p>
-      </div>
-
-      <div class="rank-card">
-        <h3>👮 총경</h3>
-        <p>(공석)</p>
-      </div>
-
-      <div class="rank-card">
-        <h3>👮 경정</h3>
-        <p>재윤, 단</p>
-      </div>
-
-      <div class="rank-card">
-        <h3>👮 경감</h3>
-        <p>(공석)</p>
-      </div>
-    </section>
-
-    <!-- 일반직 -->
-    <section class="rank-section">
-      <h2 class="rank-title normal">🟦 일반직</h2>
-
-      <!-- 경위 -->
-      <h3 class="rank-subtitle">👮 경위</h3>
-      <div class="rank-card">
-        <p>5호봉: (공석)</p>
-        <p>4호봉: (공석)</p>
-        <p>3호봉: (공석)</p>
-        <p>2호봉: (공석)</p>
-        <p>1호봉: 극댜, 리</p>
-      </div>
-
-      <!-- 경사 -->
-      <h3 class="rank-subtitle">👮 경사</h3>
-      <div class="rank-card">
-        <p>5호봉: (공석)</p>
-        <p>4호봉: (공석)</p>
-        <p>3호봉: (공석)</p>
-        <p>2호봉: (공석)</p>
-        <p>1호봉: 범생, 태탯, 성준, 넥스, 다영, 자두, 열무, 상현, 설이</p>
-      </div>
-
-      <!-- 경장 -->
-      <h3 class="rank-subtitle">👮 경장</h3>
-      <div class="rank-card">
-        <p>5호봉: (공석)</p>
-        <p>4호봉: (공석)</p>
-        <p>3호봉: (공석)</p>
-        <p>2호봉: (공석)</p>
-        <p>1호봉: 댕그리, 벤지, 금쪽, 인장, 제이, 푸른, 수야, 백하솜, 킬러, 블루, 아렌, 유니</p>
-      </div>
-
-      <!-- 순경 -->
-      <h3 class="rank-subtitle">👮 순경</h3>
-      <div class="rank-card">
-        <p>5호봉: (공석)</p>
-        <p>4호봉: (공석)</p>
-        <p>3호봉: (공석)</p>
-        <p>2호봉: (공석)</p>
-        <p>1호봉: 이월, 민수, 일초, 리안, 연아, 핏, 우진, 살랑, 뽈로뽈로, 고달, 최웅</p>
-      </div>
-    </section>
-
-    <!-- 시보 -->
-    <section class="rank-section">
-      <h2 class="rank-title">🟨 시보</h2>
-
-      <div class="rank-card">
-        <p>병창, 키쇼, 코코, 민들레, 준, 위즈원, 무무, 백두산, 슬, 박두산, 핑구, 새별, 리키, 도영, 굥이, 혜와와, 파피, 기린, 도현, 오렌지, 레브, 눈사람, 몰라, 제오, 아가사, 피오</p>
-      </div>
-    </section>
-
-    <div class="total-count">
-      👮 경찰청 총원 : <strong>66명</strong>
-    </div>
-
-  </div>
-
-</body>
-</html>
+<%- include("../partials/footer") %>

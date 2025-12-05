@@ -1,0 +1,11 @@
+<h1>기관 소개 수정</h1>
+
+<form method="POST">
+  <label>제목</label>
+  <input type="text" name="title" value="<%= data.title %>">
+
+  <label>내용</label>
+  <textarea name="content" rows="10"><%= data.content %></textarea>
+
+  <button type="submit">저장하기</button>
+</form>
