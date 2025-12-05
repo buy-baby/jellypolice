@@ -100,6 +100,24 @@ function requireAdmin(req, res, next) {
   if (req.cookies.admin === "loggedin") return next();
   res.redirect("/login");
 }
+// -------------------- 관리자 로그인 --------------------
+app.get("/login", (req, res) => {
+  res.render("admin/admin_login");
+});
+
+app.post("/login", (req, res) => {
+  if (req.body.password === ADMIN_PASSWORD) {
+    res.cookie("admin", "loggedin");
+    return res.redirect("/admin");
+  }
+  res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
+});
+
+// -------------------- 관리자 메인 --------------------
+app.get("/admin", requireAdmin, (req, res) => {
+  res.render("admin/admin_main");
+});
+
 
 // -------------------- 메인 메뉴 --------------------
 app.get("/", (req, res) => res.render("main/main"));
