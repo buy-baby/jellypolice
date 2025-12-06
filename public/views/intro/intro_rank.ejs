@@ -14,8 +14,8 @@
   <div class="rank-section">
     <h2 class="rank-title high">고위직</h2>
     <div class="rank-card">
-      <% Object.keys(data.high).forEach(rank => { %>
-        <p><strong><%= rank %></strong> : <%= data.high[rank] %></p>
+      <% data.high.forEach(item => { %>
+        <p><%= item %></p>
       <% }) %>
     </div>
   </div>
@@ -24,8 +24,8 @@
   <div class="rank-section">
     <h2 class="rank-title mid">간부직</h2>
     <div class="rank-card">
-      <% Object.keys(data.mid).forEach(rank => { %>
-        <p><strong><%= rank %></strong> : <%= data.mid[rank] %></p>
+      <% data.mid.forEach(item => { %>
+        <p><%= item %></p>
       <% }) %>
     </div>
   </div>
