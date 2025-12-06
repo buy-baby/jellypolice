@@ -172,6 +172,16 @@ app.get("/intro/department", (req, res) => {
   res.render("intro/intro_department", { data: readJSON(DEPT_DB) });
 });
 
+// -------------------- 지원 페이지 --------------------
+app.get("/apply/conditions", (req, res) => {
+  res.render("apply/apply_conditions");
+});
+
+app.get("/apply/apply", (req, res) => {
+  res.render("apply/apply_apply");
+});
+
+
 // -------------------- 소개 페이지 수정 (JSON 전체 수정 방식) --------------------
 app.get("/admin/edit/agency", requireAdmin, (req, res) => {
   res.render("admin/edit_agency", { data: readJSON(AGENCY_DB) });
