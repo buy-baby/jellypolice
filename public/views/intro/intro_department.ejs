@@ -1,14 +1,17 @@
-<%- include("../partials/header") %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title><%= data.title %></title>
+</head>
+<body>
 
-<div class="container">
-  <h1><%= data.title %></h1>
+<h1><%= data.title %></h1>
 
-  <% data.teams.forEach(t => { %>
-  <div class="dept-card">
-    <h2><%= t.name %></h2>
-    <p><%= t.desc %></p>
-  </div>
-  <% }) %>
-</div>
+<% data.teams.forEach(team => { %>
+  <h2><%= team.name %></h2>
+  <p><%= team.desc %></p>
+<% }) %>
 
-<%- include("../partials/footer") %>
+</body>
+</html>

@@ -1,16 +1,22 @@
-<%- include("../partials/header") %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title><%= data.title %></title>
+</head>
+<body>
 
-<div class="container">
-  <h1><%= data.title %></h1>
+<h1><%= data.title %></h1>
 
-  <% data.ranks.forEach(r => { %>
-    <h2><%= r.group %></h2>
-    <ul>
-      <% r.items.forEach(item => { %>
-        <li><%= item %></li>
-      <% }) %>
-    </ul>
-  <% }) %>
-</div>
+<% data.ranks.forEach(group => { %>
+  <h2><%= group.group %></h2>
+  <ul>
+    <% group.items.forEach(item => { %>
+      <li><%= item %></li>
+    <% }) %>
+  </ul>
+<% }) %>
 
-<%- include("../partials/footer") %>
+</body>
+</html>
+  

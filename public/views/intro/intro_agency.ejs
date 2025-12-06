@@ -1,8 +1,19 @@
-<%- include("../partials/header") %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= data.title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
 
-<div class="container">
-  <h1><%= data.title %></h1>
-  <p><%= data.content %></p>
-</div>
+  <div class="container">
+    <h1><%= data.title %></h1>
 
-<%- include("../partials/footer") %>
+    <p style="margin-top:20px; line-height:1.7;">
+      <%= data.content %>
+    </p>
+  </div>
+
+</body>
+</html>
