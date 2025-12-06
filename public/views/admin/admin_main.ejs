@@ -2,19 +2,22 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>관리자 메인</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>관리자 페이지</title>
   <link rel="stylesheet" href="/css/admin.css">
 </head>
 
-<header>
-  <img src="/images/logo3.png" alt="젤리 경찰청 로고">
-  <h1>젤리 경찰청</h1>
-</header>
-
 <body>
+
+  <!-- ✅ 상단 헤더 (로고 + 관리자 페이지) -->
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <img src="/images/logo.png" alt="로고" class="admin-logo">
+      <h1 class="admin-header-title">관리자 페이지</h1>
+    </div>
+  </header>
+
+  <!-- ✅ 기존 중앙 타이틀 제거 -->
   <div class="admin-container">
-    <h1 class="admin-title">관리자 페이지</h1>
 
     <div class="admin-grid">
 
@@ -31,14 +34,16 @@
     </div>
   </div>
 
-<div class="admin-edit-box">
-  <h2 class="admin-edit-title">소개 수정</h2>
+  <!-- ✅ 소개 수정 영역 -->
+  <div class="admin-edit-box">
+    <h2 class="admin-edit-title">소개 수정</h2>
 
-  <div class="admin-edit-buttons">
-    <a href="/admin/edit/agency" class="edit-btn">경찰청 소개</a>
-    <a href="/admin/edit/rank" class="edit-btn">직급표</a>
-    <a href="/admin/edit/department" class="edit-btn">부서 소개</a>
+    <div class="admin-edit-buttons">
+      <a href="/admin/edit/agency" class="edit-btn">경찰청 소개</a>
+      <a href="/admin/edit/rank" class="edit-btn">직급표</a>
+      <a href="/admin/edit/department" class="edit-btn">부서 소개</a>
+    </div>
   </div>
-</div>
+
 </body>
 </html>

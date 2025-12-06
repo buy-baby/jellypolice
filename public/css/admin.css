@@ -183,3 +183,28 @@ h1 {
 .edit-btn:hover {
   background: #002b6a;
 }
+
+/* 관리자 상단 헤더 */
+.admin-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 20px 0;
+}
+
+.admin-header-inner {
+  width: 80%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-logo {
+  height: 45px;
+}
+
+.admin-header-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #003c8f;
+}
