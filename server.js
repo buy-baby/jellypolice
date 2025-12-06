@@ -165,7 +165,8 @@ app.get("/intro/agency", (req, res) => {
 });
 
 app.get("/intro/rank", (req, res) => {
-  res.render("intro/intro_rank", { data: readJSON(RANK_DB) });
+  const data = readJSON(RANK_DB);
+  res.render("intro/intro_rank", { data });
 });
 
 app.get("/intro/department", (req, res) => {
@@ -195,30 +196,34 @@ app.post("/admin/edit/agency", requireAdmin, (req, res) => {
   res.redirect("/intro/agency");
 });
 
+
+
 app.get("/admin/edit/rank", requireAdmin, (req, res) => {
-  res.render("admin/edit_rank", { data: readJSON(RANK_DB) });
+  const data = readJSON(RANK_DB);
+  res.render("admin/edit_rank", { data });
 });
 
 app.post("/admin/edit/rank", requireAdmin, (req, res) => {
-  const data = readJSON(RANK_DB);
+  const updated = {
+    title: req.body.title,
 
-  data.groups.forEach((group, gi) => {
-    if (group.type === "simple") {
-      group.ranks.forEach((r, ri) => {
-        r.people = req.body[`g${gi}r${ri}`] || "";
-      });
-    } else {
-      group.ranks.forEach((r, ri) => {
-        r.grades.forEach((g, gi2) => {
-          g.people = req.body[`g${gi}r${ri}h${gi2}`] || "";
-        });
-      });
-    }
-  });
+    high: req.body.high || [],
+    mid: req.body.mid || [],
 
-  writeJSON(RANK_DB, data);
+    normal: {
+      "경위": req.body.normal_gyeongwi || [],
+      "경사": req.body.normal_gyeongsa || [],
+      "경장": req.body.normal_gyeongjang || [],
+      "순경": req.body.normal_sungyeong || []
+    },
+
+    probation: req.body.probation || []
+  };
+
+  writeJSON(RANK_DB, updated);
   res.redirect("/intro/rank");
 });
+
 
 
 app.get("/admin/edit/department", requireAdmin, (req, res) => {

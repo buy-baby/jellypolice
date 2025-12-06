@@ -1,65 +1,27 @@
 {
-  "title": "젤리경찰청 직급표",
-  "groups": [
-    {
-      "name": "고위직",
-      "color": "high",
-      "type": "simple",
-      "ranks": [
-        { "title": "치안총감", "people": "" },
-        { "title": "치안정감", "people": "" },
-        { "title": "치안감", "people": "" }
-      ]
-    },
-    {
-      "name": "간부직",
-      "color": "mid",
-      "type": "simple",
-      "ranks": [
-        { "title": "경무관", "people": "" },
-        { "title": "총경", "people": "" },
-        { "title": "경정", "people": "" },
-        { "title": "경감", "people": "" }
-      ]
-    },
-    {
-      "name": "시보",
-      "color": "normal",
-      "type": "simple",
-      "ranks": [
-        { "title": "시보", "people": "" }
-      ]
-    },
-    {
-      "name": "일반직",
-      "color": "normal",
-      "type": "grade",
-      "ranks": [
-        {
-          "title": "경위",
-          "grades": [
-            { "label": "1~5호봉", "people": "" }
-          ]
-        },
-        {
-          "title": "경사",
-          "grades": [
-            { "label": "1~5호봉", "people": "" }
-          ]
-        },
-        {
-          "title": "경장",
-          "grades": [
-            { "label": "1~5호봉", "people": "" }
-          ]
-        },
-        {
-          "title": "순경",
-          "grades": [
-            { "label": "1~5호봉", "people": "" }
-          ]
-        }
-      ]
-    }
+  "title": "젤리 경찰청 직급표",
+  "high": [
+    "치안총감 : ",
+    "치안정감 : ",
+    "치안감 : "
+  ],
+  "mid": [
+    "경무관 : ",
+    "총경 : ",
+    "경정 : ",
+    "경감 : "
+  ],
+  "normal": {
+    "경위": ["", "", "", "", ""],
+    "경사": ["", "", "", "", ""],
+    "경장": ["", "", "", "", ""],
+    "순경": ["", "", "", "", ""]
+  },
+  "probation": [
+    "",
+    "",
+    "",
+    "",
+    ""
   ]
 }

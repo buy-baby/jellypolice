@@ -10,41 +10,42 @@
 <div class="intro-container">
   <h1 class="page-title"><%= data.title %></h1>
 
-  <% data.groups.forEach(group => { %>
+  <div class="rank-section">
+    <div class="rank-title high">고위직</div>
+    <% data.high.forEach(r => { %>
+      <div class="rank-card"><%= r %></div>
+    <% }) %>
+  </div>
 
-    <div class="rank-section">
-      <h2 class="rank-title <%= group.color %>"><%= group.name %></h2>
+  <div class="rank-section">
+    <div class="rank-title mid">간부직</div>
+    <% data.mid.forEach(r => { %>
+      <div class="rank-card"><%= r %></div>
+    <% }) %>
+  </div>
 
-      <% if (group.type === "simple") { %>
+  <div class="rank-section">
+    <div class="rank-title normal">일반직</div>
 
-        <% group.ranks.forEach(r => { %>
-          <div class="rank-card">
-            <strong><%= r.title %></strong>
-            <div><%= r.people || "─" %></div>
-          </div>
-        <% }) %>
+    <% Object.keys(data.normal).forEach(rank => { %>
+      <div class="rank-card">
+        <strong><%= rank %></strong>
+        <ul>
+          <% data.normal[rank].forEach(n => { %>
+            <li><%= n %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% }) %>
+  </div>
 
-      <% } else { %>
+  <div class="rank-section">
+    <div class="rank-title normal">시보</div>
+    <% data.probation.forEach(p => { %>
+      <div class="rank-card"><%= p %></div>
+    <% }) %>
+  </div>
 
-        <% group.ranks.forEach(r => { %>
-          <div class="rank-card">
-            <h3><%= r.title %></h3>
-
-            <% r.grades.forEach(g => { %>
-              <div class="info-box">
-                <strong><%= g.label %></strong>
-                <div><%= g.people || "─" %></div>
-              </div>
-            <% }) %>
-
-          </div>
-        <% }) %>
-
-      <% } %>
-    </div>
-
-  <% }) %>
 </div>
-
 </body>
 </html>

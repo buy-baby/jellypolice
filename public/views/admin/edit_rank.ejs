@@ -7,55 +7,40 @@
 </head>
 <body>
 
+<form method="POST" action="/admin/edit/rank">
 <div class="intro-container">
-  <h1 class="page-title">직급표 수정</h1>
 
-  <form method="post">
-    <% data.groups.forEach((group, gi) => { %>
+  <input type="text" name="title" value="<%= data.title %>" class="page-title">
 
-      <div class="rank-section">
-        <h2 class="rank-title <%= group.color %>"><%= group.name %></h2>
+  <h2 class="rank-title high">고위직</h2>
+  <% data.high.forEach((r, i) => { %>
+    <input name="high[]" value="<%= r %>" class="rank-card">
+  <% }) %>
 
-        <% if (group.type === "simple") { %>
+  <h2 class="rank-title mid">간부직</h2>
+  <% data.mid.forEach((r, i) => { %>
+    <input name="mid[]" value="<%= r %>" class="rank-card">
+  <% }) %>
 
-          <% group.ranks.forEach((r, ri) => { %>
-            <div class="rank-card">
-              <strong><%= r.title %></strong>
-              <input
-                type="text"
-                name="g<%= gi %>r<%= ri %>"
-                value="<%= r.people %>"
-                placeholder="이름 입력"
-              >
-            </div>
-          <% }) %>
+  <h2 class="rank-title normal">일반직</h2>
+  <% Object.keys(data.normal).forEach(rank => { %>
+    <div class="rank-card">
+      <strong><%= rank %></strong>
+      <% data.normal[rank].forEach(v => { %>
+        <input name="normal_<%= rank %>[]" value="<%= v %>">
+      <% }) %>
+    </div>
+  <% }) %>
 
-        <% } else { %>
+  <h2 class="rank-title normal">시보</h2>
+  <% data.probation.forEach(v => { %>
+    <input name="probation[]" value="<%= v %>" class="rank-card">
+  <% }) %>
 
-          <% group.ranks.forEach((r, ri) => { %>
-            <div class="rank-card">
-              <h3><%= r.title %></h3>
+  <button type="submit" class="submit-btn">전체 저장</button>
 
-              <% r.grades.forEach((g, gi2) => { %>
-                <input
-                  type="text"
-                  name="g<%= gi %>r<%= ri %>h<%= gi2 %>"
-                  value="<%= g.people %>"
-                  placeholder="<%= g.label %>"
-                >
-              <% }) %>
-
-            </div>
-          <% }) %>
-
-        <% } %>
-      </div>
-
-    <% }) %>
-
-    <button style="margin-top:30px;">저장</button>
-  </form>
 </div>
+</form>
 
 </body>
 </html>
