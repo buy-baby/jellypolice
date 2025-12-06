@@ -38,8 +38,8 @@
       <div class="rank-card">
         <strong><%= rank %></strong>
         <ul>
-          <% data.normal[rank].forEach((name, idx) => { %>
-            <li><%= idx + 1 %>호봉 : <%= name %></li>
+          <% data.normal[rank].forEach(name => { %>
+            <li><%= name %></li>
           <% }) %>
         </ul>
       </div>
