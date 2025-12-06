@@ -2,27 +2,34 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>관리자 메인</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <title>관리자 페이지</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-
 <body>
-  <div class="admin-container">
-    <h1 class="admin-title">관리자 페이지</h1>
 
-    <div class="admin-grid">
+<h1 class="admin-title">관리자 페이지</h1>
 
-      <a href="/admin/inquiry" class="admin-box">
-        <h2>📄 민원 열람</h2>
-        <p>사용자들이 제출한 민원을 확인합니다.</p>
-      </a>
+<!-- 상단: 민원 / 건의 -->
+<div class="admin-top">
+  <a href="/admin/inquiry" class="admin-card small">
+    민원
+  </a>
 
-      <a href="/admin/suggest" class="admin-box">
-        <h2>💡 건의 열람</h2>
-        <p>제출된 건의 사항을 확인합니다.</p>
-      </a>
+  <a href="/admin/suggest" class="admin-card small">
+    건의
+  </a>
+</div>
 
-    </div>
+<!-- 하단: 소개 수정 -->
+<div class="admin-edit-box">
+  <h2 class="admin-edit-title">소개 수정</h2>
+
+  <div class="admin-edit-buttons">
+    <a href="/admin/edit/agency" class="edit-btn">소개</a>
+    <a href="/admin/edit/rank" class="edit-btn">직급</a>
+    <a href="/admin/edit/department" class="edit-btn">부서</a>
   </div>
+</div>
+
 </body>
 </html>
