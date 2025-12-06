@@ -8,22 +8,38 @@
 <body>
 
 <div class="intro-container">
-  <h1 class="page-title"><%= data.title %></h1>
+  <h2 class="page-title"><%= data.title %></h2>
 
   <% data.ranks.forEach(section => { %>
-    <div class="rank-section">
-      <h2 class="rank-title
-        <%= section.group === '고위직' ? 'high' :
-            section.group === '간부직' ? 'mid' : 'normal' %>">
-        <%= section.group %>
-      </h2>
 
-      <div class="rank-card">
+    <% if (section.group !== "일반직") { %>
+      <div class="rank-section">
+        <h3 class="rank-title"><%= section.group %></h3>
         <% section.items.forEach(item => { %>
-          <div>• <%= item %></div>
+          <div class="rank-card"><%= item %></div>
         <% }) %>
       </div>
-    </div>
+    <% } else { %>
+
+      <div class="rank-section">
+        <h3 class="rank-title normal">일반직</h3>
+
+        <% section.levels.forEach(level => { %>
+          <div class="rank-large-box">
+            <div class="rank-subtitle"><%= level.rank %></div>
+
+            <div class="rank-grade-grid">
+              <% level.grades.forEach(g => { %>
+                <div class="rank-small-box"><%= g %></div>
+              <% }) %>
+            </div>
+          </div>
+        <% }) %>
+
+      </div>
+
+    <% } %>
+
   <% }) %>
 </div>
 

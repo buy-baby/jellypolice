@@ -155,3 +155,36 @@
   color: #333;
   line-height: 1.7;
 }
+
+/* 일반직 큰 박스 */
+.rank-large-box {
+  background: #eef2f9;
+  padding: 25px;
+  border-radius: 14px;
+  margin-bottom: 30px;
+}
+
+/* 직급명 */
+.rank-subtitle {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #003c8f;
+}
+
+/* 호봉 그리드 */
+.rank-grade-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+/* 작은 호봉 박스 */
+.rank-small-box {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
