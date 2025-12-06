@@ -3,22 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title><%= data.title %></title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/intro.css">
 </head>
 <body>
 
-  <div class="container">
-    <h2><%= data.title %></h2>
+<div class="intro-container">
+  <h1 class="page-title"><%= data.title %></h1>
 
-    <% data.ranks.forEach(group => { %>
-      <h3><%= group.group %></h3>
-      <ul>
-        <% group.items.forEach(item => { %>
-          <li><%= item %></li>
+  <% data.ranks.forEach(section => { %>
+    <div class="rank-section">
+      <h2 class="rank-title
+        <%= section.group === '고위직' ? 'high' :
+            section.group === '간부직' ? 'mid' : 'normal' %>">
+        <%= section.group %>
+      </h2>
+
+      <div class="rank-card">
+        <% section.items.forEach(item => { %>
+          <div>• <%= item %></div>
         <% }) %>
-      </ul>
-    <% }) %>
-  </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
 
 </body>
 </html>
