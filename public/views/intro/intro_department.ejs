@@ -1,17 +1,17 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title><%= data.title %></title>
-</head>
-<body>
+<%- include("../main/header") %>
+<%- include("../main/menu") %>
 
-<h1><%= data.title %></h1>
+<link rel="stylesheet" href="/css/style.css">
 
-<% data.teams.forEach(team => { %>
-  <h2><%= team.name %></h2>
-  <p><%= team.desc %></p>
-<% }) %>
+<div class="container">
+  <h2><%= data.title %></h2>
 
-</body>
-</html>
+  <% data.teams.forEach(team => { %>
+    <div class="dept-box">
+      <h3><%= team.name %></h3>
+      <p><%= team.desc %></p>
+    </div>
+  <% }) %>
+</div>
+
+<%- include("../main/footer") %>

@@ -1,22 +1,19 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title><%= data.title %></title>
-</head>
-<body>
+<%- include("../main/header") %>
+<%- include("../main/menu") %>
 
-<h1><%= data.title %></h1>
+<link rel="stylesheet" href="/css/style.css">
 
-<% data.ranks.forEach(group => { %>
-  <h2><%= group.group %></h2>
-  <ul>
-    <% group.items.forEach(item => { %>
-      <li><%= item %></li>
-    <% }) %>
-  </ul>
-<% }) %>
+<div class="container">
+  <h2><%= data.title %></h2>
 
-</body>
-</html>
-  
+  <% data.ranks.forEach(group => { %>
+    <h3><%= group.group %></h3>
+    <ul>
+      <% group.items.forEach(item => { %>
+        <li><%= item %></li>
+      <% }) %>
+    </ul>
+  <% }) %>
+</div>
+
+<%- include("../main/footer") %>
