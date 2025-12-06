@@ -4,12 +4,12 @@ const path = require("path");
 const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// -------------------- Cloudflare R2 설정 --------------------
+// -------------------- Cloudflare R2 --------------------
 const r2 = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -20,28 +20,24 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- JSON DB 함수 --------------------
-function ensureDB(file, defaultData = []) {
+// -------------------- JSON Utils --------------------
+function ensureDB(file, defaultData) {
   if (!fs.existsSync("./database")) fs.mkdirSync("./database");
-  if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify(defaultData, null, 2));
+  if (!fs.existsSync(file)) {
+    fs.writeFileSync(file, JSON.stringify(defaultData, null, 2));
+  }
 }
+const readJSON = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
+const writeJSON = (f, d) => fs.writeFileSync(f, JSON.stringify(d, null, 2));
 
-function readJSON(file) {
-  return JSON.parse(fs.readFileSync(file, "utf8"));
-}
-
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
-// -------------------- DB 파일 경로 --------------------
+// -------------------- DB Paths --------------------
 const COMPLAINT_DB = "./database/complaints.json";
 const SUGGEST_DB = "./database/suggest.json";
 const AGENCY_DB = "./database/agency.json";
 const RANK_DB = "./database/rank.json";
 const DEPT_DB = "./database/department.json";
 
-// -------------------- DB 자동 생성 --------------------
+// -------------------- DB Init --------------------
 ensureDB(COMPLAINT_DB, []);
 ensureDB(SUGGEST_DB, []);
 
@@ -52,25 +48,36 @@ ensureDB(AGENCY_DB, {
 
 ensureDB(RANK_DB, {
   title: "젤리경찰청 직급표",
-  ranks: [
-    { group: "고위직", items: ["치안총감 : 디오", "치안정감 : 찬란", "치안감 : 빡표 철이"] },
-    { group: "간부직", items: ["경무관 :", "총경 :", "경정 : 재윤 단", "경감 : "] },
-    { group: "일반직", items: ["경위 :", "경사 :", "경장 :", "순경 :"] }
-  ]
+
+  high: {
+    "치안총감": "",
+    "치안정감": "",
+    "치안감": ""
+  },
+
+  mid: {
+    "경무관": "",
+    "총경": "",
+    "경정": "",
+    "경감": ""
+  },
+
+  normal: {
+    "경위": ["", "", "", "", ""],
+    "경사": ["", "", "", "", ""],
+    "경장": ["", "", "", "", ""],
+    "순경": ["", "", "", "", ""]
+  },
+
+  probation: ["", "", "", "", ""]
 });
 
 ensureDB(DEPT_DB, {
   title: "부서 소개",
-  teams: [
-    { name: "인사팀", desc: "인력 관리 및 인사 업무를 총괄하는 핵심 부서입니다." },
-    { name: "감사팀", desc: "조직 운영 전반의 문제를 감사하고 개선하는 역할을 합니다." },
-    { name: "S.F 타격대", desc: "차량 기반 RP 임무에 특화된 기동 전문 부대입니다." },
-    { name: "특공대", desc: "전술적 상황에서 지휘 및 고난도 작전을 실행하는 부대입니다." },
-    { name: "항공팀", desc: "헬기를 통한 공중 지원 및 추적 임무 수행 부서입니다." }
-  ]
+  teams: []
 });
 
-// -------------------- 미들웨어 --------------------
+// -------------------- Middleware --------------------
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
@@ -79,17 +86,13 @@ app.set("views", "./public/views");
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// -------------------- 관리자 인증 --------------------
+// -------------------- Admin Auth --------------------
 const ADMIN_PASSWORD = "jellypolice1234";
+const requireAdmin = (req, res, next) =>
+  req.cookies.admin === "loggedin" ? next() : res.redirect("/login");
 
-function requireAdmin(req, res, next) {
-  if (req.cookies.admin === "loggedin") return next();
-  res.redirect("/login");
-}
-
-// -------------------- 관리자 로그인 --------------------
-app.get("/login", (req, res) => res.render("admin/admin_login"));
-
+// -------------------- Admin Login --------------------
+app.get("/login", (_, res) => res.render("admin/admin_login"));
 app.post("/login", (req, res) => {
   if (req.body.password === ADMIN_PASSWORD) {
     res.cookie("admin", "loggedin");
@@ -98,145 +101,52 @@ app.post("/login", (req, res) => {
   res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
 });
 
-// -------------------- 관리자 메인 --------------------
-app.get("/admin", requireAdmin, (req, res) => {
-  res.render("admin/admin_main");
-});
+// -------------------- Admin Main --------------------
+app.get("/admin", requireAdmin, (_, res) =>
+  res.render("admin/admin_main")
+);
 
-// -------------------- 메인 화면 --------------------
-app.get("/", (req, res) => res.render("main/main"));
+// -------------------- Public Pages --------------------
+app.get("/", (_, res) => res.render("main/main"));
+app.get("/intro/agency", (_, res) =>
+  res.render("intro/intro_agency", { data: readJSON(AGENCY_DB) })
+);
+app.get("/intro/rank", (_, res) =>
+  res.render("intro/intro_rank", { data: readJSON(RANK_DB) })
+);
+app.get("/intro/department", (_, res) =>
+  res.render("intro/intro_department", { data: readJSON(DEPT_DB) })
+);
 
-// -------------------- 민원 --------------------
-app.get("/inquiry", (req, res) => res.render("inquiry/index"));
-app.get("/submit", (req, res) => res.render("inquiry/submit"));
-
-app.post("/submit", upload.single("file"), async (req, res) => {
-  const { name, identity, content } = req.body;
-  let fileKey = null;
-
-  if (req.file) {
-    fileKey = Date.now() + "_" + req.file.originalname;
-
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: fileKey,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype
-      })
-    );
-  }
-
-  const list = readJSON(COMPLAINT_DB);
-  list.push({
-    id: Date.now(),
-    name,
-    identity,
-    content,
-    file: fileKey,
-    created: new Date().toISOString(),
-  });
-
-  writeJSON(COMPLAINT_DB, list);
-  res.render("inquiry/success", { name });
-});
-
-// -------------------- 건의 --------------------
-app.get("/suggest", (req, res) => res.render("suggest/suggest"));
-
-app.post("/suggest", (req, res) => {
-  const { identity, content } = req.body;
-
-  const list = readJSON(SUGGEST_DB);
-  list.push({
-    id: Date.now(),
-    identity,
-    content,
-    created: new Date().toISOString(),
-  });
-
-  writeJSON(SUGGEST_DB, list);
-  res.render("suggest/success");
-});
-
-// -------------------- 소개 페이지 --------------------
-app.get("/intro/agency", (req, res) => {
-  const data = readJSON(AGENCY_DB);
-  res.render("intro/intro_agency", { data });
-});
-
-app.get("/intro/rank", (req, res) => {
-  const data = readJSON(RANK_DB);
-  res.render("intro/intro_rank", { data });
-});
-
-app.get("/intro/department", (req, res) => {
-  res.render("intro/intro_department", { data: readJSON(DEPT_DB) });
-});
-
-// -------------------- 지원 페이지 --------------------
-app.get("/apply/conditions", (req, res) => {
-  res.render("apply/apply_conditions");
-});
-
-app.get("/apply/apply", (req, res) => {
-  res.render("apply/apply_apply");
-});
-
-
-// -------------------- 소개 페이지 수정 (JSON 전체 수정 방식) --------------------
-app.get("/admin/edit/agency", requireAdmin, (req, res) => {
-  res.render("admin/edit_agency", { data: readJSON(AGENCY_DB) });
-});
-
-app.post("/admin/edit/agency", requireAdmin, (req, res) => {
-  writeJSON(AGENCY_DB, {
-    title: req.body.title,
-    content: req.body.content
-  });
-  res.redirect("/intro/agency");
-});
-
-app.get("/admin/edit/rank", requireAdmin, (req, res) => {
-  const data = readJSON(RANK_DB);
-  res.render("admin/edit_rank", { data });
+// -------------------- Admin Edit Rank (✅ 핵심 수정) --------------------
+app.get("/admin/edit/rank", requireAdmin, (_, res) => {
+  res.render("admin/edit_rank", { data: readJSON(RANK_DB) });
 });
 
 app.post("/admin/edit/rank", requireAdmin, (req, res) => {
-  const updated = {
-    title: req.body.title,
+  const origin = readJSON(RANK_DB);
 
-    high: req.body.high || [],
-    mid: req.body.mid || [],
+  // 고위·간부직 (객체)
+  Object.keys(origin.high).forEach(k => origin.high[k] = req.body[`high_${k}`] || "");
+  Object.keys(origin.mid).forEach(k => origin.mid[k] = req.body[`mid_${k}`] || "");
 
-    normal: {
-      "경위": req.body.normal_gyeongwi || [],
-      "경사": req.body.normal_gyeongsa || [],
-      "경장": req.body.normal_gyeongjang || [],
-      "순경": req.body.normal_sungyeong || []
-    },
+  // 일반직 (무조건 5칸 고정)
+  Object.keys(origin.normal).forEach(rank => {
+    origin.normal[rank] = [1,2,3,4,5].map(i =>
+      req.body[`normal_${rank}_${i}`] || ""
+    );
+  });
 
-    probation: req.body.probation || []
-  };
+  // 시보 (5칸)
+  origin.probation = [1,2,3,4,5].map(i =>
+    req.body[`probation_${i}`] || ""
+  );
 
-  writeJSON(RANK_DB, updated);
+  writeJSON(RANK_DB, origin);
   res.redirect("/intro/rank");
 });
 
-
-
-app.get("/admin/edit/department", requireAdmin, (req, res) => {
-  res.render("admin/edit_department", { data: readJSON(DEPT_DB) });
-});
-
-app.post("/admin/edit/department", requireAdmin, (req, res) => {
-  writeJSON(DEPT_DB, {
-    title: "부서 소개",
-    teams: req.body.teams
-  });
-  res.redirect("/intro/department");
-});
-
-
-// -------------------- 서버 실행 --------------------
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// -------------------- Server --------------------
+app.listen(PORT, () =>
+  console.log(`✅ Server running on ${PORT}`)
+);
