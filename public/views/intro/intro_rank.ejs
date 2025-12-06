@@ -3,43 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <title><%= data.title %></title>
-  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/intro.css">
 </head>
 <body>
 
 <div class="intro-container">
-  <h2 class="page-title"><%= data.title %></h2>
+  <h1 class="page-title"><%= data.title %></h1>
 
-  <% data.ranks.forEach(section => { %>
+  <% data.groups.forEach(group => { %>
 
-    <% if (section.group !== "일반직") { %>
-      <div class="rank-section">
-        <h3 class="rank-title"><%= section.group %></h3>
-        <% section.items.forEach(item => { %>
-          <div class="rank-card"><%= item %></div>
-        <% }) %>
-      </div>
-    <% } else { %>
+    <div class="rank-section">
+      <h2 class="rank-title <%= group.color %>"><%= group.name %></h2>
 
-      <div class="rank-section">
-        <h3 class="rank-title normal">일반직</h3>
+      <% if (group.type === "simple") { %>
 
-        <% section.levels.forEach(level => { %>
-          <div class="rank-large-box">
-            <div class="rank-subtitle"><%= level.rank %></div>
-
-            <div class="rank-grade-grid">
-              <% level.grades.forEach(g => { %>
-                <div class="rank-small-box"><%= g %></div>
-              <% }) %>
-            </div>
+        <% group.ranks.forEach(r => { %>
+          <div class="rank-card">
+            <strong><%= r.title %></strong>
+            <div><%= r.people || "─" %></div>
           </div>
         <% }) %>
 
-      </div>
+      <% } else { %>
 
-    <% } %>
+        <% group.ranks.forEach(r => { %>
+          <div class="rank-card">
+            <h3><%= r.title %></h3>
+
+            <% r.grades.forEach(g => { %>
+              <div class="info-box">
+                <strong><%= g.label %></strong>
+                <div><%= g.people || "─" %></div>
+              </div>
+            <% }) %>
+
+          </div>
+        <% }) %>
+
+      <% } %>
+    </div>
 
   <% }) %>
 </div>

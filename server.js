@@ -200,9 +200,26 @@ app.get("/admin/edit/rank", requireAdmin, (req, res) => {
 });
 
 app.post("/admin/edit/rank", requireAdmin, (req, res) => {
-  writeJSON(RANK_DB, JSON.parse(req.body.json));
+  const data = readJSON(RANK_DB);
+
+  data.groups.forEach((group, gi) => {
+    if (group.type === "simple") {
+      group.ranks.forEach((r, ri) => {
+        r.people = req.body[`g${gi}r${ri}`] || "";
+      });
+    } else {
+      group.ranks.forEach((r, ri) => {
+        r.grades.forEach((g, gi2) => {
+          g.people = req.body[`g${gi}r${ri}h${gi2}`] || "";
+        });
+      });
+    }
+  });
+
+  writeJSON(RANK_DB, data);
   res.redirect("/intro/rank");
 });
+
 
 app.get("/admin/edit/department", requireAdmin, (req, res) => {
   res.render("admin/edit_department", { data: readJSON(DEPT_DB) });

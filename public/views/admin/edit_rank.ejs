@@ -1,6 +1,61 @@
-<h1>직급표 수정 (JSON 직접 편집)</h1>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>직급표 수정</title>
+  <link rel="stylesheet" href="/css/intro.css">
+</head>
+<body>
 
-<form method="POST">
-  <textarea name="json" rows="20"><%= JSON.stringify(data, null, 2) %></textarea>
-  <button type="submit">저장</button>
-</form>
+<div class="intro-container">
+  <h1 class="page-title">직급표 수정</h1>
+
+  <form method="post">
+    <% data.groups.forEach((group, gi) => { %>
+
+      <div class="rank-section">
+        <h2 class="rank-title <%= group.color %>"><%= group.name %></h2>
+
+        <% if (group.type === "simple") { %>
+
+          <% group.ranks.forEach((r, ri) => { %>
+            <div class="rank-card">
+              <strong><%= r.title %></strong>
+              <input
+                type="text"
+                name="g<%= gi %>r<%= ri %>"
+                value="<%= r.people %>"
+                placeholder="이름 입력"
+              >
+            </div>
+          <% }) %>
+
+        <% } else { %>
+
+          <% group.ranks.forEach((r, ri) => { %>
+            <div class="rank-card">
+              <h3><%= r.title %></h3>
+
+              <% r.grades.forEach((g, gi2) => { %>
+                <input
+                  type="text"
+                  name="g<%= gi %>r<%= ri %>h<%= gi2 %>"
+                  value="<%= g.people %>"
+                  placeholder="<%= g.label %>"
+                >
+              <% }) %>
+
+            </div>
+          <% }) %>
+
+        <% } %>
+      </div>
+
+    <% }) %>
+
+    <button style="margin-top:30px;">저장</button>
+  </form>
+</div>
+
+</body>
+</html>
