@@ -161,7 +161,8 @@ app.post("/suggest", (req, res) => {
 
 // -------------------- 소개 페이지 --------------------
 app.get("/intro/agency", (req, res) => {
-  res.render("intro/intro_agency", { data: readJSON(AGENCY_DB) });
+  const data = readJSON(AGENCY_DB);
+  res.render("intro/intro_agency", { data });
 });
 
 app.get("/intro/rank", (req, res) => {
@@ -196,8 +197,6 @@ app.post("/admin/edit/agency", requireAdmin, (req, res) => {
   res.redirect("/intro/agency");
 });
 
-
-
 app.get("/admin/edit/rank", requireAdmin, (req, res) => {
   const data = readJSON(RANK_DB);
   res.render("admin/edit_rank", { data });
@@ -231,9 +230,13 @@ app.get("/admin/edit/department", requireAdmin, (req, res) => {
 });
 
 app.post("/admin/edit/department", requireAdmin, (req, res) => {
-  writeJSON(DEPT_DB, JSON.parse(req.body.json));
+  writeJSON(DEPT_DB, {
+    title: "부서 소개",
+    teams: req.body.teams
+  });
   res.redirect("/intro/department");
 });
+
 
 // -------------------- 서버 실행 --------------------
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

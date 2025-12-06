@@ -1,11 +1,31 @@
-<h1>기관 소개 수정</h1>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>기관 소개 수정</title>
+  <link rel="stylesheet" href="/css/intro.css">
+</head>
+<body>
 
 <form method="POST">
-  <label>제목</label>
-  <input type="text" name="title" value="<%= data.title %>">
+<div class="intro-container">
 
-  <label>내용</label>
-  <textarea name="content" rows="10"><%= data.content %></textarea>
+  <input
+    class="page-title"
+    name="title"
+    value="<%= data.title %>"
+  >
 
-  <button type="submit">저장하기</button>
+  <textarea
+    name="content"
+    class="rank-card"
+    rows="10"
+  ><%= data.content %></textarea>
+
+  <button class="submit-btn">저장</button>
+
+</div>
 </form>
+
+</body>
+</html>
