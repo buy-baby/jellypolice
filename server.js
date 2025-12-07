@@ -187,14 +187,14 @@ app.get("/admin/edit/department", (req, res) => {
 });
 
 // 관리자 - 민원 열람
-app.get("/admin/complaint", (req, res) => {
-  const complaints = readJSON("./database/complaints.json");
+app.get("/admin/inquiry", requireAdmin, (req, res) => {
+  const complaints = readJSON(COMPLAINT_DB);
   res.render("admin/complaints", { complaints });
 });
 
 // 관리자 - 건의 열람
-app.get("/admin/suggestion", (req, res) => {
-  const suggestions = readJSON("./database/suggestions.json");
+app.get("/admin/suggest", requireAdmin, (req, res) => {
+  const suggestions = readJSON(SUGGEST_DB);
   res.render("admin/suggestions", { suggestions });
 });
 
