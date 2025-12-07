@@ -1,0 +1,48 @@
+/* =========================
+   시민 페이지 공통 헤더
+========================= */
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.site-header {
+  width: 100%;
+  background-color: #0b4ea2;   /* 진한 경찰청 블루 */
+  border-bottom: none;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px 32px;          /* ✅ 높이 핵심 */
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.site-logo {
+  height: 46px;                /* 로고도 조금 키움 */
+}
+
+.site-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;              /* 흰색 글씨 */
+  letter-spacing: -0.5px;
+}
+
+.intro-container {
+  margin-top: 30px;
+}
+
+.header-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.header-link:hover {
+  text-decoration: none;
+}
