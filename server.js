@@ -146,6 +146,60 @@ app.post("/admin/edit/rank", requireAdmin, (req, res) => {
   res.redirect("/intro/rank");
 });
 
+// 시민 - 민원 페이지
+app.get("/inquiry", (req, res) => {
+  res.render("inquiry/index");
+});
+
+// 시민 - 건의 페이지
+app.get("/suggest", (req, res) => {
+  res.render("suggest/suggest");
+});
+
+// 시민 - 채용 메인
+app.get("/apply", (req, res) => {
+  res.render("apply/index");
+});
+
+// 시민 - 채용 조건
+app.get("/apply/conditions", (req, res) => {
+  res.render("apply/apply_conditions");
+});
+
+// 시민 - 채용 지원서
+app.get("/apply/apply", (req, res) => {
+  res.render("apply/apply_apply");
+});
+
+// 시민 - 고객센터
+app.get("/customer", (req, res) => {
+  res.render("customer/index");
+});
+
+// 관리자 - 수정 - 경찰청 소개
+app.get("/admin/edit/agency", (req, res) => {
+  res.render("admin/edit_agency");
+});
+
+// 관리자 - 수정 - 부서 소개
+app.get("/admin/edit/department", (req, res) => {
+  res.render("admin/edit_department");
+});
+
+// 관리자 - 민원 열람
+app.get("/admin/complaints", (req, res) => {
+  const complaints = readJSON("./database/complaints.json");
+  res.render("admin/complaints", { complaints });
+});
+
+// 관리자 - 건의 열람
+app.get("/admin/suggestions", (req, res) => {
+  const suggestions = readJSON("./database/suggestions.json");
+  res.render("admin/suggestions", { suggestions });
+});
+
+
+
 // -------------------- Server --------------------
 app.listen(PORT, () =>
   console.log(`✅ Server running on ${PORT}`)
