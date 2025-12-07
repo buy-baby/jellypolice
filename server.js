@@ -188,7 +188,16 @@ app.get("/admin/edit/department", (req, res) => {
 
 // 관리자 - 민원 열람
 app.get("/admin/inquiry", requireAdmin, (req, res) => {
-  const complaints = readJSON(COMPLAINT_DB);
+  let complaints = [];
+
+  try {
+    const raw = readJSON(COMPLAINT_DB);
+    complaints = Array.isArray(raw) ? raw : [];
+  } catch (e) {
+    console.error("❌ complaints.json 읽기 실패:", e);
+    complaints = [];
+  }
+
   res.render("admin/complaints", { complaints });
 });
 
