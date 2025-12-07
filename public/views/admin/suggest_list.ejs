@@ -7,6 +7,9 @@
 </head>
 
 <body>
+
+  <%- include("partials/admin_header") %>
+
   <div class="admin-container">
     <h1>💡 건의 목록</h1>
     <a href="/admin" class="back-btn">← 관리자 메인</a>
@@ -29,7 +32,6 @@
           <td class="ellipsis"><%= s.content %></td>
           <td><%= s.created.substring(0,10) %></td>
 
-          <!-- index(i) ❌  실제 저장된 unique ID(s.id) 사용 ⭕ -->
           <td>
             <a class="view-btn" href="/admin/suggest/view/<%= s.id %>">
               보기

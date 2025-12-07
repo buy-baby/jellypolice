@@ -184,27 +184,37 @@ h1 {
   background: #002b6a;
 }
 
-/* 관리자 상단 헤더 */
+/* =========================
+   관리자 공통 헤더
+========================= */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 .admin-header {
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 20px 0;
+  width: 100%;
+  background: #ffffff;              /* 흰 배경 */
+  border-bottom: 1px solid #e0e0e0;  /* 얇은 구분선 */
 }
 
 .admin-header-inner {
-  width: 80%;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 22px 32px;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
 }
 
 .admin-logo {
-  height: 45px;
+  height: 40px;
 }
 
-.admin-header-title {
-  font-size: 28px;
-  font-weight: 800;
-  color: #003c8f;
+.admin-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0b4ea2;   /* 경찰청 파란색 */
+  letter-spacing: -0.5px;
 }
