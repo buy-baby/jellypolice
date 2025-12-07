@@ -13,28 +13,47 @@
   <input type="text" name="title" value="<%= data.title %>" class="page-title">
 
   <h2 class="rank-title high">고위직</h2>
-  <% data.high.forEach((r, i) => { %>
-    <input name="high[]" value="<%= r %>" class="rank-card">
+  <% Object.keys(data.high).forEach(rank => { %>
+    <div class="rank-card">
+      <strong><%= rank %></strong>
+      <input
+        name="high_<%= rank %>"
+        value="<%= data.high[rank] %>"
+      >
+    </div>
   <% }) %>
 
   <h2 class="rank-title mid">간부직</h2>
-  <% data.mid.forEach((r, i) => { %>
-    <input name="mid[]" value="<%= r %>" class="rank-card">
+  <% Object.keys(data.mid).forEach(rank => { %>
+    <div class="rank-card">
+      <strong><%= rank %></strong>
+      <input
+        name="mid_<%= rank %>"
+        value="<%= data.mid[rank] %>"
+      >
+    </div>
   <% }) %>
 
   <h2 class="rank-title normal">일반직</h2>
   <% Object.keys(data.normal).forEach(rank => { %>
     <div class="rank-card">
       <strong><%= rank %></strong>
-      <% data.normal[rank].forEach(v => { %>
-        <input name="normal_<%= rank %>[]" value="<%= v %>">
+      <% data.normal[rank].forEach((v, i) => { %>
+        <input
+          name="normal_<%= rank %>_<%= i+1 %>"
+          value="<%= v %>"
+        >
       <% }) %>
     </div>
   <% }) %>
 
   <h2 class="rank-title normal">시보</h2>
-  <% data.probation.forEach(v => { %>
-    <input name="probation[]" value="<%= v %>" class="rank-card">
+  <% data.probation.forEach((v, i) => { %>
+    <input
+      name="probation_<%= i+1 %>"
+      value="<%= v %>"
+      class="rank-card"
+    >
   <% }) %>
 
   <button type="submit" class="submit-btn">전체 저장</button>
