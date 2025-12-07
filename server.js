@@ -198,12 +198,6 @@ app.get("/admin/suggest", requireAdmin, (req, res) => {
   res.render("admin/suggest_list", { suggestions });
 });
 
-// 상단 헤더 좌측 관리자 로그인
-app.get("/", (req, res) => {
-  res.render("main/main", { showAdminLogin: true });
-});
-
-
 // -------------------- Server --------------------
 app.listen(PORT, () =>
   console.log(`✅ Server running on ${PORT}`)

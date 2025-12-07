@@ -140,6 +140,7 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
+  justify-content: space-between;
 }
 
 .site-logo {
@@ -165,4 +166,26 @@ body {
 
 .header-link:hover {
   text-decoration: none;
+}
+
+/* 왼쪽 로고 영역 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* 관리자 로그인 링크 */
+.admin-login-link {
+  font-size: 14px;        /* 작게 */
+  color: #ffffff;        /* 흰 글씨 */
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.admin-login-link:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
