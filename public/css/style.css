@@ -129,14 +129,14 @@ body {
 
 .site-header {
   width: 100%;
-  background-color: #0b4ea2;   /* 진한 경찰청 블루 */
+  background-color: #0b4ea2;
   border-bottom: none;
 }
 
 .header-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 22px 32px;          /* ✅ 높이 핵심 */
+  padding: 22px 32px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -144,13 +144,13 @@ body {
 }
 
 .site-logo {
-  height: 46px;                /* 로고도 조금 키움 */
+  height: 46px;
 }
 
 .site-title {
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;              /* 흰색 글씨 */
+  color: #ffffff;
   letter-spacing: -0.5px;
 }
 
@@ -168,7 +168,6 @@ body {
   text-decoration: none;
 }
 
-/* 왼쪽 로고 영역 */
 .header-left {
   display: flex;
   align-items: center;
@@ -177,10 +176,9 @@ body {
   color: inherit;
 }
 
-/* 관리자 로그인 링크 */
 .admin-login-link {
-  font-size: 14px;        /* 작게 */
-  color: #ffffff;        /* 흰 글씨 */
+  font-size: 14px;
+  color: #ffffff;
   text-decoration: none;
   opacity: 0.85;
 }
