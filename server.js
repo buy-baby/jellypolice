@@ -48,27 +48,23 @@ ensureDB(AGENCY_DB, {
 
 ensureDB(RANK_DB, {
   title: "젤리경찰청 직급표",
-
   high: {
     "치안총감": "",
     "치안정감": "",
     "치안감": ""
   },
-
   mid: {
     "경무관": "",
     "총경": "",
     "경정": "",
     "경감": ""
   },
-
   normal: {
     "경위": ["", "", "", "", ""],
     "경사": ["", "", "", "", ""],
     "경장": ["", "", "", "", ""],
     "순경": ["", "", "", "", ""]
   },
-
   probation: ["", "", "", "", ""]
 });
 
@@ -108,17 +104,52 @@ app.get("/admin", requireAdmin, (_, res) =>
 
 // -------------------- Public Pages --------------------
 app.get("/", (_, res) => res.render("main/main"));
+
 app.get("/intro/agency", (_, res) =>
   res.render("intro/intro_agency", { data: readJSON(AGENCY_DB) })
 );
+
 app.get("/intro/rank", (_, res) =>
   res.render("intro/intro_rank", { data: readJSON(RANK_DB) })
 );
+
 app.get("/intro/department", (_, res) =>
   res.render("intro/intro_department", { data: readJSON(DEPT_DB) })
 );
 
-// -------------------- Admin Edit Rank (✅ 핵심 수정) --------------------
+// -------------------- Admin Edit Agency --------------------
+app.get("/admin/edit/agency", requireAdmin, (req, res) => {
+  res.render("admin/edit_agency", { data: readJSON(AGENCY_DB) });
+});
+
+app.post("/admin/edit/agency", requireAdmin, (req, res) => {
+  writeJSON(AGENCY_DB, {
+    title: req.body.title,
+    content: req.body.content
+  });
+  res.redirect("/intro/agency");
+});
+
+// -------------------- Admin Edit Department --------------------
+app.get("/admin/edit/department", requireAdmin, (req, res) => {
+  res.render("admin/edit_department", { data: readJSON(DEPT_DB) });
+});
+
+app.post("/admin/edit/department", requireAdmin, (req, res) => {
+  const teams = Object.values(req.body.teams || {}).map(t => ({
+    name: t.name,
+    desc: t.desc
+  }));
+
+  writeJSON(DEPT_DB, {
+    title: "부서 소개",
+    teams
+  });
+
+  res.redirect("/intro/department");
+});
+
+// -------------------- Admin Edit Rank --------------------
 app.get("/admin/edit/rank", requireAdmin, (_, res) => {
   res.render("admin/edit_rank", { data: readJSON(RANK_DB) });
 });
@@ -126,18 +157,20 @@ app.get("/admin/edit/rank", requireAdmin, (_, res) => {
 app.post("/admin/edit/rank", requireAdmin, (req, res) => {
   const origin = readJSON(RANK_DB);
 
-  // 고위·간부직 (객체)
-  Object.keys(origin.high).forEach(k => origin.high[k] = req.body[`high_${k}`] || "");
-  Object.keys(origin.mid).forEach(k => origin.mid[k] = req.body[`mid_${k}`] || "");
+  Object.keys(origin.high).forEach(k => {
+    origin.high[k] = req.body[`high_${k}`] || "";
+  });
 
-  // 일반직 (무조건 5칸 고정)
+  Object.keys(origin.mid).forEach(k => {
+    origin.mid[k] = req.body[`mid_${k}`] || "";
+  });
+
   Object.keys(origin.normal).forEach(rank => {
     origin.normal[rank] = [1,2,3,4,5].map(i =>
       req.body[`normal_${rank}_${i}`] || ""
     );
   });
 
-  // 시보 (5칸)
   origin.probation = [1,2,3,4,5].map(i =>
     req.body[`probation_${i}`] || ""
   );
@@ -146,47 +179,15 @@ app.post("/admin/edit/rank", requireAdmin, (req, res) => {
   res.redirect("/intro/rank");
 });
 
-// 시민 - 민원 페이지
-app.get("/inquiry", (req, res) => {
-  res.render("inquiry/index");
-});
+// -------------------- Citizen Pages --------------------
+app.get("/inquiry", (_, res) => res.render("inquiry/index"));
+app.get("/suggest", (_, res) => res.render("suggest/suggest"));
+app.get("/apply", (_, res) => res.render("apply/index"));
+app.get("/apply/conditions", (_, res) => res.render("apply/apply_conditions"));
+app.get("/apply/apply", (_, res) => res.render("apply/apply_apply"));
+app.get("/customer", (_, res) => res.render("customer/index"));
 
-// 시민 - 건의 페이지
-app.get("/suggest", (req, res) => {
-  res.render("suggest/suggest");
-});
-
-// 시민 - 채용 메인
-app.get("/apply", (req, res) => {
-  res.render("apply/index");
-});
-
-// 시민 - 채용 조건
-app.get("/apply/conditions", (req, res) => {
-  res.render("apply/apply_conditions");
-});
-
-// 시민 - 채용 지원서
-app.get("/apply/apply", (req, res) => {
-  res.render("apply/apply_apply");
-});
-
-// 시민 - 고객센터
-app.get("/customer", (req, res) => {
-  res.render("customer/index");
-});
-
-// 관리자 - 수정 - 경찰청 소개
-app.get("/admin/edit/agency", (req, res) => {
-  res.render("admin/edit_agency");
-});
-
-// 관리자 - 수정 - 부서 소개
-app.get("/admin/edit/department", (req, res) => {
-  res.render("admin/edit_department");
-});
-
-// 관리자 - 민원 열람
+// -------------------- Admin Inquiry / Suggest --------------------
 app.get("/admin/inquiry", requireAdmin, (req, res) => {
   const complaints = readJSON(COMPLAINT_DB);
   res.render("admin/inquiry_list", { complaints });
@@ -196,7 +197,6 @@ app.get("/admin/suggest", requireAdmin, (req, res) => {
   const suggestions = readJSON(SUGGEST_DB);
   res.render("admin/suggest_list", { suggestions });
 });
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () =>
