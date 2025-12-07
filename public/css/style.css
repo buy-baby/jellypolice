@@ -156,3 +156,13 @@ body {
 .intro-container {
   margin-top: 30px;
 }
+
+.header-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.header-link:hover {
+  text-decoration: none;
+}
