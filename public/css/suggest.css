@@ -6,19 +6,6 @@ body {
   background: #f6f9ff;
 }
 
-/* 헤더 */
-.suggest-header {
-  display: flex;
-  align-items: center;
-  background: #003c8f;
-  padding: 16px 24px;
-  color: white;
-}
-
-.suggest-logo {
-  width: 80px;
-  margin-right: 20px;
-}
 
 /* 컨테이너 */
 .suggest-container {
