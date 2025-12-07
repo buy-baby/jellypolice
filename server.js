@@ -187,18 +187,16 @@ app.get("/admin/edit/department", (req, res) => {
 });
 
 // 관리자 - 민원 열람
-app.get("/admin/complaints", (req, res) => {
+app.get("/admin/complaint", (req, res) => {
   const complaints = readJSON("./database/complaints.json");
   res.render("admin/complaints", { complaints });
 });
 
 // 관리자 - 건의 열람
-app.get("/admin/suggestions", (req, res) => {
+app.get("/admin/suggestion", (req, res) => {
   const suggestions = readJSON("./database/suggestions.json");
   res.render("admin/suggestions", { suggestions });
 });
-
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () =>
