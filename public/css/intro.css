@@ -188,3 +188,29 @@
   font-size: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
+
+/* 공통 상단 헤더 */
+.site-header {
+  width: 100%;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-logo {
+  height: 36px;
+}
+
+.site-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #003c8f; /* 경찰 느낌 네이비 */
+}
