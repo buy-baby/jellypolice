@@ -198,6 +198,106 @@ app.get("/admin/suggest", requireAdmin, (req, res) => {
   res.render("admin/suggest_list", { suggestions });
 });
 
+
+// -------------------- Citizen Submit (민원/건의) --------------------
+
+//  민원 접수 완료 페이지
+app.get("/inquiry/success", (req, res) => {
+  res.render("inquiry/success");
+});
+
+//  건의 접수 완료 페이지
+app.get("/suggest/success", (req, res) => {
+  res.render("suggest/success");
+});
+
+//  민원 제출 (form action="/submit")
+app.post("/submit", upload.single("file"), async (req, res) => {
+  try {
+    const complaints = readJSON(COMPLAINT_DB);
+
+    // id 만들기(증가형)
+    const nextId =
+      Array.isArray(complaints) && complaints.length
+        ? Math.max(...complaints.map(c => Number(c.id) || 0)) + 1
+        : 1;
+
+    const created = new Date().toISOString();
+
+    // 파일 업로드(선택): R2 설정이 없으면 그냥 저장만
+    let fileKey = "";
+    let fileName = "";
+
+    if (req.file) {
+      fileName = req.file.originalname || "";
+
+      // R2 환경변수 다 있으면 업로드 시도
+      if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY && process.env.R2_SECRET_KEY && R2_BUCKET) {
+        fileKey = `complaints/${nextId}-${Date.now()}-${fileName}`.replace(/\s+/g, "_");
+
+        await r2.send(
+          new PutObjectCommand({
+            Bucket: R2_BUCKET,
+            Key: fileKey,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype,
+          })
+        );
+      }
+    }
+
+    // DB에 저장
+    const newItem = {
+      id: nextId,
+      name: req.body.name || "",
+      identity: req.body.identity || "",
+      content: req.body.content || "",
+      created,
+      fileName,
+      fileKey, // R2 업로드 성공 시 key 저장 (없으면 "")
+    };
+
+    const next = Array.isArray(complaints) ? [...complaints, newItem] : [newItem];
+    writeJSON(COMPLAINT_DB, next);
+
+    return res.redirect("/inquiry/success");
+  } catch (err) {
+    console.error("❌ 민원 제출 오류:", err);
+    return res.status(500).send("민원 제출 중 오류가 발생했습니다.");
+  }
+});
+
+//  건의 제출 (form action="/suggest")
+app.post("/suggest", (req, res) => {
+  try {
+    const suggestions = readJSON(SUGGEST_DB);
+
+    const nextId =
+      Array.isArray(suggestions) && suggestions.length
+        ? Math.max(...suggestions.map(s => Number(s.id) || 0)) + 1
+        : 1;
+
+    const created = new Date().toISOString();
+
+    const newItem = {
+      id: nextId,
+      name: req.body.name || "",
+      identity: req.body.identity || "",
+      content: req.body.content || "",
+      created,
+    };
+
+    const next = Array.isArray(suggestions) ? [...suggestions, newItem] : [newItem];
+    writeJSON(SUGGEST_DB, next);
+
+    return res.redirect("/suggest/success");
+  } catch (err) {
+    console.error("❌ 건의 제출 오류:", err);
+    return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
+  }
+});
+
+
 // -------------------- Server --------------------
 app.listen(PORT, () =>
   console.log(`✅ Server running on ${PORT}`)
