@@ -6,10 +6,23 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
+const {
+  getAgency,
+  setAgency,
+  getRank,
+  setRank,
+  getDepartment,
+  setDepartment,
+  listComplaints,
+  listSuggestions,
+  addComplaint,
+  addSuggestion,
+} = require("./src/storage");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// -------------------- Cloudflare R2 --------------------
+// -------------------- Cloudflare R2 (파일 저장용) --------------------
 const r2 = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -20,70 +33,18 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- JSON Utils --------------------
-function ensureDB(file, defaultData) {
-  if (!fs.existsSync("./database")) fs.mkdirSync("./database");
-  if (!fs.existsSync(file)) {
-    fs.writeFileSync(file, JSON.stringify(defaultData, null, 2));
-  }
-}
-const readJSON = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
-const writeJSON = (f, d) => fs.writeFileSync(f, JSON.stringify(d, null, 2));
-
-// -------------------- DB Paths --------------------
-const COMPLAINT_DB = "./database/complaints.json";
-const SUGGEST_DB = "./database/suggest.json";
-const AGENCY_DB = "./database/agency.json";
-const RANK_DB = "./database/rank.json";
-const DEPT_DB = "./database/department.json";
-
-// -------------------- DB Init --------------------
-ensureDB(COMPLAINT_DB, []);
-ensureDB(SUGGEST_DB, []);
-
-ensureDB(AGENCY_DB, {
-  title: "젤리경찰청 기관 소개",
-  content: "젤리 경찰청은 시민의 안전과 질서를 위해 존재합니다."
-});
-
-ensureDB(RANK_DB, {
-  title: "젤리경찰청 직급표",
-  high: {
-    "치안총감": "",
-    "치안정감": "",
-    "치안감": ""
-  },
-  mid: {
-    "경무관": "",
-    "총경": "",
-    "경정": "",
-    "경감": ""
-  },
-  normal: {
-    "경위": ["", "", "", "", ""],
-    "경사": ["", "", "", "", ""],
-    "경장": ["", "", "", "", ""],
-    "순경": ["", "", "", "", ""]
-  },
-  probation: ["", "", "", "", ""]
-});
-
-ensureDB(DEPT_DB, {
-  title: "부서 소개",
-  teams: []
-});
-
 // -------------------- Middleware --------------------
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
 app.set("view engine", "ejs");
-app.set("views", "./public/views");
+app.set("views", path.join(__dirname, "public", "views"));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------- Admin Auth --------------------
-const ADMIN_PASSWORD = "jellypolice1234";
+// Render/서버에서 환경변수로 바꾸는 걸 추천 (없으면 기존 값으로 동작)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "jellypolice1234";
 const requireAdmin = (req, res, next) =>
   req.cookies.admin === "loggedin" ? next() : res.redirect("/login");
 
@@ -91,91 +52,96 @@ const requireAdmin = (req, res, next) =>
 app.get("/login", (_, res) => res.render("admin/admin_login"));
 app.post("/login", (req, res) => {
   if (req.body.password === ADMIN_PASSWORD) {
-    res.cookie("admin", "loggedin");
+    res.cookie("admin", "loggedin", {
+      httpOnly: true,
+      sameSite: "lax",
+    });
     return res.redirect("/admin");
   }
-  res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
+  return res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
 });
 
 // -------------------- Admin Main --------------------
-app.get("/admin", requireAdmin, (_, res) =>
-  res.render("admin/admin_main")
-);
+app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
 // -------------------- Public Pages --------------------
 app.get("/", (_, res) => res.render("main/main"));
 
-app.get("/intro/agency", (_, res) =>
-  res.render("intro/intro_agency", { data: readJSON(AGENCY_DB) })
-);
-
-app.get("/intro/rank", (_, res) =>
-  res.render("intro/intro_rank", { data: readJSON(RANK_DB) })
-);
-
-app.get("/intro/department", (_, res) =>
-  res.render("intro/intro_department", { data: readJSON(DEPT_DB) })
-);
-
-// -------------------- Admin Edit Agency --------------------
-app.get("/admin/edit/agency", requireAdmin, (req, res) => {
-  res.render("admin/edit_agency", { data: readJSON(AGENCY_DB) });
+app.get("/intro/agency", async (_, res) => {
+  const data = await getAgency();
+  res.render("intro/intro_agency", { data });
 });
 
-app.post("/admin/edit/agency", requireAdmin, (req, res) => {
-  writeJSON(AGENCY_DB, {
-    title: req.body.title,
-    content: req.body.content
+app.get("/intro/rank", async (_, res) => {
+  const data = await getRank();
+  res.render("intro/intro_rank", { data });
+});
+
+app.get("/intro/department", async (_, res) => {
+  const data = await getDepartment();
+  res.render("intro/intro_department", { data });
+});
+
+// -------------------- Admin Edit Agency --------------------
+app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
+  const data = await getAgency();
+  res.render("admin/edit_agency", { data });
+});
+
+app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
+  await setAgency({
+    title: req.body.title || "",
+    content: req.body.content || "",
   });
   res.redirect("/intro/agency");
 });
 
 // -------------------- Admin Edit Department --------------------
-app.get("/admin/edit/department", requireAdmin, (req, res) => {
-  res.render("admin/edit_department", { data: readJSON(DEPT_DB) });
+app.get("/admin/edit/department", requireAdmin, async (_, res) => {
+  const data = await getDepartment();
+  res.render("admin/edit_department", { data });
 });
 
-app.post("/admin/edit/department", requireAdmin, (req, res) => {
-  const teams = Object.values(req.body.teams || {}).map(t => ({
-    name: t.name,
-    desc: t.desc
+app.post("/admin/edit/department", requireAdmin, async (req, res) => {
+  const teams = Object.values(req.body.teams || {}).map((t) => ({
+    name: t.name || "",
+    desc: t.desc || "",
   }));
 
-  writeJSON(DEPT_DB, {
-    title: "부서 소개",
-    teams
+  await setDepartment({
+    title: req.body.title || "부서 소개",
+    teams,
   });
 
   res.redirect("/intro/department");
 });
 
 // -------------------- Admin Edit Rank --------------------
-app.get("/admin/edit/rank", requireAdmin, (_, res) => {
-  res.render("admin/edit_rank", { data: readJSON(RANK_DB) });
+app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
+  const data = await getRank();
+  res.render("admin/edit_rank", { data });
 });
 
-app.post("/admin/edit/rank", requireAdmin, (req, res) => {
-  const origin = readJSON(RANK_DB);
+app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
+  const origin = await getRank();
 
-  Object.keys(origin.high).forEach(k => {
+  Object.keys(origin.high || {}).forEach((k) => {
     origin.high[k] = req.body[`high_${k}`] || "";
   });
 
-  Object.keys(origin.mid).forEach(k => {
+  Object.keys(origin.mid || {}).forEach((k) => {
     origin.mid[k] = req.body[`mid_${k}`] || "";
   });
 
-  Object.keys(origin.normal).forEach(rank => {
-    origin.normal[rank] = [1,2,3,4,5].map(i =>
+  Object.keys(origin.normal || {}).forEach((rank) => {
+    origin.normal[rank] = [1, 2, 3, 4, 5].map((i) =>
       req.body[`normal_${rank}_${i}`] || ""
     );
   });
 
-  origin.probation = [1,2,3,4,5].map(i =>
-    req.body[`probation_${i}`] || ""
-  );
+  origin.probation = [1, 2, 3, 4, 5].map((i) => req.body[`probation_${i}`] || "");
 
-  writeJSON(RANK_DB, origin);
+  await setRank(origin);
   res.redirect("/intro/rank");
 });
 
@@ -188,43 +154,26 @@ app.get("/apply/apply", (_, res) => res.render("apply/apply_apply"));
 app.get("/customer", (_, res) => res.render("customer/index"));
 
 // -------------------- Admin Inquiry / Suggest --------------------
-app.get("/admin/inquiry", requireAdmin, (req, res) => {
-  const complaints = readJSON(COMPLAINT_DB);
+app.get("/admin/inquiry", requireAdmin, async (_, res) => {
+  const complaints = await listComplaints();
   res.render("admin/inquiry_list", { complaints });
 });
 
-app.get("/admin/suggest", requireAdmin, (req, res) => {
-  const suggestions = readJSON(SUGGEST_DB);
+app.get("/admin/suggest", requireAdmin, async (_, res) => {
+  const suggestions = await listSuggestions();
   res.render("admin/suggest_list", { suggestions });
 });
 
-
 // -------------------- Citizen Submit (민원/건의) --------------------
+app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
+app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
-//  민원 접수 완료 페이지
-app.get("/inquiry/success", (req, res) => {
-  res.render("inquiry/success");
-});
-
-//  건의 접수 완료 페이지
-app.get("/suggest/success", (req, res) => {
-  res.render("suggest/success");
-});
-
-//  민원 제출 (form action="/submit")
+// 민원 제출 (form action="/submit")
 app.post("/submit", upload.single("file"), async (req, res) => {
   try {
-    const complaints = readJSON(COMPLAINT_DB);
-
-    // id 만들기(증가형)
-    const nextId =
-      Array.isArray(complaints) && complaints.length
-        ? Math.max(...complaints.map(c => Number(c.id) || 0)) + 1
-        : 1;
-
     const created = new Date().toISOString();
 
-    // 파일 업로드(선택): R2 설정이 없으면 그냥 저장만
+    // 파일 업로드(선택)
     let fileKey = "";
     let fileName = "";
 
@@ -232,8 +181,13 @@ app.post("/submit", upload.single("file"), async (req, res) => {
       fileName = req.file.originalname || "";
 
       // R2 환경변수 다 있으면 업로드 시도
-      if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY && process.env.R2_SECRET_KEY && R2_BUCKET) {
-        fileKey = `complaints/${nextId}-${Date.now()}-${fileName}`.replace(/\s+/g, "_");
+      if (
+        process.env.R2_ENDPOINT &&
+        process.env.R2_ACCESS_KEY &&
+        process.env.R2_SECRET_KEY &&
+        R2_BUCKET
+      ) {
+        fileKey = `complaints/${Date.now()}-${fileName}`.replace(/\s+/g, "_");
 
         await r2.send(
           new PutObjectCommand({
@@ -246,19 +200,14 @@ app.post("/submit", upload.single("file"), async (req, res) => {
       }
     }
 
-    // DB에 저장
-    const newItem = {
-      id: nextId,
+    await addComplaint({
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
       created,
       fileName,
-      fileKey, // R2 업로드 성공 시 key 저장 (없으면 "")
-    };
-
-    const next = Array.isArray(complaints) ? [...complaints, newItem] : [newItem];
-    writeJSON(COMPLAINT_DB, next);
+      fileKey,
+    });
 
     return res.redirect("/inquiry/success");
   } catch (err) {
@@ -267,28 +216,17 @@ app.post("/submit", upload.single("file"), async (req, res) => {
   }
 });
 
-//  건의 제출 (form action="/suggest")
-app.post("/suggest", (req, res) => {
+// 건의 제출 (form action="/suggest")
+app.post("/suggest", async (req, res) => {
   try {
-    const suggestions = readJSON(SUGGEST_DB);
-
-    const nextId =
-      Array.isArray(suggestions) && suggestions.length
-        ? Math.max(...suggestions.map(s => Number(s.id) || 0)) + 1
-        : 1;
-
     const created = new Date().toISOString();
 
-    const newItem = {
-      id: nextId,
+    await addSuggestion({
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
       created,
-    };
-
-    const next = Array.isArray(suggestions) ? [...suggestions, newItem] : [newItem];
-    writeJSON(SUGGEST_DB, next);
+    });
 
     return res.redirect("/suggest/success");
   } catch (err) {
@@ -297,8 +235,5 @@ app.post("/suggest", (req, res) => {
   }
 });
 
-
 // -------------------- Server --------------------
-app.listen(PORT, () =>
-  console.log(`✅ Server running on ${PORT}`)
-);
+app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
