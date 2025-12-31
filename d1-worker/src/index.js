@@ -171,7 +171,8 @@ router.post('/api/suggestions', async (req, env) => {
 router.all('*', () => json({ error: 'not_found' }, { status: 404 }));
 
 export default {
-  fetch(request, env, ctx) {
-    return router.handle(request, env, ctx);
+  async fetch(request, env, ctx) {
+    return await router.handle(request, env, ctx);
   },
 };
+
