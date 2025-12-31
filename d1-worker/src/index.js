@@ -2,12 +2,15 @@ import { Router } from 'itty-router';
 
 const router = Router();
 
+<<<<<<< HEAD
 if (url.pathname === "/") {
   return new Response("Jelly Police D1 API is running", {
     headers: { "Content-Type": "text/plain" },
   });
 }
 
+=======
+>>>>>>> a6c0c2d (fix all please.)
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -172,7 +175,13 @@ router.all('*', () => json({ error: 'not_found' }, { status: 404 }));
 
 export default {
   async fetch(request, env, ctx) {
+<<<<<<< HEAD
     return await router.handle(request, env, ctx);
   },
 };
 
+=======
+    return router.handle(request, env, ctx);
+  },
+};
+>>>>>>> a6c0c2d (fix all please.)
