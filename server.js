@@ -43,7 +43,6 @@ app.set("views", path.join(__dirname, "public", "views"));
 const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------- Admin Auth --------------------
-// Render/서버에서 환경변수로 바꾸는 걸 추천 (없으면 기존 값으로 동작)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "jellypolice1234";
 const requireAdmin = (req, res, next) =>
   req.cookies.admin === "loggedin" ? next() : res.redirect("/login");
@@ -158,6 +157,19 @@ app.get("/admin/inquiry", requireAdmin, async (_, res) => {
   const complaints = await listComplaints();
   res.render("admin/inquiry_list", { complaints });
 });
+
+// 민원 상세보기
+app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+
+  const complaints = await listComplaints();
+  const c = (complaints || []).find((x) => Number(x.id) === id);
+
+  if (!c) return res.status(404).send("민원을 찾을 수 없습니다.");
+
+  res.render("admin/inquiry_view", { c });
+});
+
 
 app.get("/admin/suggest", requireAdmin, async (_, res) => {
   const suggestions = await listSuggestions();
