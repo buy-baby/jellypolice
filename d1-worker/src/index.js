@@ -59,7 +59,15 @@ const DEFAULT_PAGES = {
 };
 
 async function getOrSeedPage(env, key) {
+<<<<<<< HEAD
   const row = await env.DB.prepare('SELECT page_json FROM pages WHERE page_key = ?').bind(key).first();
+=======
+  const row = await env.DB
+    .prepare('SELECT page_json FROM pages WHERE page_key = ?')
+    .bind(key)
+    .first();
+
+>>>>>>> rescue
   if (row && row.page_json) {
     try {
       return JSON.parse(row.page_json);
@@ -69,7 +77,12 @@ async function getOrSeedPage(env, key) {
   }
 
   const data = DEFAULT_PAGES[key] || {};
+<<<<<<< HEAD
   await env.DB.prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+=======
+  await env.DB
+    .prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+>>>>>>> rescue
     .bind(key, JSON.stringify(data), new Date().toISOString())
     .run();
 
@@ -77,11 +90,26 @@ async function getOrSeedPage(env, key) {
 }
 
 async function setPage(env, key, data) {
+<<<<<<< HEAD
   await env.DB.prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+=======
+  await env.DB
+    .prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+>>>>>>> rescue
     .bind(key, JSON.stringify(data || {}), new Date().toISOString())
     .run();
 }
 
+<<<<<<< HEAD
+=======
+// ---- Root ----
+router.get('/', () =>
+  new Response('Jelly Police D1 API is running', {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  })
+);
+
+>>>>>>> rescue
 // ---- Health ----
 router.get('/api/health', () => json({ ok: true }));
 
@@ -114,9 +142,15 @@ router.put('/api/department', async (req, env) => {
 // ---- Complaints ----
 router.get('/api/complaints', async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
+<<<<<<< HEAD
   const { results } = await env.DB.prepare(
     'SELECT id, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC'
   ).all();
+=======
+  const { results } = await env.DB
+    .prepare('SELECT id, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC')
+    .all();
+>>>>>>> rescue
   return json(results || []);
 });
 
@@ -124,9 +158,14 @@ router.post('/api/complaints', async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
+<<<<<<< HEAD
   const r = await env.DB.prepare(
     'INSERT INTO complaints(name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?)'
   )
+=======
+  const r = await env.DB
+    .prepare('INSERT INTO complaints(name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?)')
+>>>>>>> rescue
     .bind(
       body.name || '',
       body.identity || '',
@@ -143,9 +182,15 @@ router.post('/api/complaints', async (req, env) => {
 // ---- Suggestions ----
 router.get('/api/suggestions', async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
+<<<<<<< HEAD
   const { results } = await env.DB.prepare(
     'SELECT id, name, identity, content, created FROM suggestions ORDER BY id DESC'
   ).all();
+=======
+  const { results } = await env.DB
+    .prepare('SELECT id, name, identity, content, created FROM suggestions ORDER BY id DESC')
+    .all();
+>>>>>>> rescue
   return json(results || []);
 });
 
@@ -153,9 +198,14 @@ router.post('/api/suggestions', async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
+<<<<<<< HEAD
   const r = await env.DB.prepare(
     'INSERT INTO suggestions(name, identity, content, created) VALUES(?, ?, ?, ?)'
   )
+=======
+  const r = await env.DB
+    .prepare('INSERT INTO suggestions(name, identity, content, created) VALUES(?, ?, ?, ?)')
+>>>>>>> rescue
     .bind(body.name || '', body.identity || '', body.content || '', created)
     .run();
 
