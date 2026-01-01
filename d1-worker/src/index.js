@@ -2,15 +2,6 @@ import { Router } from 'itty-router';
 
 const router = Router();
 
-<<<<<<< HEAD
-if (url.pathname === "/") {
-  return new Response("Jelly Police D1 API is running", {
-    headers: { "Content-Type": "text/plain" },
-  });
-}
-
-=======
->>>>>>> a6c0c2d (fix all please.)
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     headers: { 'content-type': 'application/json; charset=utf-8' },
@@ -68,7 +59,11 @@ const DEFAULT_PAGES = {
 };
 
 async function getOrSeedPage(env, key) {
-  const row = await env.DB.prepare('SELECT page_json FROM pages WHERE page_key = ?').bind(key).first();
+  const row = await env.DB
+    .prepare('SELECT page_json FROM pages WHERE page_key = ?')
+    .bind(key)
+    .first();
+
   if (row && row.page_json) {
     try {
       return JSON.parse(row.page_json);
@@ -78,7 +73,8 @@ async function getOrSeedPage(env, key) {
   }
 
   const data = DEFAULT_PAGES[key] || {};
-  await env.DB.prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+  await env.DB
+    .prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
     .bind(key, JSON.stringify(data), new Date().toISOString())
     .run();
 
@@ -86,10 +82,18 @@ async function getOrSeedPage(env, key) {
 }
 
 async function setPage(env, key, data) {
-  await env.DB.prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
+  await env.DB
+    .prepare('INSERT OR REPLACE INTO pages(page_key, page_json, updated) VALUES(?, ?, ?)')
     .bind(key, JSON.stringify(data || {}), new Date().toISOString())
     .run();
 }
+
+// ---- Root ----
+router.get('/', () =>
+  new Response('Jelly Police D1 API is running', {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  })
+);
 
 // ---- Health ----
 router.get('/api/health', () => json({ ok: true }));
@@ -123,9 +127,9 @@ router.put('/api/department', async (req, env) => {
 // ---- Complaints ----
 router.get('/api/complaints', async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
-  const { results } = await env.DB.prepare(
-    'SELECT id, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC'
-  ).all();
+  const { results } = await env.DB
+    .prepare('SELECT id, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC')
+    .all();
   return json(results || []);
 });
 
@@ -133,9 +137,8 @@ router.post('/api/complaints', async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const r = await env.DB.prepare(
-    'INSERT INTO complaints(name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?)'
-  )
+  const r = await env.DB
+    .prepare('INSERT INTO complaints(name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?)')
     .bind(
       body.name || '',
       body.identity || '',
@@ -152,9 +155,9 @@ router.post('/api/complaints', async (req, env) => {
 // ---- Suggestions ----
 router.get('/api/suggestions', async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
-  const { results } = await env.DB.prepare(
-    'SELECT id, name, identity, content, created FROM suggestions ORDER BY id DESC'
-  ).all();
+  const { results } = await env.DB
+    .prepare('SELECT id, name, identity, content, created FROM suggestions ORDER BY id DESC')
+    .all();
   return json(results || []);
 });
 
@@ -162,9 +165,8 @@ router.post('/api/suggestions', async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const r = await env.DB.prepare(
-    'INSERT INTO suggestions(name, identity, content, created) VALUES(?, ?, ?, ?)'
-  )
+  const r = await env.DB
+    .prepare('INSERT INTO suggestions(name, identity, content, created) VALUES(?, ?, ?, ?)')
     .bind(body.name || '', body.identity || '', body.content || '', created)
     .run();
 
@@ -175,13 +177,6 @@ router.all('*', () => json({ error: 'not_found' }, { status: 404 }));
 
 export default {
   async fetch(request, env, ctx) {
-<<<<<<< HEAD
-    return await router.handle(request, env, ctx);
-  },
-};
-
-=======
     return router.handle(request, env, ctx);
   },
 };
->>>>>>> a6c0c2d (fix all please.)
