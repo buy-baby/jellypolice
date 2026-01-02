@@ -13,7 +13,7 @@
   <% data.teams.forEach(t => { %>
     <div class="dept-box">
       <div class="dept-title"><%= t.name %></div>
-      <div class="dept-text"><%= t.description %></div>
+      <div class="dept-text"><%= (t.desc || t.description || "") %></div>
     </div>
   <% }) %>
 </div>
