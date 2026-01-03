@@ -29,13 +29,10 @@
     </div>
 
     <div class="delete-area">
-      <a 
-        class="delete-btn" 
-        href="/admin/suggest/delete/<%= item.id %>"
-        onclick="return confirm('정말 삭제하시겠습니까?');"
-      >
-        ❌ 삭제하기
-      </a>
+          <form method="POST" action="/admin/suggestion/delete/<%= s.id %>" style="display:inline;">
+       <button type="submit" onclick="return confirm('삭제할까요?')">삭제</button>
+    </form>
+
     </div>
 
   </div>

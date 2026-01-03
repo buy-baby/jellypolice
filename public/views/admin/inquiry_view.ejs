@@ -23,8 +23,13 @@
         <a class="file-btn" href="/file/<%= c.file %>">첨부파일 다운로드</a>
       <% } %>
 
-      <a class="delete-btn" href="/admin/inquiry/delete/<%= c.id %>" onclick="return confirm('정말 삭제할까요?')">삭제</a>
-    </div>
+      <form method="POST"
+      action="/admin/inquiry/delete/<%= c.id %>"
+      onsubmit="return confirm('정말 삭제할까요?')"
+      style="display:inline;">
+        <button type="submit" class="delete-btn">삭제</button>
+      </form>
+
 
   </div>
 </body>

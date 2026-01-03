@@ -170,6 +170,30 @@ app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
   res.render("admin/inquiry_view", { c });
 });
 
+async function d1Api(method, path, body = null, token = process.env.API_TOKEN || "") {
+  const base = process.env.D1_API_BASE; // 예: https://jelly-d1-api.dongdonglee0616.workers.dev
+  const url = `${base}${path}`;
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`D1 API ${method} ${path} failed: ${res.status} ${text}`);
+  }
+
+  // 204 같은 경우 대비
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+
+
 
 app.get("/admin/suggest", requireAdmin, async (_, res) => {
   const suggestions = await listSuggestions();
@@ -246,6 +270,17 @@ app.post("/suggest", async (req, res) => {
     return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
   }
 });
+
+app.post('/admin/inquiry/delete/:id', requireAdmin, async (req, res) => {
+  await deleteComplaint(req.params.id);
+  res.redirect('/admin/inquiry');
+});
+
+app.post('/admin/suggestion/delete/:id', requireAdmin, async (req, res) => {
+  await deleteSuggestion(req.params.id);
+  res.redirect('/admin/suggestion');
+});
+
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
