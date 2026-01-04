@@ -28,6 +28,8 @@ const SUGGEST_DB = "./database/suggest.json";
 const AGENCY_DB = "./database/agency.json";
 const RANK_DB = "./database/rank.json";
 const DEPT_DB = "./database/department.json";
+const APPLY_COND_DB = "./database/apply_conditions.json";
+
 
 ensureDB(COMPLAINT_DB, []);
 ensureDB(SUGGEST_DB, []);
@@ -48,6 +50,19 @@ ensureDB(RANK_DB, {
   probation: ["", "", "", "", ""],
 });
 ensureDB(DEPT_DB, { title: "부서 소개", teams: [] });
+ensureDB(APPLY_COND_DB, {
+  title: "젤리 경찰청 채용 안내",
+  cards: {
+    eligibility: { title: "지원 자격 안내", content: "관리자 페이지에서 수정 가능" },
+    disqualify: { title: "지원 불가 사유", content: "관리자 페이지에서 수정 가능" },
+    preference: { title: "지원 우대 사항", content: "관리자 페이지에서 수정 가능" },
+  },
+  side: {
+    linkText: "링크1",
+    linkUrl: "#",
+  },
+});
+
 
 // -------------------- Worker API helper --------------------
 async function apiFetch(path, { method = "GET", body, admin = false } = {}) {
@@ -110,6 +125,19 @@ async function setDepartment(data) {
   return true;
 }
 
+//
+async function getApplyConditions() {
+  if (useD1()) return apiFetch("/api/apply/conditions");
+  return readJSON(APPLY_COND_DB);
+}
+
+async function setApplyConditions(data) {
+  if (useD1()) return apiFetch("/api/apply/conditions", { method: "PUT", body: data, admin: true });
+  writeJSON(APPLY_COND_DB, data);
+  return true;
+}
+
+
 // -------------------- Complaints / Suggestions --------------------
 async function listComplaints() {
   if (useD1()) return apiFetch("/api/complaints", { admin: true });
@@ -162,4 +190,6 @@ module.exports = {
   listSuggestions,
   addComplaint,
   addSuggestion,
+  getApplyConditions,
+  setApplyConditions,
 };

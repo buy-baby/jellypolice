@@ -17,6 +17,8 @@ const {
   listSuggestions,
   addComplaint,
   addSuggestion,
+  getApplyConditions,
+  setApplyConditions,
 } = require("./src/storage");
 
 const app = express();
@@ -148,7 +150,10 @@ app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
 app.get("/inquiry", (_, res) => res.render("inquiry/index"));
 app.get("/suggest", (_, res) => res.render("suggest/suggest"));
 app.get("/apply", (_, res) => res.render("apply/index"));
-app.get("/apply/conditions", (_, res) => res.render("apply/apply_conditions"));
+app.get("/apply/conditions", async (_, res) => {
+  const data = await getApplyConditions();
+  res.render("apply/apply_conditions", { data });
+});
 app.get("/apply/apply", (_, res) => res.render("apply/apply_apply"));
 app.get("/customer", (_, res) => res.render("customer/index"));
 
