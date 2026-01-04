@@ -27,14 +27,6 @@
         <%= item.content.replace(/\n/g, "<br>") %>
       </div>
     </div>
-
-    <div class="delete-area">
-          <form method="POST" action="/admin/suggestion/delete/<%= s.id %>" style="display:inline;">
-       <button type="submit" onclick="return confirm('삭제할까요?')">삭제</button>
-    </form>
-
-    </div>
-
   </div>
 </body>
 </html>

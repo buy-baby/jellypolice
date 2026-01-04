@@ -271,16 +271,6 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
-app.post('/admin/inquiry/delete/:id', requireAdmin, async (req, res) => {
-  await deleteComplaint(req.params.id);
-  res.redirect('/admin/inquiry');
-});
-
-app.post('/admin/suggestion/delete/:id', requireAdmin, async (req, res) => {
-  await deleteSuggestion(req.params.id);
-  res.redirect('/admin/suggestion');
-});
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
