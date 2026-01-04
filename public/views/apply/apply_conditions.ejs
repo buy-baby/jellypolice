@@ -10,11 +10,32 @@
 
     <%- include("../partials/header") %>
 
-  <div class="submit-container">
+<div class="apply-wrap">
+  <h1 class="apply-title"><%= data.title %></h1>
 
-    <h1> 제작중 </h1>
+  <div class="apply-grid">
+    <div class="apply-cards">
+      <section class="apply-card">
+        <div class="card-badge badge-green"><%= data.cards.eligibility.title %></div>
+        <div class="card-body"><%= data.cards.eligibility.content %></div>
+      </section>
 
+      <section class="apply-card">
+        <div class="card-badge badge-orange"><%= data.cards.disqualify.title %></div>
+        <div class="card-body"><%= data.cards.disqualify.content %></div>
+      </section>
+
+      <section class="apply-card">
+        <div class="card-badge badge-blue"><%= data.cards.preference.title %></div>
+        <div class="card-body"><%= data.cards.preference.content %></div>
+      </section>
+    </div>
+
+    <aside class="apply-side">
+      <a class="side-btn side-link" href="<%= data.side.linkUrl %>" target="_blank" rel="noopener">
+        <%= data.side.linkText %>
+      </a>
+      <a class="side-btn side-home" href="/">메인으로 돌아가기</a>
+    </aside>
   </div>
-
-</body>
-</html>
+</div>
