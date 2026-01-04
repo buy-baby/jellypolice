@@ -200,6 +200,19 @@ app.get("/admin/suggest", requireAdmin, async (_, res) => {
   res.render("admin/suggest_list", { suggestions });
 });
 
+// 건의 상세보기
+app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+
+  const suggestions = await listSuggestions();
+  const s = (suggestions || []).find((x) => Number(x.id) === id);
+
+  if (!s) return res.status(404).send("건의를 찾을 수 없습니다.");
+
+  res.render("admin/suggest_view", { s });
+});
+
+
 // -------------------- Citizen Submit (민원/건의) --------------------
 app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
