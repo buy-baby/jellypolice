@@ -29,7 +29,7 @@ function isAdmin(request, env) {
   return auth === `Bearer ${token}`;
 }
 
-// ✅ DB에 없으면 자동으로 “기본값”을 넣어주는 씨앗 데이터
+// -------------------DEFAULT----------------------
 const DEFAULT_PAGES = {
   agency: {
     title: "젤리경찰청 기관 소개",
@@ -58,18 +58,38 @@ const DEFAULT_PAGES = {
     ],
   },
 
-  // ✅ /apply/conditions 용(나중에 EJS 디자인은 따로)
-  apply_conditions: {
-    title: "젤리 경찰청 채용 안내",
-    cards: {
-      eligibility: { title: "지원 자격 안내", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
-      disqualify: { title: "지원 불가 사유", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
-      preference: { title: "지원 우대 사항", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+apply_conditions: {
+  title: "젤리 경찰청 채용 안내",
+  cards: {
+    eligibility: {
+      title: "지원 자격 안내",
+      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
     },
-    side: { linkText: "링크1", linkUrl: "#" },
+    disqualify: {
+      title: "지원 불가 사유",
+      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+    },
+    preference: {
+      title: "지원 우대 사항",
+      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+    },
   },
-};
+  side: {
+    linkText: "링크1",
+    linkUrl: "#",
+  },
+},
 
+apply_apply: {
+  title: "지원서 작성",
+  notice: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+  fields: [
+    { key: "name", label: "이름", required: true },
+    { key: "phone", label: "연락처", required: true },
+    { key: "message", label: "지원 동기", required: false },
+  ],
+},
+};
 async function getOrSeedPage(env, key) {
   const row = await env.DB.prepare("SELECT page_json FROM pages WHERE page_key = ?")
     .bind(key)
@@ -116,6 +136,13 @@ router.get("/api/agency", async (req, env) => json(await getOrSeedPage(env, "age
 router.get("/api/rank", async (req, env) => json(await getOrSeedPage(env, "rank")));
 router.get("/api/department", async (req, env) => json(await getOrSeedPage(env, "department")));
 router.get("/api/apply/conditions", async (req, env) => json(await getOrSeedPage(env, "apply_conditions")));
+router.get("/api/apply/apply", async (req, env) => json(await getOrSeedPage(env, "apply_apply")));
+
+router.put("/api/apply/apply", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+  await setPage(env, "apply_apply", await readBody(req));
+  return ok();
+});
 
 router.put("/api/agency", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();

@@ -5,6 +5,7 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { getApplyConditions, getApplyApply } = require("./src/storage");
 
 const {
   getAgency,
@@ -154,7 +155,10 @@ app.get("/apply/conditions", async (_, res) => {
   const data = await getApplyConditions();
   res.render("apply/apply_conditions", { data });
 });
-app.get("/apply/apply", (_, res) => res.render("apply/apply_apply"));
+app.get("/apply/apply", async (_, res) => {
+  const data = await getApplyApply();
+  res.render("apply/apply_apply", { data });
+});
 app.get("/customer", (_, res) => res.render("customer/index"));
 
 // -------------------- Admin Inquiry / Suggest --------------------
