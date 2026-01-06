@@ -67,3 +67,83 @@ body {
   opacity: 1;
   text-decoration: underline;
 }
+
+
+/* ---------------apply.css------------- */
+
+.apply-wrap{
+  max-width: 1200px;
+  margin: 28px auto 60px;
+  padding: 0 16px;
+}
+
+.apply-title{
+  font-size: 28px;
+  font-weight: 800;
+  margin: 10px 0 18px;
+  letter-spacing: -0.5px;
+}
+
+.apply-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 260px;
+  gap: 22px;
+  align-items: start;
+}
+
+.card{
+  background: #bfe8f4;
+  border-radius: 22px;
+  padding: 18px 18px 22px;
+  min-height: 520px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+.card-head{
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.head-green{ background:#2ecc71; color:#0b1a12; }
+.head-orange{ background:#ff8a3d; color:#2a1206; }
+.head-blue{ background:#12b5ea; color:#06212a; }
+
+.card-body{
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-line;
+  color: #0b2230;
+}
+
+.side{
+  display:flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side .btn{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height: 78px;
+  border-radius: 22px;
+  font-weight: 800;
+  font-size: 22px;
+  text-decoration:none;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.btn-link{ background:#3b49df; color:#fff; }
+.btn-back{ background:#ff2b2b; color:#fff; }
+
+@media (max-width: 1100px){
+  .apply-grid{ grid-template-columns: 1fr; }
+  .card{ min-height: auto; }
+  .side{ flex-direction: row; }
+  .side .btn{ flex: 1; }
+}
