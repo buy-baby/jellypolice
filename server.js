@@ -152,7 +152,6 @@ app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
 });
 
 app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
-  // 폼에서 넘어온 값으로 구조 맞춰서 저장
   const next = {
     title: req.body.title || "젤리 경찰청 채용 안내",
     cards: {
@@ -186,8 +185,6 @@ app.get("/admin/edit/apply/form", requireAdmin, async (_, res) => {
 });
 
 app.post("/admin/edit/apply/form", requireAdmin, async (req, res) => {
-  // fields는 줄 단위 입력으로 받자(관리하기 편함)
-  // 예: name|이름|required
   const lines = (req.body.fields_text || "")
     .split("\n")
     .map((v) => v.trim())
