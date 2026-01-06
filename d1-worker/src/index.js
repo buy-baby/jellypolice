@@ -80,15 +80,6 @@ apply_conditions: {
   },
 },
 
-apply_apply: {
-  title: "지원서 작성",
-  notice: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-  fields: [
-    { key: "name", label: "이름", required: true },
-    { key: "phone", label: "연락처", required: true },
-    { key: "message", label: "지원 동기", required: false },
-  ],
-},
 };
 async function getOrSeedPage(env, key) {
   const row = await env.DB.prepare("SELECT page_json FROM pages WHERE page_key = ?")
@@ -138,15 +129,6 @@ router.get("/api/department", async (req, env) => json(await getOrSeedPage(env, 
 router.get("/api/apply/conditions", async (req, env) =>
   json(await getOrSeedPage(env, "apply_conditions"))
 );
-router.get("/api/apply/apply", async (req, env) =>
-  json(await getOrSeedPage(env, "apply_apply"))
-);
-
-router.put("/api/apply/apply", async (req, env) => {
-  if (!isAdmin(req, env)) return unauthorized();
-  await setPage(env, "apply_apply", await readBody(req));
-  return ok();
-});
 
 router.put("/api/agency", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();

@@ -145,6 +145,74 @@ app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
   await setRank(origin);
   res.redirect("/intro/rank");
 });
+// ==================== Admin Edit Apply Conditions ====================
+app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
+  const data = await getApplyConditions();
+  res.render("admin/edit_apply_conditions", { data });
+});
+
+app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
+  // 폼에서 넘어온 값으로 구조 맞춰서 저장
+  const next = {
+    title: req.body.title || "젤리 경찰청 채용 안내",
+    cards: {
+      eligibility: {
+        title: req.body.eligibility_title || "지원 자격 안내",
+        content: req.body.eligibility_content || "",
+      },
+      disqualify: {
+        title: req.body.disqualify_title || "지원 불가 사유",
+        content: req.body.disqualify_content || "",
+      },
+      preference: {
+        title: req.body.preference_title || "지원 우대 사항",
+        content: req.body.preference_content || "",
+      },
+    },
+    side: {
+      linkText: req.body.side_linkText || "링크1",
+      linkUrl: req.body.side_linkUrl || "#",
+    },
+  };
+
+  await setApplyConditions(next);
+  return res.redirect("/apply/conditions");
+});
+
+/* ==================== Admin Edit Apply Form (/apply/apply) ====================
+app.get("/admin/edit/apply/form", requireAdmin, async (_, res) => {
+  const data = await getApplyApply();
+  res.render("admin/edit_apply_form", { data });
+});
+
+app.post("/admin/edit/apply/form", requireAdmin, async (req, res) => {
+  // fields는 줄 단위 입력으로 받자(관리하기 편함)
+  // 예: name|이름|required
+  const lines = (req.body.fields_text || "")
+    .split("\n")
+    .map((v) => v.trim())
+    .filter(Boolean);
+
+  const fields = lines.map((line) => {
+    const [key, label, requiredFlag] = line.split("|").map((v) => (v || "").trim());
+    return {
+      key,
+      label,
+      required: (requiredFlag || "").toLowerCase() === "required",
+    };
+  }).filter(f => f.key && f.label);
+
+  const next = {
+    title: req.body.title || "지원서 작성",
+    notice: req.body.notice || "",
+    fields,
+  };
+
+  await setApplyApply(next);
+  return res.redirect("/apply/apply");
+});
+=========================================================================================*/
+
 
 // -------------------- Citizen Pages --------------------
 app.get("/inquiry", (_, res) => res.render("inquiry/index"));
@@ -154,9 +222,9 @@ app.get("/apply/conditions", async (_, res) => {
   const data = await getApplyConditions();
   res.render("apply/apply_conditions", { data });
 });
-app.get("/apply/apply", async (_, res) => {
-  const data = await getApplyApply();
-  res.render("apply/apply_apply", { data });
+app.get("/apply/apply", (_, res) => {
+  const url = process.env.APPLY_FORM_URL || "https://forms.gle/c7jvyTj2qzGhauKT8";
+  return res.redirect(url);
 });
 app.get("/customer", (_, res) => res.render("customer/index"));
 

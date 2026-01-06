@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>채용 안내 편집</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <%- include("../partials/admin_header") %>
+
+  <div class="admin-container">
+    <h1>채용 안내(지원 자격) 편집</h1>
+
+    <form method="POST" action="/admin/edit/apply/conditions" class="admin-form">
+      <label>페이지 제목</label>
+      <input type="text" name="title" value="<%= data?.title || '' %>" />
+
+      <hr/>
+
+      <h3>카드 1 (지원 자격 안내)</h3>
+      <label>제목</label>
+      <input type="text" name="eligibility_title" value="<%= data?.cards?.eligibility?.title || '' %>"/>
+      <label>내용</label>
+      <textarea name="eligibility_content" rows="6"><%= data?.cards?.eligibility?.content || '' %></textarea>
+
+      <h3>카드 2 (지원 불가 사유)</h3>
+      <label>제목</label>
+      <input type="text" name="disqualify_title" value="<%= data?.cards?.disqualify?.title || '' %>"/>
+      <label>내용</label>
+      <textarea name="disqualify_content" rows="6"><%= data?.cards?.disqualify?.content || '' %></textarea>
+
+      <h3>카드 3 (지원 우대 사항)</h3>
+      <label>제목</label>
+      <input type="text" name="preference_title" value="<%= data?.cards?.preference?.title || '' %>"/>
+      <label>내용</label>
+      <textarea name="preference_content" rows="6"><%= data?.cards?.preference?.content || '' %></textarea>
+
+      <hr/>
+
+      <h3>우측 링크</h3>
+      <label>링크 텍스트</label>
+      <input type="text" name="side_linkText" value="<%= data?.side?.linkText || '' %>"/>
+      <label>링크 URL</label>
+      <input type="text" name="side_linkUrl" value="<%= data?.side?.linkUrl || '' %>"/>
+
+      <button type="submit" class="btn-primary">저장</button>
+      <a href="/apply/conditions" class="btn">미리보기</a>
+    </form>
+  </div>
+</body>
+</html>

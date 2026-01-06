@@ -62,6 +62,15 @@ ensureDB(APPLY_COND_DB, {
     linkUrl: "#",
   },
 });
+ensureDB(APPLY_COND_DB, {
+  title: "젤리 경찰청 채용 안내",
+  cards: {
+    eligibility: { title: "지원 자격 안내", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+    disqualify: { title: "지원 불가 사유", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+    preference: { title: "지원 우대 사항", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+  },
+  side: { linkText: "링크1", linkUrl: "#" },
+});
 
 
 // -------------------- Worker API helper --------------------
@@ -177,6 +186,17 @@ async function addSuggestion(data) {
   const next = Array.isArray(suggestions) ? [...suggestions, newItem] : [newItem];
   writeJSON(SUGGEST_DB, next);
   return newItem;
+}
+
+// -------------------- conditions --------------------
+async function getApplyConditions() {
+  if (useD1()) return apiFetch("/api/apply/conditions");
+  return readJSON(APPLY_COND_DB);
+}
+async function setApplyConditions(data) {
+  if (useD1()) return apiFetch("/api/apply/conditions", { method: "PUT", body: data, admin: true });
+  writeJSON(APPLY_COND_DB, data);
+  return true;
 }
 
 module.exports = {
