@@ -135,8 +135,12 @@ router.get("/api/health", () => json({ ok: true }));
 router.get("/api/agency", async (req, env) => json(await getOrSeedPage(env, "agency")));
 router.get("/api/rank", async (req, env) => json(await getOrSeedPage(env, "rank")));
 router.get("/api/department", async (req, env) => json(await getOrSeedPage(env, "department")));
-router.get("/api/apply/conditions", async (req, env) => json(await getOrSeedPage(env, "apply_conditions")));
-router.get("/api/apply/apply", async (req, env) => json(await getOrSeedPage(env, "apply_apply")));
+router.get("/api/apply/conditions", async (req, env) =>
+  json(await getOrSeedPage(env, "apply_conditions"))
+);
+router.get("/api/apply/apply", async (req, env) =>
+  json(await getOrSeedPage(env, "apply_apply"))
+);
 
 router.put("/api/apply/apply", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
