@@ -193,9 +193,12 @@ async function deleteNotice(id) {
 }
 
 async function getNotice(id) {
-  if (useD1()) return apiFetch(`/api/notices/${id}`);
-  return null;
+  const nid = Number(id);
+  if (!nid) return null;
+  if (useD1()) return apiFetch(`/api/notices/${nid}`);
+  return null; 
 }
+
 
 
 

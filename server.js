@@ -258,18 +258,26 @@ app.get("/apply/apply", (_, res) => {
 });
 app.get("/customer", (_, res) => res.render("customer/index"));
 app.get("/notice", async (_, res) => {
-  const notices = await listNotices();
-  res.render("notice/list", { notices });
+  try {
+    const notices = await listNotices(50);
+    res.render("notice/index", { notices });
+  } catch (e) {
+    console.error("❌ /notice error:", e);
+    res.status(500).send("공지 목록을 불러오지 못했습니다.");
+  }
 });
 app.get("/notice/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const notice = await getNotice(id);
+  try {
+    const id = Number(req.params.id);
+    const notice = await getNotice(id);
 
-  if (!notice) return res.status(404).send("공지사항을 찾을 수 없습니다.");
-  res.render("notice/view", { notice });
+    if (!notice) return res.status(404).send("공지사항을 찾을 수 없습니다.");
+    res.render("notice/view", { notice });
+  } catch (e) {
+    console.error("❌ /notice/:id error:", e);
+    res.status(500).send("공지 상세를 불러오지 못했습니다.");
+  }
 });
-
-
 
 // -------------------- Admin Inquiry / Suggest --------------------
 app.get("/admin/inquiry", requireAdmin, async (_, res) => {

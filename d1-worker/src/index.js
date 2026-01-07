@@ -198,18 +198,21 @@ router.delete("/api/notices/:id", async (req, env) => {
   return ok(); // 204
 });
 
-// 시민용: 공지 단건 조회
+// 공지 상세 (시민용)
 router.get("/api/notices/:id", async (req, env) => {
   const id = Number(req.params.id);
   if (!id) return json({ error: "bad_id" }, { status: 400 });
 
   const row = await env.DB.prepare(
     "SELECT id, title, content, created FROM notices WHERE id = ?"
-  ).bind(id).first();
+  )
+    .bind(id)
+    .first();
 
   if (!row) return json({ error: "not_found" }, { status: 404 });
   return json(row);
 });
+
 
 
 
