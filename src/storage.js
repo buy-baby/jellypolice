@@ -199,6 +199,23 @@ async function setApplyConditions(data) {
   return true;
 }
 
+// -------------------- Notices --------------------
+async function listNotices(limit = 5) {
+  if (useD1()) return apiFetch(`/api/notices?limit=${encodeURIComponent(limit)}`);
+  return [];
+}
+
+async function addNotice(data) {
+  if (useD1()) return apiFetch("/api/notices", { method: "POST", body: data, admin: true });
+  return true;
+}
+
+async function deleteNotice(id) {
+  if (useD1()) return apiFetch(`/api/notices/${id}`, { method: "DELETE", admin: true });
+  return true;
+}
+
+
 module.exports = {
   getAgency,
   setAgency,
@@ -212,4 +229,7 @@ module.exports = {
   addSuggestion,
   getApplyConditions,
   setApplyConditions,
+  listNotices,
+  addNotice,
+  deleteNotice,
 };

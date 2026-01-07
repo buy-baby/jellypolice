@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>공지사항 관리</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+  <%- include("../partials/admin_header") %>
+
+  <div class="info-box">
+    <h1>공지사항 관리</h1>
+
+    <form method="POST" action="/admin/notices" style="text-align:left;">
+      <div style="margin-bottom:10px;">
+        <label><strong>제목</strong></label><br/>
+        <input name="title" required style="width:100%; padding:10px; border:1px solid #d5d5d5; border-radius:8px;" />
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <label><strong>내용</strong></label><br/>
+        <textarea name="content" required rows="5" style="width:100%; padding:10px; border:1px solid #d5d5d5; border-radius:8px;"></textarea>
+      </div>
+
+      <button class="back-btn" type="submit">공지 등록</button>
+      <a class="back-btn" href="/admin">관리자 메인</a>
+    </form>
+
+    <hr style="margin:25px 0;" />
+
+    <h2 style="margin:0 0 12px;">등록된 공지</h2>
+    <% if (!notices || notices.length === 0) { %>
+      <p>등록된 공지가 없습니다.</p>
+    <% } else { %>
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>제목</th>
+            <th>등록일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% notices.forEach(n => { %>
+            <tr>
+              <td><%= n.id %></td>
+              <td style="text-align:left;"><%= n.title %></td>
+              <td><%= (n.created || "").substring(0,10) %></td>
+              <td>
+                <a class="delete-btn" href="/admin/notices/delete/<%= n.id %>" onclick="return confirm('삭제할까요?')">삭제</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</body>
+</html>

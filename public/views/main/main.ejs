@@ -89,7 +89,32 @@
 
 
   <!-- 중앙 빈 공간 -->
-  <div style="height: 500px;"></div>
+  <div class="home-wrap">
+  <div class="home-main">
+    <div style="height: 500px;"></div>
+  </div>
+
+  <aside class="notice-panel">
+    <div class="notice-head">
+      <div class="notice-title">공지사항</div>
+      <a class="notice-more" href="/customer">더보기</a>
+    </div>
+
+    <div class="notice-list">
+      <% if (!notices || notices.length === 0) { %>
+        <div class="notice-empty">등록된 공지사항이 없습니다.</div>
+      <% } else { %>
+        <% notices.slice(0,5).forEach(n => { %>
+          <div class="notice-item">
+            <div class="notice-item-title"><%= n.title %></div>
+            <div class="notice-item-snippet"><%= (n.content || "").slice(0, 40) %>...</div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </aside>
+</div>
+
 
   <!-- 드롭다운 JS -->
   <script>

@@ -5,6 +5,7 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { listNotices, addNotice, deleteNotice } = require("./src/storage");
 
 const {
   getAgency,
@@ -71,8 +72,31 @@ app.get("/logout", (req, res) => {
 // -------------------- Admin Main --------------------
 app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
+// -------------------- Admin Notice management --------------------
+app.get("/admin/notices", requireAdmin, async (_, res) => {
+  const notices = await listNotices(20);
+  res.render("admin/notices", { notices });
+});
+
+app.post("/admin/notices", requireAdmin, async (req, res) => {
+  await addNotice({
+    title: req.body.title || "",
+    content: req.body.content || "",
+  });
+  res.redirect("/admin/notices");
+});
+
+app.get("/admin/notices/delete/:id", requireAdmin, async (req, res) => {
+  await deleteNotice(Number(req.params.id));
+  res.redirect("/admin/notices");
+});
+
+
 // -------------------- Public Pages --------------------
-app.get("/", (_, res) => res.render("main/main"));
+app.get("/", async (_, res) => {
+  const notices = await listNotices(5);
+  res.render("main/main", { notices });
+});
 
 app.get("/intro/agency", async (_, res) => {
   const data = await getAgency();
