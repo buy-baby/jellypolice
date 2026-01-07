@@ -195,8 +195,8 @@ html, body {
 
 .admin-header {
   width: 100%;
-  background: #ffffff;              /* 흰 배경 */
-  border-bottom: 1px solid #e0e0e0;  /* 얇은 구분선 */
+  background: #ffffff;             
+  border-bottom: 1px solid #e0e0e0; 
 }
 
 .admin-header-inner {
@@ -206,7 +206,11 @@ html, body {
   display: flex;
   align-items: center;
   gap: 14px;
+
+  text-decoration: none;
+  color: inherit;
 }
+
 
 .admin-logo {
   height: 40px;
@@ -215,6 +219,6 @@ html, body {
 .admin-title {
   font-size: 26px;
   font-weight: 700;
-  color: #0b4ea2;   /* 경찰청 파란색 */
+  color: #0b4ea2;  
   letter-spacing: -0.5px;
 }
