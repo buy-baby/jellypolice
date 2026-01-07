@@ -5,8 +5,6 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { listNotices, addNotice, deleteNotice } = require("./src/storage");
-
 const {
   getAgency,
   setAgency,
@@ -21,8 +19,10 @@ const {
   getApplyConditions,
   setApplyConditions,
   listNotices,
-  getNotice,
+  addNotice,
+  deleteNotice,
 } = require("./src/storage");
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
