@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>공지사항 수정</title>
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+  <%- include("../partials/admin_header") %>
+
+  <div class="info-box">
+    <h1 style="margin-top:0;">공지사항 수정</h1>
+
+    <form method="post" action="/admin/notices/<%= notice.id %>/edit">
+      <label style="display:block; margin:14px 0 8px; font-weight:700;">제목</label>
+      <input
+        type="text"
+        name="title"
+        value="<%= notice.title %>"
+        required
+        style="width:100%; padding:12px; border:1px solid #d5d5d5; border-radius:8px;"
+      />
+
+      <label style="display:block; margin:14px 0 8px; font-weight:700;">내용</label>
+      <textarea
+        name="content"
+        rows="10"
+        required
+        style="width:100%; padding:12px; border:1px solid #d5d5d5; border-radius:8px; resize:vertical;"
+      ><%= notice.content %></textarea>
+
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button type="submit" class="back-btn" style="border:none; cursor:pointer;">저장</button>
+        <a class="back-btn" href="/admin/notices">목록</a>
+
+        <form method="post" action="/admin/notices/<%= notice.id %>/delete" style="margin:0;">
+          <button
+            type="submit"
+            class="delete-btn"
+            style="border:none; cursor:pointer;"
+            onclick="return confirm('정말 삭제할까요?');"
+          >삭제</button>
+        </form>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

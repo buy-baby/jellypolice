@@ -38,7 +38,7 @@
             <th>ID</th>
             <th>제목</th>
             <th>등록일</th>
-            <th>관리</th>
+            <th>수정</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +48,7 @@
               <td style="text-align:left;"><%= n.title %></td>
               <td><%= (n.created || "").substring(0,10) %></td>
               <td>
-                <a class="delete-btn" href="/admin/notices/delete/<%= n.id %>" onclick="return confirm('삭제할까요?')">삭제</a>
+                <a class="btn-edit" href="/admin/notices/<%= n.id %>/edit">수정</a>
               </td>
             </tr>
           <% }) %>

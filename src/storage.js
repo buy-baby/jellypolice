@@ -199,6 +199,15 @@ async function getNotice(id) {
   return null; 
 }
 
+async function getNotice(id) {
+  if (useD1()) return apiFetch(`/api/notices/${id}`);
+  return null;
+}
+
+async function updateNotice(id, data) {
+  if (useD1()) return apiFetch(`/api/notices/${id}`, { method: "PUT", body: data, admin: true });
+  return true;
+}
 
 
 
@@ -219,4 +228,6 @@ module.exports = {
   addNotice,
   deleteNotice,
   getNotice,
+  updateNotice,
+
 };

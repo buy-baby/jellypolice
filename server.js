@@ -6,22 +6,14 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const {
-  getAgency,
-  setAgency,
-  getRank,
-  setRank,
-  getDepartment,
-  setDepartment,
-  listComplaints,
-  listSuggestions,
-  addComplaint,
-  addSuggestion,
-  getApplyConditions,
-  setApplyConditions,
-  listNotices,
-  addNotice,
-  deleteNotice,
-  getNotice,
+  getAgency, setAgency,
+  getRank, setRank,
+  getDepartment, setDepartment,
+  listComplaints, listSuggestions,
+  addComplaint, addSuggestion,
+  getApplyConditions, setApplyConditions,
+  listNotices, addNotice, deleteNotice,
+  getNotice, updateNotice,
 } = require("./src/storage");
 
 
@@ -91,6 +83,31 @@ app.post("/admin/notices", requireAdmin, async (req, res) => {
 
 app.get("/admin/notices/delete/:id", requireAdmin, async (req, res) => {
   await deleteNotice(Number(req.params.id));
+  res.redirect("/admin/notices");
+});
+
+// 공지 수정 페이지
+app.get("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const notice = await getNotice(id);
+  if (!notice) return res.status(404).send("공지사항을 찾을 수 없습니다.");
+  res.render("admin/notice_edit", { notice });
+});
+
+// 공지 수정 저장
+app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  await updateNotice(id, {
+    title: req.body.title || "",
+    content: req.body.content || "",
+  });
+  res.redirect("/admin/notices");
+});
+
+// 공지 삭제 (수정페이지에서만)
+app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  await deleteNotice(id);
   res.redirect("/admin/notices");
 });
 

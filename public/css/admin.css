@@ -185,6 +185,17 @@ h1 {
   background: #002b6a;
 }
 
+.btn-edit{
+  display:inline-block;
+  background:#003c8f;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:700;
+}
+.btn-edit:hover{ background:#002d66; }
+
 /* =========================
    관리자 공통 헤더
 ========================= */
