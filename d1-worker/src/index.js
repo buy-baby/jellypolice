@@ -151,6 +151,53 @@ router.put("/api/apply/conditions", async (req, env) => {
   return ok();
 });
 
+// ---- Notices ----
+
+// 시민용: 공지 목록 (기본 5개)
+router.get("/api/notices", async (req, env) => {
+  const url = new URL(req.url);
+  const limit = Math.min(Number(url.searchParams.get("limit") || 5), 20);
+
+  const { results } = await env.DB.prepare(
+    "SELECT id, title, content, created FROM notices ORDER BY id DESC LIMIT ?"
+  )
+    .bind(limit)
+    .all();
+
+  return json(results || []);
+});
+
+// 관리자용: 공지 추가
+router.post("/api/notices", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const body = await readBody(req);
+  const title = (body.title || "").trim();
+  const content = (body.content || "").trim();
+  if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
+
+  const created = new Date().toISOString();
+
+  const r = await env.DB.prepare(
+    "INSERT INTO notices(title, content, created) VALUES(?, ?, ?)"
+  )
+    .bind(title, content, created)
+    .run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+// 관리자용: 공지 삭제
+router.delete("/api/notices/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  await env.DB.prepare("DELETE FROM notices WHERE id = ?").bind(id).run();
+  return ok(); // 204
+});
+
 // ---- Complaints ----
 router.get("/api/complaints", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
