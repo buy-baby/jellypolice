@@ -260,7 +260,7 @@ app.get("/customer", (_, res) => res.render("customer/index"));
 app.get("/notice", async (_, res) => {
   try {
     const notices = await listNotices(50);
-    res.render("notice/index", { notices });
+    res.render("notice/list", { notices });
   } catch (e) {
     console.error("❌ /notice error:", e);
     res.status(500).send("공지 목록을 불러오지 못했습니다.");
