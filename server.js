@@ -20,6 +20,8 @@ const {
   addSuggestion,
   getApplyConditions,
   setApplyConditions,
+  listNotices,
+  getNotice,
 } = require("./src/storage");
 
 const app = express();
@@ -254,6 +256,19 @@ app.get("/apply/apply", (_, res) => {
   return res.redirect(url);
 });
 app.get("/customer", (_, res) => res.render("customer/index"));
+app.get("/notice", async (_, res) => {
+  const notices = await listNotices();
+  res.render("notice/list", { notices });
+});
+app.get("/notice/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const notice = await getNotice(id);
+
+  if (!notice) return res.status(404).send("공지사항을 찾을 수 없습니다.");
+  res.render("notice/view", { notice });
+});
+
+
 
 // -------------------- Admin Inquiry / Suggest --------------------
 app.get("/admin/inquiry", requireAdmin, async (_, res) => {

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= notice.title %> - 공지사항</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include("../partials/header") %>
+
+  <div class="notice-view">
+    <h1><%= notice.title %></h1>
+    <div class="notice-meta">
+      <span><%= (notice.created || "").substring(0, 10) %></span>
+    </div>
+
+    <div class="notice-content">
+      <pre><%= notice.content %></pre>
+    </div>
+
+    <a class="back-btn" href="/notice">목록으로</a>
+  </div>
+</body>
+</html>

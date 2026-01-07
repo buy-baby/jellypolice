@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>공지사항</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include("../partials/header") %>
+
+  <div class="notice-page">
+    <h1>공지사항</h1>
+
+    <% if (!notices || notices.length === 0) { %>
+      <p>등록된 공지사항이 없습니다.</p>
+    <% } else { %>
+      <ul class="notice-list-page">
+        <% notices.forEach(n => { %>
+          <li class="notice-row">
+            <a href="/notice/<%= n.id %>"><%= n.title %></a>
+            <span class="notice-date"><%= (n.created || "").substring(0, 10) %></span>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</body>
+</html>

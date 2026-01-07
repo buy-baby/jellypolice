@@ -58,27 +58,27 @@ const DEFAULT_PAGES = {
     ],
   },
 
-apply_conditions: {
-  title: "젤리 경찰청 채용 안내",
-  cards: {
-    eligibility: {
-      title: "지원 자격 안내",
-      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+  apply_conditions: {
+    title: "젤리 경찰청 채용 안내",
+    cards: {
+      eligibility: {
+       title: "지원 자격 안내",
+       content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+     },
+      disqualify: {
+        title: "지원 불가 사유",
+        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+      },
+      preference: {
+        title: "지원 우대 사항",
+        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+      },
     },
-    disqualify: {
-      title: "지원 불가 사유",
-      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-    },
-    preference: {
-      title: "지원 우대 사항",
-      content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+    side: {
+      linkText: "링크1",
+      linkUrl: "#",
     },
   },
-  side: {
-    linkText: "링크1",
-    linkUrl: "#",
-  },
-},
 
 };
 async function getOrSeedPage(env, key) {
@@ -197,6 +197,21 @@ router.delete("/api/notices/:id", async (req, env) => {
   await env.DB.prepare("DELETE FROM notices WHERE id = ?").bind(id).run();
   return ok(); // 204
 });
+
+// 시민용: 공지 상세 (1개)
+router.get("/api/notices/:id", async (req, env) => {
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const row = await env.DB
+    .prepare("SELECT id, title, content, created FROM notices WHERE id = ?")
+    .bind(id)
+    .first();
+
+  if (!row) return json({ error: "not_found" }, { status: 404 });
+  return json(row);
+});
+
 
 // ---- Complaints ----
 router.get("/api/complaints", async (req, env) => {
