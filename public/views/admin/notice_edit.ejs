@@ -33,17 +33,18 @@
       <div style="margin-top:16px; display:flex; gap:10px;">
         <button type="submit" class="back-btn" style="border:none; cursor:pointer;">저장</button>
         <a class="back-btn" href="/admin/notices">목록</a>
-
-        <form method="post" action="/admin/notices/<%= notice.id %>/delete" style="margin:0;">
-          <button
-            type="submit"
-            class="delete-btn"
-            style="border:none; cursor:pointer;"
-            onclick="return confirm('정말 삭제할까요?');"
-          >삭제</button>
-        </form>
       </div>
     </form>
+
+    <form method="post" action="/admin/notices/<%= notice.id %>/delete" style="margin-top:10px;">
+      <button
+        type="submit"
+        class="delete-btn"
+        style="border:none; cursor:pointer;"
+        onclick="return confirm('정말 삭제할까요?');"
+      >삭제</button>
+    </form>
+
   </div>
 </body>
 </html>
