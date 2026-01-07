@@ -62,6 +62,12 @@ app.post("/login", (req, res) => {
   return res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
 });
 
+// ---------------------Admin Logout----------------------
+app.get("/logout", (req, res) => {
+  res.clearCookie("admin");
+  return res.redirect("/");
+});
+
 // -------------------- Admin Main --------------------
 app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
