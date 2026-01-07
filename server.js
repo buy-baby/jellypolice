@@ -21,6 +21,7 @@ const {
   listNotices,
   addNotice,
   deleteNotice,
+  getNotice,
 } = require("./src/storage");
 
 
