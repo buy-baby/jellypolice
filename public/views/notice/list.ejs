@@ -6,23 +6,28 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <%- include("../partials/header") %>
+  <%- include("partials/header") %>
+<link rel="stylesheet" href="/css/notice.css" />
 
-  <div class="notice-page">
-    <h1>공지사항</h1>
+<div class="notice-page">
+  <h1 class="notice-page-title">공지사항</h1>
+  <div class="notice-line"></div>
 
-    <% if (!notices || notices.length === 0) { %>
-      <p>등록된 공지사항이 없습니다.</p>
-    <% } else { %>
-      <ul class="notice-list-page">
-        <% notices.forEach(n => { %>
-          <li class="notice-row">
-            <a href="/notice/<%= n.id %>"><%= n.title %></a>
-            <span class="notice-date"><%= (n.created || "").substring(0, 10) %></span>
-          </li>
-        <% }) %>
-      </ul>
-    <% } %>
-  </div>
+  <% if (!notices || notices.length === 0) { %>
+    <div class="notice-empty">
+      등록된 공지사항이 없습니다.
+    </div>
+  <% } else { %>
+    <div class="notice-list-page">
+      <% notices.forEach(n => { %>
+        <a class="notice-row" href="/notice/<%= n.id %>">
+          <div class="notice-row-title"><%= n.title %></div>
+          <div class="notice-row-date"><%= (n.created || "").slice(0,10) %></div>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
 </body>
 </html>

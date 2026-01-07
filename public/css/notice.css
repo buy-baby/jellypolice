@@ -1,0 +1,122 @@
+.notice-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+  color: #111;
+}
+
+.notice-page-title {
+  text-align: center;
+  font-size: 38px;
+  font-weight: 800;
+  margin: 10px 0 18px;
+  letter-spacing: -0.5px;
+}
+
+.notice-line {
+  height: 2px;
+  background: #111;
+  opacity: 0.85;
+  margin: 18px 0;
+}
+
+.notice-line.thin {
+  height: 1px;
+  opacity: 0.6;
+}
+
+.notice-block {
+  padding: 8px 0;
+}
+
+.notice-label {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.notice-value {
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.notice-value-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.notice-value-content {
+  white-space: pre-wrap; /* 줄바꿈 유지 */
+  word-break: break-word;
+  min-height: 220px;     /* 사진처럼 아래 공간 확보 */
+}
+
+.notice-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 26px;
+}
+
+.notice-date {
+  color: #666;
+  font-size: 14px;
+}
+
+.notice-back {
+  display: inline-block;
+  padding: 10px 14px;
+  border: 1px solid #111;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+}
+
+.notice-back:hover {
+  background: #111;
+  color: #fff;
+}
+
+/* =========================
+   공지 목록 페이지
+========================= */
+
+.notice-list-page {
+  margin-top: 20px;
+  border-top: 2px solid #111;
+}
+
+.notice-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 14px;
+  border-bottom: 1px solid #ddd;
+  text-decoration: none;
+  color: #111;
+  transition: background 0.15s;
+}
+
+.notice-row:hover {
+  background: #f4f7ff;
+}
+
+.notice-row-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.notice-row-date {
+  font-size: 14px;
+  color: #666;
+  min-width: 90px;
+  text-align: right;
+}
+
+.notice-empty {
+  padding: 60px 0;
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+}

@@ -6,19 +6,29 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <%- include("../partials/header") %>
+  <%- include("partials/header") %>
+<link rel="stylesheet" href="/css/notice.css" />
 
-  <div class="notice-view">
-    <h1><%= notice.title %></h1>
-    <div class="notice-meta">
-      <span><%= (notice.created || "").substring(0, 10) %></span>
-    </div>
+<div class="notice-page">
+  <h1 class="notice-page-title">공지사항</h1>
+  <div class="notice-line"></div>
 
-    <div class="notice-content">
-      <pre><%= notice.content %></pre>
-    </div>
-
-    <a class="back-btn" href="/notice">목록으로</a>
+  <div class="notice-block">
+    <div class="notice-label">제목</div>
+    <div class="notice-value notice-value-title"><%= notice.title %></div>
   </div>
+
+  <div class="notice-line thin"></div>
+
+  <div class="notice-block">
+    <div class="notice-label">내용</div>
+    <div class="notice-value notice-value-content"><%= notice.content %></div>
+  </div>
+
+  <div class="notice-footer">
+    <div class="notice-date"><%= (notice.created || "").slice(0, 10) %></div>
+    <a class="notice-back" href="/notice">목록으로</a>
+  </div>
+</div>
 </body>
 </html>
