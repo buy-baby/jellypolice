@@ -26,7 +26,7 @@
           <%= data?.cards?.eligibility?.title || "지원 자격 안내" %>
         </div>
         <div class="apply-content">
-          <%= (data?.cards?.eligibility?.content || "").replace(/\n/g, "<br/>") %>
+          <%= (data?.cards?.eligibility?.content || "") %>
         </div>
       </section>
 
@@ -38,7 +38,7 @@
           <%= data?.cards?.disqualify?.title || "지원 불가 사유" %>
         </div>
         <div class="apply-content">
-          <%= (data?.cards?.disqualify?.content || "").replace(/\n/g, "<br/>") %>
+          <%= (data?.cards?.disqualify?.content || "") %>
         </div>
       </section>
 
@@ -50,7 +50,7 @@
           <%= data?.cards?.preference?.title || "지원 우대 사항" %>
         </div>
         <div class="apply-content">
-          <%= (data?.cards?.preference?.content || "").replace(/\n/g, "<br/>") %>
+          <%= (data?.cards?.preference?.content || "") %>
         </div>
       </section>
     </div>
