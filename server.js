@@ -104,7 +104,7 @@ app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   res.redirect("/admin/notices");
 });
 
-// 공지 삭제 (수정페이지에서만)
+// 공지 삭제
 app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await deleteNotice(id);

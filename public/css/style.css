@@ -188,6 +188,8 @@ body {
   text-decoration: underline;
 }
 
+/* =========================   중앙 화면   ========================= */
+
 .home-wrap{
   width: 100%;
   max-width: 1400px;
@@ -196,12 +198,22 @@ body {
   gap: 28px;
   align-items: flex-start;
   padding: 24px 18px;
+  z-index: 1;
+  position: relative;
 }
 
 .home-main{
   flex: 1;
-  min-height: 600px; /* 중앙 비워둔 영역 */
+  min-height: 600px;
+  min-width: 0;
 }
+
+header, nav, .header, .navbar, .topbar{
+  position: relative;
+  z-index: 5000;   /* ✅ 네비/드롭다운을 무조건 위로 */
+}
+
+/* =========================   공지 박스   ========================= */
 
 .notice-panel{
   width: 360px;
@@ -211,6 +223,8 @@ body {
   border-radius: 16px;
   padding: 18px 18px 14px;
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  margin-left: auto;
+  flex: 0 0 360px;
 }
 
 .notice-head{
