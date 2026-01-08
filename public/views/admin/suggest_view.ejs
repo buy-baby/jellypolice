@@ -16,15 +16,15 @@
     <a href="/admin/suggest" class="back-btn">← 목록으로</a>
 
     <div class="view-box">
-      <p><strong>이름:</strong> <%= item.name %></p>
-      <p><strong>고유번호:</strong> <%= item.identity %></p>
-      <p><strong>작성일:</strong> <%= item.created.substring(0, 10) %></p>
+      <p><strong>이름:</strong> <%= s.name %></p>
+      <p><strong>고유번호:</strong> <%= s.identity %></p>
+      <p><strong>작성일:</strong> <%= s.created.substring(0, 10) %></p>
 
       <hr />
 
       <p><strong>내용:</strong></p>
       <div class="content-box">
-        <%= item.content.replace(/\n/g, "<br>") %>
+        <%= s.content.replace(/\n/g, "<br>") %>
       </div>
     </div>
   </div>
