@@ -270,7 +270,7 @@ app.get("/apply/conditions", async (_, res) => {
   res.render("apply/apply_conditions", { data });
 });
 app.get("/apply/apply", (_, res) => {
-  const url = process.env.APPLY_FORM_URL || "https://forms.gle/c7jvyTj2qzGhauKT8";
+  const url = process.env.APPLY_FORM_URL || "https://forms.gle/c7jvyTj2qzGhauKT8"; /* /apply/apply -> forms */
   return res.redirect(url);
 });
 app.get("/customer", (_, res) => res.render("customer/index"));
