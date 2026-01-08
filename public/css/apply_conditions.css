@@ -73,6 +73,16 @@
   color: #111;
   white-space: normal;
 }
+.apply-list{
+  margin: 18px 0 0;
+  padding-left: 22px;
+  line-height: 1.85;
+  font-size: 18px;     /* 글씨 크게 */
+}
+.apply-list li{
+  margin: 10px 0;
+}
+
 
 /* =========================
    시민 페이지 공통 헤더
