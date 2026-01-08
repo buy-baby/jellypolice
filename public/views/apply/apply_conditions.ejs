@@ -9,6 +9,20 @@
 <body>
   <%- include("../partials/header") %>
 
+  <%
+    // DB에 저장된 content에 \n 이나 <br>가 섞여 있어도 "줄 단위"로 잘라서 li로 뿌리기
+    const toLines = (text) =>
+      (text || "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    const eligibilityLines = toLines(data?.cards?.eligibility?.content);
+    const disqualifyLines  = toLines(data?.cards?.disqualify?.content);
+    const preferenceLines  = toLines(data?.cards?.preference?.content);
+  %>
+
   <div class="apply-wrap">
     <div class="apply-top">
       <div class="apply-top-title"><%= data?.title || "젤리 경찰청 채용 안내" %></div>
@@ -20,76 +34,64 @@
 
     <!-- 3칸 영역 -->
     <div class="apply-grid">
-      <!--지원 자격 안내-->
+      <!-- 지원 자격 안내 -->
       <section class="apply-col">
         <div class="pill pill-green">
           <%= data?.cards?.eligibility?.title || "지원 자격 안내" %>
         </div>
+
         <div class="apply-content">
-          <%
-            const eligibilityLines = (data?.cards?.eligibility?.content || "")
-              .replace(/<br\s*\/?>/gi, "\n")
-              .split(/\r?\n/)
-              .map(s => s.trim())
-              .filter(Boolean);
-          %>
-
-          <ul class="apply-list">
-            <% eligibilityLines.forEach(line => { %>
-              <li><%= line %></li>
-            <% }) %>
-          </ul>
-
+          <% if (!eligibilityLines.length) { %>
+            <div class="apply-empty">내용이 없습니다.</div>
+          <% } else { %>
+            <ul class="apply-list">
+              <% eligibilityLines.forEach(line => { %>
+                <li><%= line %></li>
+              <% }) %>
+            </ul>
+          <% } %>
         </div>
       </section>
 
       <div class="divider"></div>
 
-      <!--지원 불가 사유-->
+      <!-- 지원 불가 사유 -->
       <section class="apply-col">
         <div class="pill pill-red">
           <%= data?.cards?.disqualify?.title || "지원 불가 사유" %>
         </div>
+
         <div class="apply-content">
-          <%
-            const eligibilityLines = (data?.cards?.eligibility?.content || "")
-              .replace(/<br\s*\/?>/gi, "\n")      // 혹시 <br> 섞여있으면 줄바꿈으로 변환
-              .split(/\r?\n/)                     // 줄 단위로 나누기
-              .map(s => s.trim())
-              .filter(Boolean);
-          %>
-
-          <ul class="apply-list">
-            <% eligibilityLines.forEach(line => { %>
-              <li><%= line %></li>
-            <% }) %>
-          </ul>
-
+          <% if (!disqualifyLines.length) { %>
+            <div class="apply-empty">내용이 없습니다.</div>
+          <% } else { %>
+            <ul class="apply-list">
+              <% disqualifyLines.forEach(line => { %>
+                <li><%= line %></li>
+              <% }) %>
+            </ul>
+          <% } %>
         </div>
       </section>
 
       <div class="divider"></div>
 
-      <!--지원 우대 사항-->
+      <!-- 지원 우대 사항 -->
       <section class="apply-col">
         <div class="pill pill-yellow">
           <%= data?.cards?.preference?.title || "지원 우대 사항" %>
         </div>
+
         <div class="apply-content">
-          <%
-            const eligibilityLines = (data?.cards?.eligibility?.content || "")
-              .replace(/<br\s*\/?>/gi, "\n")      // 혹시 <br> 섞여있으면 줄바꿈으로 변환
-              .split(/\r?\n/)                     // 줄 단위로 나누기
-              .map(s => s.trim())
-              .filter(Boolean);
-          %>
-                  
-          <ul class="apply-list">
-            <% eligibilityLines.forEach(line => { %>
-              <li><%= line %></li>
-            <% }) %>
-          </ul>
-          
+          <% if (!preferenceLines.length) { %>
+            <div class="apply-empty">내용이 없습니다.</div>
+          <% } else { %>
+            <ul class="apply-list">
+              <% preferenceLines.forEach(line => { %>
+                <li><%= line %></li>
+              <% }) %>
+            </ul>
+          <% } %>
         </div>
       </section>
     </div>

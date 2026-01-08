@@ -1,3 +1,7 @@
+/* =========================
+   채용 안내(conditions) 페이지
+========================= */
+
 .apply-wrap{
   max-width: 1400px;
   margin: 30px auto 0;
@@ -68,21 +72,29 @@
 
 .apply-content{
   margin-top: 18px;
-  font-size: 22px; 
+  font-size: 22px;
   line-height: 1.7;
   color: #111;
   white-space: normal;
 }
+
 .apply-list{
   margin: 18px 0 0;
   padding-left: 22px;
   line-height: 1.85;
-  font-size: 18px;     /* 글씨 크게 */
+  font-size: 20px;          /* ✅ 글씨 더 큼 */
 }
+
 .apply-list li{
   margin: 10px 0;
 }
 
+/* 내용 없을 때 */
+.apply-empty{
+  font-size: 18px;
+  color: #666;
+  margin-top: 16px;
+}
 
 /* =========================
    시민 페이지 공통 헤더
@@ -154,7 +166,6 @@ body {
   text-decoration: underline;
 }
 
-
 /* 모바일 대응 */
 @media (max-width: 1024px){
   .apply-top{
@@ -170,4 +181,20 @@ body {
     gap: 18px;
   }
   .divider{ display:none; }
+
+  .apply-top-title{
+    font-size: 28px;
+    text-align: center;
+  }
+  .apply-top-btn{
+    font-size: 20px;
+    padding: 14px 34px;
+  }
+  .pill{
+    font-size: 22px;
+    padding: 16px 22px;
+  }
+  .apply-list{
+    font-size: 18px;
+  }
 }
