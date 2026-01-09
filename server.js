@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
-const bcrypt = require("bcrypt");
+
 const {
   getAgency, setAgency,
   getRank, setRank,
@@ -16,9 +16,7 @@ const {
   getApplyConditions, setApplyConditions,
   listNotices, addNotice, deleteNotice,
   getNotice, updateNotice,
-  listUsers, findUserByUsername, createUser, setUserRole
 } = require("./src/storage");
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,12 +32,38 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
+// ------------------------- D1 API helper (Worker 호출) -------------------------
+async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TOKEN || "") {
+  const base = (process.env.D1_API_BASE || "").replace(/\/+$/, "");
+  if (!base) throw new Error("D1_API_BASE is not set");
+
+  const url = `${base}${apiPath}`;
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await res.text().catch(() => "");
+  if (!res.ok) {
+    throw new Error(`D1 API ${method} ${apiPath} failed: ${res.status} ${text}`);
+  }
+
+  // 204 대비
+  return text ? JSON.parse(text) : null;
+}
+
 // ------------------------- Middleware -------------------------
 app.set("trust proxy", 1);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "public", "views"));
 
@@ -56,11 +80,13 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 6, // 6시간
   }
 }));
+
 app.use((req, res, next) => {
   res.locals.me = req.session.user || null;
   next();
 });
 
+// ------------------------- Auth Guards -------------------------
 const requireLogin = (req, res, next) => {
   if (req.session && req.session.user) return next();
   const nextUrl = encodeURIComponent(req.originalUrl || "/");
@@ -76,8 +102,7 @@ const requireAdmin = (req, res, next) => {
   return res.status(403).send("접근 권한이 없습니다.");
 };
 
-// ------------------------------------------------------------
-
+// ------------------------- Auth Required Page -------------------------
 app.get("/auth/required", (req, res) => {
   const nextUrl = req.query.next || "/";
   res.render("auth/required", {
@@ -86,7 +111,7 @@ app.get("/auth/required", (req, res) => {
   });
 });
 
-// ------------------------- register -------------------------
+// ------------------------- Register (D1) -------------------------
 app.get("/register", (req, res) => {
   res.render("auth/register", { error: null, form: {} });
 });
@@ -102,23 +127,28 @@ app.post("/register", async (req, res) => {
       return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body });
     }
 
-    const exists = findUserByUsername(username);
-    if (exists) {
-      return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    createUser({ uniqueCode, nickname, username, passwordHash });
+    await d1Api("POST", "/api/auth/register", {
+      uniqueCode,
+      nickname,
+      username,
+      password,
+    });
 
     return res.redirect("/login");
   } catch (e) {
     console.error("❌ register error:", e);
-    return res.status(500).send("회원가입 중 오류가 발생했습니다.");
+
+    // 중복(409) 등일 가능성이 높음. 메시지 조금 친절하게:
+    const msg = String(e.message || "");
+    if (msg.includes(" 409 ")) {
+      return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body });
+    }
+
+    return res.render("auth/register", { error: "회원가입 중 오류가 발생했습니다.", form: req.body });
   }
 });
 
-// ------------------------- login -------------------------
-
+// ------------------------- Login (D1) -------------------------
 app.get("/login", (req, res) => {
   const nextUrl = req.query.next || "/";
   res.render("auth/login", { error: null, nextUrl });
@@ -130,16 +160,13 @@ app.post("/login", async (req, res) => {
     const password = req.body.password || "";
     const nextUrl = req.body.nextUrl || "/";
 
-    const user = findUserByUsername(username);
-    if (!user) {
-      return res.render("auth/login", { error: "아이디 또는 비밀번호가 올바르지 않습니다.", nextUrl });
+    if (!username || !password) {
+      return res.render("auth/login", { error: "아이디와 비밀번호를 입력해주세요.", nextUrl });
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash || "");
-    if (!ok) {
-      return res.render("auth/login", { error: "아이디 또는 비밀번호가 올바르지 않습니다.", nextUrl });
-    }
+    const user = await d1Api("POST", "/api/auth/login", { username, password });
 
+    // 세션 저장
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -150,40 +177,48 @@ app.post("/login", async (req, res) => {
     return res.redirect(nextUrl || "/");
   } catch (e) {
     console.error("❌ login error:", e);
-    return res.status(500).send("로그인 중 오류가 발생했습니다.");
+    const nextUrl = req.body.nextUrl || "/";
+    return res.render("auth/login", { error: "아이디 또는 비밀번호가 올바르지 않습니다.", nextUrl });
   }
 });
 
-// ------------------------- logout -------------------------
-
+// ------------------------- Logout -------------------------
 app.get("/logout", (req, res) => {
   req.session.destroy(() => {
     res.redirect("/");
   });
 });
 
-
 // ------------------------- Admin Main -------------------------
 app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
-// ------------------------- Admin Manage Users -------------------------
-
-app.get("/admin/users", requireAdmin, (req, res) => {
-  const users = listUsers();
-  res.render("admin/users", { users });
+// ------------------------- Admin Manage Users (D1) -------------------------
+app.get("/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const users = await d1Api("GET", "/api/admin/users");
+    res.render("admin/users", { users });
+  } catch (e) {
+    console.error("❌ admin users list error:", e);
+    return res.status(500).send("유저 목록을 불러오지 못했습니다.");
+  }
 });
 
-app.post("/admin/users/:id/role", requireAdmin, (req, res) => {
-  const id = Number(req.params.id);
-  const role = req.body.role === "admin" ? "admin" : "user";
+app.post("/admin/users/:id/role", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const role = req.body.role === "admin" ? "admin" : "user";
 
-  // 자기 자신을 user로 강등하는 건 실수 방지(선택)
-  if (req.session.user && Number(req.session.user.id) === id && role !== "admin") {
-    return res.status(400).send("자기 자신의 관리자 권한은 해제할 수 없습니다.");
+    // 자기 자신을 user로 강등 방지(실수 방지)
+    if (req.session.user && Number(req.session.user.id) === id && role !== "admin") {
+      return res.status(400).send("자기 자신의 관리자 권한은 해제할 수 없습니다.");
+    }
+
+    await d1Api("PUT", `/api/admin/users/${id}/role`, { role });
+    return res.redirect("/admin/users");
+  } catch (e) {
+    console.error("❌ admin role change error:", e);
+    return res.status(500).send("권한 변경에 실패했습니다.");
   }
-
-  setUserRole(id, role);
-  return res.redirect("/admin/users");
 });
 
 // ------------------------- Admin Notice management -------------------------
@@ -229,7 +264,6 @@ app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   await deleteNotice(id);
   res.redirect("/admin/notices");
 });
-
 
 // ------------------------- Public Pages -------------------------
 app.get("/", async (_, res) => {
@@ -314,6 +348,7 @@ app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
   await setRank(origin);
   res.redirect("/intro/rank");
 });
+
 // ------------------------- Admin Edit Apply Conditions -------------------------
 app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
   const data = await getApplyConditions();
@@ -351,15 +386,19 @@ app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
 app.get("/inquiry", requireLogin, (_, res) => res.render("inquiry/index"));
 app.get("/suggest", requireLogin, (_, res) => res.render("suggest/suggest"));
 app.get("/apply", (_, res) => res.render("apply/index"));
+
 app.get("/apply/conditions", async (_, res) => {
   const data = await getApplyConditions();
   res.render("apply/apply_conditions", { data });
 });
+
 app.get("/apply/apply", (_, res) => {
-  const url = process.env.APPLY_FORM_URL || "https://forms.gle/c7jvyTj2qzGhauKT8"; /* /apply/apply -> forms */
+  const url = process.env.APPLY_FORM_URL || "https://forms.gle/c7jvyTj2qzGhauKT8";
   return res.redirect(url);
 });
+
 app.get("/customer", (_, res) => res.render("customer/index"));
+
 app.get("/notice", async (_, res) => {
   try {
     const notices = await listNotices(50);
@@ -369,6 +408,7 @@ app.get("/notice", async (_, res) => {
     res.status(500).send("공지 목록을 불러오지 못했습니다.");
   }
 });
+
 app.get("/notice/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -400,31 +440,6 @@ app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
   res.render("admin/inquiry_view", { c });
 });
 
-async function d1Api(method, path, body = null, token = process.env.API_TOKEN || "") {
-  const base = process.env.D1_API_BASE; // 예: https://jelly-d1-api.dongdonglee0616.workers.dev
-  const url = `${base}${path}`;
-
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`D1 API ${method} ${path} failed: ${res.status} ${text}`);
-  }
-
-  // 204 같은 경우 대비
-  const t = await res.text();
-  return t ? JSON.parse(t) : null;
-}
-
-
-
 app.get("/admin/suggest", requireAdmin, async (_, res) => {
   const suggestions = await listSuggestions();
   res.render("admin/suggest_list", { suggestions });
@@ -442,24 +457,21 @@ app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
   res.render("admin/suggest_view", { s });
 });
 
-
 // -------------------- Citizen Submit (민원/건의) --------------------
 app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
-// 민원 제출 (form action="/submit")
+// 민원 제출
 app.post("/submit", upload.single("file"), async (req, res) => {
   try {
     const created = new Date().toISOString();
 
-    // 파일 업로드(선택)
     let fileKey = "";
     let fileName = "";
 
     if (req.file) {
       fileName = req.file.originalname || "";
 
-      // R2 환경변수 다 있으면 업로드 시도
       if (
         process.env.R2_ENDPOINT &&
         process.env.R2_ACCESS_KEY &&
@@ -495,7 +507,7 @@ app.post("/submit", upload.single("file"), async (req, res) => {
   }
 });
 
-// 건의 제출 (form action="/suggest")
+// 건의 제출
 app.post("/suggest", async (req, res) => {
   try {
     const created = new Date().toISOString();
@@ -513,7 +525,6 @@ app.post("/suggest", async (req, res) => {
     return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
   }
 });
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

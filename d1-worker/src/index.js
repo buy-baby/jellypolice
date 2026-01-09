@@ -1,4 +1,5 @@
 import { Router } from "itty-router";
+import bcrypt from "bcryptjs";
 const router = Router();
 
 function json(data, init = {}) {
@@ -290,3 +291,100 @@ export default {
     return router.handle(request, env, ctx);
   },
 };
+
+// ---- register ----
+router.post("/api/auth/register", async (req, env) => {
+  const body = await readBody(req);
+
+  const uniqueCode = (body.uniqueCode || "").trim();
+  const nickname = (body.nickname || "").trim();
+  const username = (body.username || "").trim();
+  const password = body.password || "";
+
+  if (!uniqueCode || !nickname || !username || !password) {
+    return json({ error: "all_fields_required" }, { status: 400 });
+  }
+
+  // 중복 체크
+  const exists = await env.DB.prepare(
+    "SELECT id FROM users WHERE LOWER(username) = LOWER(?)"
+  ).bind(username).first();
+
+  if (exists) {
+    return json({ error: "username_taken" }, { status: 409 });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const createdAt = new Date().toISOString();
+
+  const r = await env.DB.prepare(
+    "INSERT INTO users(uniqueCode, nickname, username, passwordHash, role, createdAt) VALUES(?, ?, ?, ?, 'user', ?)"
+  )
+    .bind(uniqueCode, nickname, username, passwordHash, createdAt)
+    .run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+// --- login ---
+
+router.post("/api/auth/login", async (req, env) => {
+  const body = await readBody(req);
+
+  const username = (body.username || "").trim();
+  const password = body.password || "";
+
+  if (!username || !password) {
+    return json({ error: "username_password_required" }, { status: 400 });
+  }
+
+  const user = await env.DB.prepare(
+    "SELECT id, uniqueCode, nickname, username, passwordHash, role, createdAt FROM users WHERE LOWER(username) = LOWER(?)"
+  ).bind(username).first();
+
+  // 보안상 아이디/비번 틀림은 같은 메시지
+  if (!user) return json({ error: "invalid_credentials" }, { status: 401 });
+
+  const okPw = await bcrypt.compare(password, user.passwordHash || "");
+  if (!okPw) return json({ error: "invalid_credentials" }, { status: 401 });
+
+  // passwordHash는 절대 반환하지 않기
+  return json({
+    id: user.id,
+    uniqueCode: user.uniqueCode,
+    nickname: user.nickname,
+    username: user.username,
+    role: user.role,
+    createdAt: user.createdAt,
+  });
+});
+
+// --- users ---
+
+router.get("/api/admin/users", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const { results } = await env.DB.prepare(
+    "SELECT id, uniqueCode, nickname, username, role, createdAt FROM users ORDER BY id DESC LIMIT 500"
+  ).all();
+
+  return json(results || []);
+});
+
+// --- role ---
+router.put("/api/admin/users/:id/role", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const role = body.role === "admin" ? "admin" : "user";
+
+  const r = await env.DB.prepare(
+    "UPDATE users SET role = ? WHERE id = ?"
+  ).bind(role, id).run();
+
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+  return ok();
+});
