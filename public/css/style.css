@@ -192,6 +192,7 @@ body {
 .account-menu{
   position: relative;
   display: inline-block;
+  z-index: 9999;
 }
 
 .account-btn{
@@ -226,7 +227,7 @@ body {
   box-shadow: 0 12px 28px rgba(0,0,0,0.14);
   padding: 8px;
   display: none;
-  z-index: 9999;
+  z-index: 10000;
 }
 
 .account-dropdown.open{
@@ -269,7 +270,7 @@ body {
 
 header, nav, .header, .navbar, .topbar{
   position: relative;
-  z-index: 5000; 
+  z-index: 100; 
 }
 
 /* =========================   공지 박스   ========================= */
