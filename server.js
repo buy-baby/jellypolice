@@ -35,6 +35,8 @@ const r2 = new S3Client({
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
 // ------------------------- Middleware -------------------------
+app.set("trust proxy", 1);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
@@ -50,7 +52,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: "auto",
     maxAge: 1000 * 60 * 60 * 6, // 6시간
   }
 }));
