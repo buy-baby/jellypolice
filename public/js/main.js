@@ -1,3 +1,5 @@
+console.log("main.js loaded");
+
 // ===== 계정 메뉴 드롭다운 =====
 (function () {
   const btn = document.getElementById("accountBtn");
