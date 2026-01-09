@@ -18,6 +18,7 @@ body {
 
   gap: 120px;                  /* 메뉴 간 거리 */
   position: relative;
+  z-index: 2000;
 }
 
 .menu a {
@@ -55,6 +56,7 @@ body {
   pointer-events: none;
 
   display: block;                /* flex 금지 → 세로 찌그러짐 방지 */
+  z-index: 2500;
 }
 .mega-menu.show {
   opacity: 1;
@@ -131,6 +133,8 @@ body {
   width: 100%;
   background-color: #0b4ea2;
   border-bottom: none;
+  position: relative;
+  z-index: 5000;
 }
 
 .header-inner {
@@ -268,9 +272,9 @@ body {
   min-width: 0;
 }
 
-header, nav, .header, .navbar, .topbar{
+nav, .navbar, .topbar{
   position: relative;
-  z-index: 100; 
+  z-index: 2000;
 }
 
 /* =========================   공지 박스   ========================= */
