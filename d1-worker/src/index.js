@@ -284,8 +284,6 @@ router.post("/api/suggestions", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-router.all("*", () => json({ error: "not_found" }, { status: 404 }));
-
 export default {
   async fetch(request, env, ctx) {
     return router.handle(request, env, ctx);
@@ -388,3 +386,5 @@ router.put("/api/admin/users/:id/role", async (req, env) => {
   if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
   return ok();
 });
+
+router.all("*", () => json({ error: "not_found" }, { status: 404 }));

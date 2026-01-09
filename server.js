@@ -526,5 +526,15 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
+// My Pages
+app.get("/my/inquiry", requireLogin, (req, res) => {
+  res.render("my/inquiry", { me: req.session.user });
+});
+
+app.get("/my/suggest", requireLogin, (req, res) => {
+  res.render("my/suggest", { me: req.session.user });
+});
+
+
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

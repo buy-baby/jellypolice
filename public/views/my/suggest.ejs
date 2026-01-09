@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>나의 건의</title>
+</head>
+<body>
+    <%- include("../partials/header") %>
+    <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
+        <h1 style="font-size:28px;font-weight:900;">내 건의</h1>
+        <p style="margin-top:10px;">준비 중입니다. (로그인: <%= (locals.me && locals.me.nickname) ? locals.me.nickname : "사용자" %>)</p>
+    </div>
+</body>
+</html>

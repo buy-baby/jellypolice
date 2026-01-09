@@ -252,3 +252,62 @@ html, body {
   color: #0b4ea2;  
   letter-spacing: -0.5px;
 }
+
+/* ===== 계정 메뉴 드롭다운 ===== */
+.account-menu{
+  position: relative;
+  display: inline-block;
+}
+
+.account-btn{
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.account-btn:hover{
+  background: rgba(255,255,255,0.12);
+}
+
+.account-caret{
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.account-dropdown{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 170px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+  padding: 8px;
+  display: none;
+  z-index: 9999;
+}
+
+.account-dropdown.open{
+  display: block;
+}
+
+.account-item{
+  display: block;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.account-item:hover{
+  background: #f2f7ff;
+}

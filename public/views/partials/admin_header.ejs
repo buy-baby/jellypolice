@@ -5,6 +5,16 @@
       <span class="admin-title">관리자 페이지</span>
     </a>
 
-    <a href="/logout" class="admin-logout">로그아웃</a>
+    <div class="account-menu">
+      <button type="button" class="account-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false">
+        계정 메뉴
+        <span class="account-caret">▼</span>
+      </button>
+
+      <div class="account-dropdown" id="accountDropdown" role="menu">
+        <a class="account-item" href="/" role="menuitem">시민 페이지</a>
+      </div>
+    </div>
+
   </div>
 </header>

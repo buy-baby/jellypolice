@@ -7,10 +7,40 @@
       <span class="site-title">젤리 경찰청</span>
     </a>
 
-    <!-- 오른쪽 : 관리자 로그인 -->
-    <a href="/login" class="admin-login-link">
-      로그인
-    </a>
+    <%
+      // 로그인 상태
+      const me = locals.me;
+
+      // next 쿼리 만들기
+      const enc = (u) => encodeURIComponent(u);
+
+      // 로그아웃 상태면 로그인 필요 페이지로 보내기
+      const needLogin = (next) => `/auth/required?next=${enc(next)}`;
+
+      // 메뉴 링크들
+      const loginOrLogoutLink = me ? "/logout" : "/login";
+      const loginOrLogoutText = me ? "로그아웃" : "로그인";
+
+      const myInquiryLink = me ? "/my/inquiry" : needLogin("/my/inquiry");
+      const mySuggestLink = me ? "/my/suggest" : needLogin("/my/suggest");
+
+      // 관리자 페이지: 관리자면 /admin, 아니면 로그인 필요 페이지로
+      const adminLink = (me && me.role === "admin") ? "/admin" : needLogin("/admin");
+    %>
+
+    <div class="account-menu">
+        <button type="button" class="account-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false">
+          계정 메뉴
+          <span class="account-caret">▼</span>
+        </button>
+      
+      <div class="account-dropdown" id="accountDropdown" role="menu">
+        <a class="account-item" href="<%= loginOrLogoutLink %>" role="menuitem"><%= loginOrLogoutText %></a>
+        <a class="account-item" href="<%= myInquiryLink %>" role="menuitem">내 민원</a>
+        <a class="account-item" href="<%= mySuggestLink %>" role="menuitem">내 건의</a>
+        <a class="account-item" href="<%= adminLink %>" role="menuitem">관리자 페이지</a>
+      </div>
+    </div>
 
   </div>
 </header>
