@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div style="max-width:720px;margin:60px auto;padding:24px;">
+    <h1 style="font-size:28px;font-weight:900;letter-spacing:-1px;">회원가입</h1>
+
+    <% if (error) { %>
+      <div style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff1f1;border:1px solid #ffb4b4;font-weight:800;">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/register" style="margin-top:18px;display:grid;gap:12px;">
+      <input name="uniqueCode" placeholder="고유번호" value="<%= (form.uniqueCode||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
+      <input name="nickname" placeholder="닉네임" value="<%= (form.nickname||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
+      <input name="username" placeholder="아이디" value="<%= (form.username||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
+      <input name="password" type="password" placeholder="비밀번호" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
+
+      <button type="submit" style="padding:12px;border-radius:12px;border:none;background:#1a4bd9;color:#fff;font-weight:900;">
+        가입하기
+      </button>
+    </form>
+
+    <div style="margin-top:14px;">
+      <a href="/login" style="font-weight:800;color:#1a4bd9;text-decoration:none;">이미 계정이 있어요 → 로그인</a>
+    </div>
+  </div>
+</body>
+</html>

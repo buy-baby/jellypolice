@@ -29,8 +29,10 @@ const AGENCY_DB = "./database/agency.json";
 const RANK_DB = "./database/rank.json";
 const DEPT_DB = "./database/department.json";
 const APPLY_COND_DB = "./database/apply_conditions.json";
+const USERS_DB = "./database/users.json";
 
 
+ensureDB(USERS_DB, []);
 ensureDB(COMPLAINT_DB, []);
 ensureDB(SUGGEST_DB, []);
 ensureDB(AGENCY_DB, {
@@ -209,6 +211,56 @@ async function updateNotice(id, data) {
   return true;
 }
 
+// -------------------- Users --------------------
+function listUsers() {
+  return readJSON(USERS_DB);
+}
+
+function findUserByUsername(username) {
+  const users = readJSON(USERS_DB);
+  return (users || []).find(u => (u.username || "").toLowerCase() === (username || "").toLowerCase()) || null;
+}
+
+function findUserById(id) {
+  const users = readJSON(USERS_DB);
+  return (users || []).find(u => Number(u.id) === Number(id)) || null;
+}
+
+function createUser({ uniqueCode, nickname, username, passwordHash }) {
+  const users = readJSON(USERS_DB);
+
+  const nextId =
+    Array.isArray(users) && users.length
+      ? Math.max(...users.map(u => Number(u.id) || 0)) + 1
+      : 1;
+
+  const newUser = {
+    id: nextId,
+    uniqueCode: uniqueCode || "",
+    nickname: nickname || "",
+    username: username || "",
+    passwordHash,
+    role: "user",
+    createdAt: new Date().toISOString(),
+  };
+
+  const next = Array.isArray(users) ? [...users, newUser] : [newUser];
+  writeJSON(USERS_DB, next);
+  return newUser;
+}
+
+function setUserRole(userId, role) {
+  const users = readJSON(USERS_DB);
+  const id = Number(userId);
+  const next = (users || []).map(u => {
+    if (Number(u.id) === id) return { ...u, role: role === "admin" ? "admin" : "user" };
+    return u;
+  });
+  writeJSON(USERS_DB, next);
+  return true;
+}
+
+
 
 
 module.exports = {
@@ -229,5 +281,10 @@ module.exports = {
   deleteNotice,
   getNotice,
   updateNotice,
+  listUsers,
+  findUserByUsername,
+  findUserById,
+  createUser,
+  setUserRole,
 
 };

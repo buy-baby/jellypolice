@@ -210,7 +210,7 @@ body {
 
 header, nav, .header, .navbar, .topbar{
   position: relative;
-  z-index: 5000;   /* ✅ 네비/드롭다운을 무조건 위로 */
+  z-index: 5000; 
 }
 
 /* =========================   공지 박스   ========================= */

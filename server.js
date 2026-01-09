@@ -5,6 +5,8 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
 const {
   getAgency, setAgency,
   getRank, setRank,
@@ -14,13 +16,14 @@ const {
   getApplyConditions, setApplyConditions,
   listNotices, addNotice, deleteNotice,
   getNotice, updateNotice,
+  listUsers, findUserByUsername, createUser, setUserRole
 } = require("./src/storage");
 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// -------------------- Cloudflare R2 (파일 저장용) --------------------
+// ------------------------- Cloudflare R2 (파일 저장용) -------------------------
 const r2 = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -31,7 +34,7 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// -------------------- Middleware --------------------
+// ------------------------- Middleware -------------------------
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public"));
@@ -40,34 +43,148 @@ app.set("views", path.join(__dirname, "public", "views"));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// -------------------- Admin Auth --------------------
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "jellypolice1234";
-const requireAdmin = (req, res, next) =>
-  req.cookies.admin === "loggedin" ? next() : res.redirect("/login");
-
-// -------------------- Admin Login --------------------
-app.get("/login", (_, res) => res.render("admin/admin_login"));
-app.post("/login", (req, res) => {
-  if (req.body.password === ADMIN_PASSWORD) {
-    res.cookie("admin", "loggedin", {
-      httpOnly: true,
-      sameSite: "lax",
-    });
-    return res.redirect("/admin");
+app.use(session({
+  secret: process.env.SESSION_SECRET || "jellypolice-session-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 1000 * 60 * 60 * 6, // 6시간
   }
-  return res.render("admin/admin_login", { error: "비밀번호가 틀렸습니다." });
+}));
+app.use((req, res, next) => {
+  res.locals.me = req.session.user || null;
+  next();
 });
 
-// ---------------------Admin Logout----------------------
+const requireLogin = (req, res, next) => {
+  if (req.session && req.session.user) return next();
+  const nextUrl = encodeURIComponent(req.originalUrl || "/");
+  return res.redirect(`/auth/required?next=${nextUrl}`);
+};
+
+const requireAdmin = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    const nextUrl = encodeURIComponent(req.originalUrl || "/admin");
+    return res.redirect(`/auth/required?next=${nextUrl}`);
+  }
+  if (req.session.user.role === "admin") return next();
+  return res.status(403).send("접근 권한이 없습니다.");
+};
+
+// ------------------------------------------------------------
+
+app.get("/auth/required", (req, res) => {
+  const nextUrl = req.query.next || "/";
+  res.render("auth/required", {
+    message: "해당 기능을 이용하기 위해서 로그인이 필요합니다.",
+    nextUrl,
+  });
+});
+
+// ------------------------- register -------------------------
+app.get("/register", (req, res) => {
+  res.render("auth/register", { error: null, form: {} });
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const uniqueCode = (req.body.uniqueCode || "").trim();
+    const nickname = (req.body.nickname || "").trim();
+    const username = (req.body.username || "").trim();
+    const password = (req.body.password || "");
+
+    if (!uniqueCode || !nickname || !username || !password) {
+      return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body });
+    }
+
+    const exists = findUserByUsername(username);
+    if (exists) {
+      return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    createUser({ uniqueCode, nickname, username, passwordHash });
+
+    return res.redirect("/login");
+  } catch (e) {
+    console.error("❌ register error:", e);
+    return res.status(500).send("회원가입 중 오류가 발생했습니다.");
+  }
+});
+
+// ------------------------- login -------------------------
+
+app.get("/login", (req, res) => {
+  const nextUrl = req.query.next || "/";
+  res.render("auth/login", { error: null, nextUrl });
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const username = (req.body.username || "").trim();
+    const password = req.body.password || "";
+    const nextUrl = req.body.nextUrl || "/";
+
+    const user = findUserByUsername(username);
+    if (!user) {
+      return res.render("auth/login", { error: "아이디 또는 비밀번호가 올바르지 않습니다.", nextUrl });
+    }
+
+    const ok = await bcrypt.compare(password, user.passwordHash || "");
+    if (!ok) {
+      return res.render("auth/login", { error: "아이디 또는 비밀번호가 올바르지 않습니다.", nextUrl });
+    }
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      nickname: user.nickname,
+      role: user.role || "user",
+    };
+
+    return res.redirect(nextUrl || "/");
+  } catch (e) {
+    console.error("❌ login error:", e);
+    return res.status(500).send("로그인 중 오류가 발생했습니다.");
+  }
+});
+
+// ------------------------- logout -------------------------
+
 app.get("/logout", (req, res) => {
-  res.clearCookie("admin");
-  return res.redirect("/");
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
 });
 
-// -------------------- Admin Main --------------------
+
+// ------------------------- Admin Main -------------------------
 app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
-// -------------------- Admin Notice management --------------------
+// ------------------------- Admin Manage Users -------------------------
+
+app.get("/admin/users", requireAdmin, (req, res) => {
+  const users = listUsers();
+  res.render("admin/users", { users });
+});
+
+app.post("/admin/users/:id/role", requireAdmin, (req, res) => {
+  const id = Number(req.params.id);
+  const role = req.body.role === "admin" ? "admin" : "user";
+
+  // 자기 자신을 user로 강등하는 건 실수 방지(선택)
+  if (req.session.user && Number(req.session.user.id) === id && role !== "admin") {
+    return res.status(400).send("자기 자신의 관리자 권한은 해제할 수 없습니다.");
+  }
+
+  setUserRole(id, role);
+  return res.redirect("/admin/users");
+});
+
+// ------------------------- Admin Notice management -------------------------
 app.get("/admin/notices", requireAdmin, async (_, res) => {
   const notices = await listNotices(20);
   res.render("admin/notices", { notices });
@@ -112,7 +229,7 @@ app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
 });
 
 
-// -------------------- Public Pages --------------------
+// ------------------------- Public Pages -------------------------
 app.get("/", async (_, res) => {
   const notices = await listNotices(5);
   res.render("main/main", { notices });
@@ -133,7 +250,7 @@ app.get("/intro/department", async (_, res) => {
   res.render("intro/intro_department", { data });
 });
 
-// -------------------- Admin Edit Agency --------------------
+// ------------------------- Admin Edit Agency -------------------------
 app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
   const data = await getAgency();
   res.render("admin/edit_agency", { data });
@@ -147,7 +264,7 @@ app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
   res.redirect("/intro/agency");
 });
 
-// -------------------- Admin Edit Department --------------------
+// ------------------------- Admin Edit Department -------------------------
 app.get("/admin/edit/department", requireAdmin, async (_, res) => {
   const data = await getDepartment();
   res.render("admin/edit_department", { data });
@@ -167,7 +284,7 @@ app.post("/admin/edit/department", requireAdmin, async (req, res) => {
   res.redirect("/intro/department");
 });
 
-// -------------------- Admin Edit Rank --------------------
+// ------------------------- Admin Edit Rank -------------------------
 app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
   const data = await getRank();
   res.render("admin/edit_rank", { data });
@@ -195,7 +312,7 @@ app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
   await setRank(origin);
   res.redirect("/intro/rank");
 });
-// ==================== Admin Edit Apply Conditions ====================
+// ------------------------- Admin Edit Apply Conditions -------------------------
 app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
   const data = await getApplyConditions();
   res.render("admin/edit_apply_conditions", { data });
@@ -228,42 +345,9 @@ app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
   return res.redirect("/apply/conditions");
 });
 
-/* ==================== Admin Edit Apply Form (/apply/apply) ====================
-app.get("/admin/edit/apply/form", requireAdmin, async (_, res) => {
-  const data = await getApplyApply();
-  res.render("admin/edit_apply_form", { data });
-});
-
-app.post("/admin/edit/apply/form", requireAdmin, async (req, res) => {
-  const lines = (req.body.fields_text || "")
-    .split("\n")
-    .map((v) => v.trim())
-    .filter(Boolean);
-
-  const fields = lines.map((line) => {
-    const [key, label, requiredFlag] = line.split("|").map((v) => (v || "").trim());
-    return {
-      key,
-      label,
-      required: (requiredFlag || "").toLowerCase() === "required",
-    };
-  }).filter(f => f.key && f.label);
-
-  const next = {
-    title: req.body.title || "지원서 작성",
-    notice: req.body.notice || "",
-    fields,
-  };
-
-  await setApplyApply(next);
-  return res.redirect("/apply/apply");
-});
-=========================================================================================*/
-
-
 // -------------------- Citizen Pages --------------------
-app.get("/inquiry", (_, res) => res.render("inquiry/index"));
-app.get("/suggest", (_, res) => res.render("suggest/suggest"));
+app.get("/inquiry", requireLogin, (_, res) => res.render("inquiry/index"));
+app.get("/suggest", requireLogin, (_, res) => res.render("suggest/suggest"));
 app.get("/apply", (_, res) => res.render("apply/index"));
 app.get("/apply/conditions", async (_, res) => {
   const data = await getApplyConditions();

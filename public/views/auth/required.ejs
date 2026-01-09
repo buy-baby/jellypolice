@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>로그인 필요</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div style="max-width:720px;margin:80px auto;padding:24px;">
+    <div style="background:#f7fbff;border:3px solid #9fd3e6;border-radius:16px;padding:28px;text-align:center;">
+      <div style="font-size:28px;font-weight:900;letter-spacing:-1px;">로그인 필요</div>
+      <p style="margin:18px 0 0;font-size:18px;font-weight:700;">
+        <%= message %>
+      </p>
+
+      <div style="margin-top:22px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="/login?next=<%= encodeURIComponent(nextUrl || '/') %>"
+           style="display:inline-block;padding:12px 18px;border-radius:12px;background:#1a4bd9;color:#fff;text-decoration:none;font-weight:800;">
+          로그인 하러가기
+        </a>
+
+        <a href="/"
+           style="display:inline-block;padding:12px 18px;border-radius:12px;background:#e9eef7;color:#111;text-decoration:none;font-weight:800;">
+          돌아가기
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
