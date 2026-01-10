@@ -462,7 +462,7 @@ app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
 // 민원 제출
-app.post("/submit", upload.single("file"), async (req, res) => {
+app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
   try {
     const created = new Date().toISOString();
 
@@ -492,6 +492,7 @@ app.post("/submit", upload.single("file"), async (req, res) => {
     }
 
     await addComplaint({
+      userId: req.session.user.id,
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -513,6 +514,7 @@ app.post("/suggest", async (req, res) => {
     const created = new Date().toISOString();
 
     await addSuggestion({
+      userId: req.session.user.id,
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -526,57 +528,60 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
+// -------------------- My Pages --------------------
+
+function requireLogin(req, res, next) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
+    return res.redirect("/login");
+  }
+  next();
+}
+
 // 나의 민원 목록
 app.get("/my/complaints", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
+  const userId = Number(req.session.user.id);
 
-  const complaints = await db
-    .prepare("SELECT id, title, created_at FROM complaints WHERE user_id = ? ORDER BY id DESC")
-    .bind(userId)
-    .all();
+  const all = await listComplaints();
+  const mine = (all || []).filter(x => Number(x.userId) === userId || Number(x.user_id) === userId);
 
-  res.render("my/complaints", { complaints: complaints.results ?? [] });
+  res.render("my/complaints", { complaints: mine });
 });
 
 // 나의 민원 상세
 app.get("/my/complaints/:id", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
+  const userId = Number(req.session.user.id);
   const id = Number(req.params.id);
 
-  const complaint = await db
-    .prepare("SELECT id, title, content, created_at FROM complaints WHERE id = ? AND user_id = ?")
-    .bind(id, userId)
-    .first();
+  const all = await listComplaints();
+  const complaint = (all || []).find(x =>
+    Number(x.id) === id && (Number(x.userId) === userId || Number(x.user_id) === userId)
+  );
 
   if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
-
   res.render("my/complaint_detail", { complaint });
 });
 
 // 나의 건의 목록
 app.get("/my/suggestions", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
+  const userId = Number(req.session.user.id);
 
-  const suggestions = await db
-    .prepare("SELECT id, title, created_at FROM suggestions WHERE user_id = ? ORDER BY id DESC")
-    .bind(userId)
-    .all();
+  const all = await listSuggestions();
+  const mine = (all || []).filter(x => Number(x.userId) === userId || Number(x.user_id) === userId);
 
-  res.render("my/suggestions", { suggestions: suggestions.results ?? [] });
+  res.render("my/suggestions", { suggestions: mine });
 });
 
 // 나의 건의 상세
 app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
-  const userId = req.session.user.id;
+  const userId = Number(req.session.user.id);
   const id = Number(req.params.id);
 
-  const suggestion = await db
-    .prepare("SELECT id, title, content, created_at FROM suggestions WHERE id = ? AND user_id = ?")
-    .bind(id, userId)
-    .first();
+  const all = await listSuggestions();
+  const suggestion = (all || []).find(x =>
+    Number(x.id) === id && (Number(x.userId) === userId || Number(x.user_id) === userId)
+  );
 
   if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
-
   res.render("my/suggestion_detail", { suggestion });
 });
 
