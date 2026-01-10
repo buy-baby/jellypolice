@@ -528,22 +528,11 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
-// -------------------- My Pages --------------------
-
-function requireLogin(req, res, next) {
-  if (!req.session || !req.session.user || !req.session.user.id) {
-    return res.redirect("/login");
-  }
-  next();
-}
-
 // 나의 민원 목록
 app.get("/my/complaints", requireLogin, async (req, res) => {
   const userId = Number(req.session.user.id);
-
   const all = await listComplaints();
-  const mine = (all || []).filter(x => Number(x.userId) === userId || Number(x.user_id) === userId);
-
+  const mine = (all || []).filter(c => Number(c.userId) === userId);
   res.render("my/complaints", { complaints: mine });
 });
 
@@ -553,9 +542,7 @@ app.get("/my/complaints/:id", requireLogin, async (req, res) => {
   const id = Number(req.params.id);
 
   const all = await listComplaints();
-  const complaint = (all || []).find(x =>
-    Number(x.id) === id && (Number(x.userId) === userId || Number(x.user_id) === userId)
-  );
+  const complaint = (all || []).find(c => Number(c.id) === id && Number(c.userId) === userId);
 
   if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
   res.render("my/complaint_detail", { complaint });
@@ -564,10 +551,8 @@ app.get("/my/complaints/:id", requireLogin, async (req, res) => {
 // 나의 건의 목록
 app.get("/my/suggestions", requireLogin, async (req, res) => {
   const userId = Number(req.session.user.id);
-
   const all = await listSuggestions();
-  const mine = (all || []).filter(x => Number(x.userId) === userId || Number(x.user_id) === userId);
-
+  const mine = (all || []).filter(s => Number(s.userId) === userId);
   res.render("my/suggestions", { suggestions: mine });
 });
 
@@ -577,13 +562,12 @@ app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
   const id = Number(req.params.id);
 
   const all = await listSuggestions();
-  const suggestion = (all || []).find(x =>
-    Number(x.id) === id && (Number(x.userId) === userId || Number(x.user_id) === userId)
-  );
+  const suggestion = (all || []).find(s => Number(s.id) === id && Number(s.userId) === userId);
 
   if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
   res.render("my/suggestion_detail", { suggestion });
 });
+
 
 
 // -------------------- Server --------------------
