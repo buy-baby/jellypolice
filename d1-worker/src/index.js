@@ -392,3 +392,9 @@ router.put("/api/admin/users/:id/role", async (req, env) => {
 });
 
 router.all("*", () => json({ error: "not_found" }, { status: 404 }));
+
+export default {
+  async fetch(request, env, ctx) {
+    return router.handle(request, env, ctx);
+  },
+};
