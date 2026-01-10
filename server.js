@@ -499,7 +499,7 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
     }
 
     await addComplaint({
-      userId: req.session.user.id, // ✅ 핵심
+      userId: req.session.user.id,
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -521,7 +521,7 @@ app.post("/suggest", requireLogin, async (req, res) => {
     const created = new Date().toISOString();
 
     await addSuggestion({
-      userId: req.session.user.id, // ✅ 핵심
+      userId: req.session.user.id,
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -601,24 +601,29 @@ app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
 // /my/inquiry  (나의 민원)
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {
-    const userId = Number(req.session.user.id);
+    const userId = String(req.session.user.id);
+
     const all = await listComplaints();
-    const mine = (all || []).filter(c => Number(c.userId) === userId);
+    const mine = (all || []).filter(c => String(c.userId) === userId);
+
     return res.render("my/complaints", { complaints: mine });
   } catch (e) {
     console.error("❌ /my/inquiry error:", e);
     return res.status(500).send("나의 민원 목록을 불러오지 못했습니다.");
   }
+  console.log("SESSION USER ID:", req.session.user.id);
+const all = await listComplaints();
+console.log("TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
+
 });
 
 // /my/inquiry/:id (나의 민원 상세)
 app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
   try {
-    const userId = Number(req.session.user.id);
-    const id = Number(req.params.id);
+    const userId = String(req.session.user.id);
 
-    const all = await listComplaints();
-    const complaint = (all || []).find(c => Number(c.id) === id && Number(c.userId) === userId);
+    const all = await listSuggestions();
+    const mine = (all || []).filter(s => String(s.userId) === userId);
 
     if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
     return res.render("my/complaint_detail", { complaint });
