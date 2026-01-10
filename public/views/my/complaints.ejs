@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>나의 건의</title>
+  <link rel="stylesheet" href="/css/apply_conditions.css" />
+</head>
+<body>
+    <%- include("../partials/header") %>
+    <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
+        <h1>나의 민원</h1>
+          <% if (!complaints.length) { %>
+            <p>작성한 민원이 없습니다.</p>
+          <% } else { %>
+            <ul>
+              <% complaints.forEach(c => { %>
+                <li>
+                  <a href="/my/complaints/<%= c.id %>"><%= c.title %></a>
+                  <small> - <%= c.created_at %></small>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+
+    </div>
+</body>
+</html>

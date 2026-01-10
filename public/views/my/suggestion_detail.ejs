@@ -8,8 +8,13 @@
 <body>
     <%- include("../partials/header") %>
     <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
-        <h1 style="font-size:28px;font-weight:900;">내 민원</h1>
-        <p style="margin-top:10px;">준비 중입니다. (로그인: <%= (locals.me && locals.me.nickname) ? locals.me.nickname : "사용자" %>)</p>
+      <h1><%= suggestion.title %></h1>
+<small><%= suggestion.created_at %></small>
+<hr />
+<pre style="white-space: pre-wrap;"><%= suggestion.content %></pre>
+<hr />
+<a href="/my/suggestions">목록으로</a>
+
     </div>
 </body>
 </html>

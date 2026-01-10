@@ -527,13 +527,69 @@ app.post("/suggest", async (req, res) => {
 });
 
 // My Pages
-app.get("/my/inquiry", requireLogin, (req, res) => {
-  res.render("my/inquiry", { me: req.session.user });
+function requireLogin(req, res, next) {
+  if (!req.session || !req.session.user || !req.session.user.id) {
+    return res.redirect("/login");
+  }
+  next();
+}
+
+// 나의 민원 목록
+app.get("/my/complaints", requireLogin, async (req, res) => {
+  const userId = req.session.user.id;
+
+  const complaints = await db
+    .prepare("SELECT id, title, created_at FROM complaints WHERE user_id = ? ORDER BY id DESC")
+    .bind(userId)
+    .all();
+
+  res.render("my/complaints", { complaints: complaints.results ?? [] });
 });
 
-app.get("/my/suggest", requireLogin, (req, res) => {
-  res.render("my/suggest", { me: req.session.user });
+// 나의 민원 상세
+app.get("/my/complaints/:id", requireLogin, async (req, res) => {
+  const userId = req.session.user.id;
+  const id = Number(req.params.id);
+
+  const complaint = await db
+    .prepare("SELECT id, title, content, created_at FROM complaints WHERE id = ? AND user_id = ?")
+    .bind(id, userId)
+    .first();
+
+  if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
+
+  res.render("my/complaint_detail", { complaint });
 });
+
+// 나의 건의 목록
+app.get("/my/suggestions", requireLogin, async (req, res) => {
+  const userId = req.session.user.id;
+
+  const suggestions = await db
+    .prepare("SELECT id, title, created_at FROM suggestions WHERE user_id = ? ORDER BY id DESC")
+    .bind(userId)
+    .all();
+
+  res.render("my/suggestions", { suggestions: suggestions.results ?? [] });
+});
+
+// 나의 건의 상세
+app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
+  const userId = req.session.user.id;
+  const id = Number(req.params.id);
+
+  const suggestion = await db
+    .prepare("SELECT id, title, content, created_at FROM suggestions WHERE id = ? AND user_id = ?")
+    .bind(id, userId)
+    .first();
+
+  if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
+
+  res.render("my/suggestion_detail", { suggestion });
+});
+
+
+
 
 
 // -------------------- Server --------------------

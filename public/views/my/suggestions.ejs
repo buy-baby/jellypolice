@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>나의 민원</title>
+  <link rel="stylesheet" href="/css/apply_conditions.css" />
+</head>
+<body>
+    <%- include("../partials/header") %>
+    <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
+      <h1>나의 건의</h1>
+
+<% if (!suggestions.length) { %>
+  <p>작성한 건의가 없습니다.</p>
+<% } else { %>
+  <ul>
+    <% suggestions.forEach(s => { %>
+      <li>
+        <a href="/my/suggestions/<%= s.id %>"><%= s.title %></a>
+        <small> - <%= s.created_at %></small>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+    </div>
+</body>
+</html>
