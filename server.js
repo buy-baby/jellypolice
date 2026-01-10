@@ -596,5 +596,68 @@ app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
   }
 });
 
+// -------------------- My Pages (내 글만 보기) --------------------
+
+// /my/inquiry  (나의 민원)
+app.get("/my/inquiry", requireLogin, async (req, res) => {
+  try {
+    const userId = Number(req.session.user.id);
+    const all = await listComplaints();
+    const mine = (all || []).filter(c => Number(c.userId) === userId);
+    return res.render("my/complaints", { complaints: mine });
+  } catch (e) {
+    console.error("❌ /my/inquiry error:", e);
+    return res.status(500).send("나의 민원 목록을 불러오지 못했습니다.");
+  }
+});
+
+// /my/inquiry/:id (나의 민원 상세)
+app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
+  try {
+    const userId = Number(req.session.user.id);
+    const id = Number(req.params.id);
+
+    const all = await listComplaints();
+    const complaint = (all || []).find(c => Number(c.id) === id && Number(c.userId) === userId);
+
+    if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
+    return res.render("my/complaint_detail", { complaint });
+  } catch (e) {
+    console.error("❌ /my/inquiry/:id error:", e);
+    return res.status(500).send("나의 민원 상세를 불러오지 못했습니다.");
+  }
+});
+
+// /my/suggest  (나의 건의)
+app.get("/my/suggest", requireLogin, async (req, res) => {
+  try {
+    const userId = Number(req.session.user.id);
+    const all = await listSuggestions();
+    const mine = (all || []).filter(s => Number(s.userId) === userId);
+    return res.render("my/suggestions", { suggestions: mine });
+  } catch (e) {
+    console.error("❌ /my/suggest error:", e);
+    return res.status(500).send("나의 건의 목록을 불러오지 못했습니다.");
+  }
+});
+
+// /my/suggest/:id (나의 건의 상세)
+app.get("/my/suggest/:id", requireLogin, async (req, res) => {
+  try {
+    const userId = Number(req.session.user.id);
+    const id = Number(req.params.id);
+
+    const all = await listSuggestions();
+    const suggestion = (all || []).find(s => Number(s.id) === id && Number(s.userId) === userId);
+
+    if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
+    return res.render("my/suggestions_detail", { suggestion });
+  } catch (e) {
+    console.error("❌ /my/suggest/:id error:", e);
+    return res.status(500).send("나의 건의 상세를 불러오지 못했습니다.");
+  }
+});
+
+
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
