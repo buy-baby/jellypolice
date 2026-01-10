@@ -534,96 +534,39 @@ app.post("/suggest", requireLogin, async (req, res) => {
     return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
   }
 });
-
-// -------------------- My Pages (내 글만 보기) --------------------
-app.get("/my/complaints", requireLogin, async (req, res) => {
-  try {
-    const userId = Number(req.session.user.id);
-    const all = await listComplaints();
-    const mine = (all || []).filter((c) => Number(c.userId) === userId);
-    return res.render("my/complaints", { complaints: mine });
-  } catch (e) {
-    console.error("❌ /my/complaints error:", e);
-    return res.status(500).send("나의 민원 목록을 불러오지 못했습니다.");
-  }
-});
-
-app.get("/my/complaints/:id", requireLogin, async (req, res) => {
-  try {
-    const userId = Number(req.session.user.id);
-    const id = Number(req.params.id);
-
-    const all = await listComplaints();
-    const complaint = (all || []).find(
-      (c) => Number(c.id) === id && Number(c.userId) === userId
-    );
-
-    if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
-    return res.render("my/complaint_detail", { complaint });
-  } catch (e) {
-    console.error("❌ /my/complaints/:id error:", e);
-    return res.status(500).send("나의 민원 상세를 불러오지 못했습니다.");
-  }
-});
-
-app.get("/my/suggestions", requireLogin, async (req, res) => {
-  try {
-    const userId = Number(req.session.user.id);
-    const all = await listSuggestions();
-    const mine = (all || []).filter((s) => Number(s.userId) === userId);
-    return res.render("my/suggestions", { suggestions: mine });
-  } catch (e) {
-    console.error("❌ /my/suggestions error:", e);
-    return res.status(500).send("나의 건의 목록을 불러오지 못했습니다.");
-  }
-});
-
-app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
-  try {
-    const userId = Number(req.session.user.id);
-    const id = Number(req.params.id);
-
-    const all = await listSuggestions();
-    const suggestion = (all || []).find(
-      (s) => Number(s.id) === id && Number(s.userId) === userId
-    );
-
-    if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
-    return res.render("my/suggestions_detail", { suggestion }); // ✅ 네 파일명에 맞춤
-  } catch (e) {
-    console.error("❌ /my/suggestions/:id error:", e);
-    return res.status(500).send("나의 건의 상세를 불러오지 못했습니다.");
-  }
-});
-
 // -------------------- My Pages (내 글만 보기) --------------------
 
-// /my/inquiry  (나의 민원)
+// 주소: /my/inquiry, /my/suggest
+
+// 나의 민원 목록
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
 
     const all = await listComplaints();
-    const mine = (all || []).filter(c => String(c.userId) === userId);
+    // 디버그(필요하면 잠깐 켜고 나중에 지워도 됨)
+    console.log("SESSION USER ID:", userId);
+    console.log("COMPLAINT TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
+
+    const mine = (all || []).filter((c) => String(c.userId) === userId);
 
     return res.render("my/complaints", { complaints: mine });
   } catch (e) {
     console.error("❌ /my/inquiry error:", e);
     return res.status(500).send("나의 민원 목록을 불러오지 못했습니다.");
   }
-  console.log("SESSION USER ID:", req.session.user.id);
-const all = await listComplaints();
-console.log("TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
-
 });
 
-// /my/inquiry/:id (나의 민원 상세)
+// 나의 민원 상세
 app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
+    const id = String(req.params.id);
 
-    const all = await listSuggestions();
-    const mine = (all || []).filter(s => String(s.userId) === userId);
+    const all = await listComplaints();
+    const complaint = (all || []).find(
+      (c) => String(c.id) === id && String(c.userId) === userId
+    );
 
     if (!complaint) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
     return res.render("my/complaint_detail", { complaint });
@@ -633,12 +576,16 @@ app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
   }
 });
 
-// /my/suggest  (나의 건의)
+// 나의 건의 목록
 app.get("/my/suggest", requireLogin, async (req, res) => {
   try {
-    const userId = Number(req.session.user.id);
+    const userId = String(req.session.user.id);
+
     const all = await listSuggestions();
-    const mine = (all || []).filter(s => Number(s.userId) === userId);
+    console.log("SUGGEST TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
+
+    const mine = (all || []).filter((s) => String(s.userId) === userId);
+
     return res.render("my/suggestions", { suggestions: mine });
   } catch (e) {
     console.error("❌ /my/suggest error:", e);
@@ -646,14 +593,16 @@ app.get("/my/suggest", requireLogin, async (req, res) => {
   }
 });
 
-// /my/suggest/:id (나의 건의 상세)
+// 나의 건의 상세
 app.get("/my/suggest/:id", requireLogin, async (req, res) => {
   try {
-    const userId = Number(req.session.user.id);
-    const id = Number(req.params.id);
+    const userId = String(req.session.user.id);
+    const id = String(req.params.id);
 
     const all = await listSuggestions();
-    const suggestion = (all || []).find(s => Number(s.id) === id && Number(s.userId) === userId);
+    const suggestion = (all || []).find(
+      (s) => String(s.id) === id && String(s.userId) === userId
+    );
 
     if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
     return res.render("my/suggestions_detail", { suggestion });
@@ -663,6 +612,11 @@ app.get("/my/suggest/:id", requireLogin, async (req, res) => {
   }
 });
 
+// ---- (선택) 예전 주소 호환: /my/complaints, /my/suggestions 로 와도 같은 페이지로 보내기 ----
+app.get("/my/complaints", (req, res) => res.redirect("/my/inquiry"));
+app.get("/my/complaints/:id", (req, res) => res.redirect(`/my/inquiry/${req.params.id}`));
+app.get("/my/suggestions", (req, res) => res.redirect("/my/suggest"));
+app.get("/my/suggestions/:id", (req, res) => res.redirect(`/my/suggest/${req.params.id}`));
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
