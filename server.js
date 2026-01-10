@@ -526,14 +526,6 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
-// My Pages
-function requireLogin(req, res, next) {
-  if (!req.session || !req.session.user || !req.session.user.id) {
-    return res.redirect("/login");
-  }
-  next();
-}
-
 // 나의 민원 목록
 app.get("/my/complaints", requireLogin, async (req, res) => {
   const userId = req.session.user.id;
@@ -587,9 +579,6 @@ app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
 
   res.render("my/suggestion_detail", { suggestion });
 });
-
-
-
 
 
 // -------------------- Server --------------------
