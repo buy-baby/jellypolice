@@ -43,3 +43,6 @@ CREATE TABLE IF NOT EXISTS users (
   role TEXT NOT NULL DEFAULT 'user',
   createdAt TEXT NOT NULL
 );
+
+ALTER TABLE complaints ADD COLUMN userId INTEGER;
+ALTER TABLE suggestions ADD COLUMN userId INTEGER;

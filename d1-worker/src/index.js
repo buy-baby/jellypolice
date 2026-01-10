@@ -241,17 +241,22 @@ router.delete("/api/notices/:id", async (req, env) => {
 router.get("/api/complaints", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
   const { results } = await env.DB.prepare(
-    "SELECT id, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC"
+    "SELECT id, userId, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC"
   ).all();
   return json(results || []);
 });
+
 router.post("/api/complaints", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
+
+  const userId = body.userId ?? null; // ✅ 추가
+
   const r = await env.DB.prepare(
-    "INSERT INTO complaints(name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?)"
+    "INSERT INTO complaints(userId, name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
+      userId,
       body.name || "",
       body.identity || "",
       body.content || "",
@@ -264,31 +269,30 @@ router.post("/api/complaints", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
+
 // ---- Suggestions ----
 router.get("/api/suggestions", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
   const { results } = await env.DB.prepare(
-    "SELECT id, name, identity, content, created FROM suggestions ORDER BY id DESC"
+    "SELECT id, userId, name, identity, content, created FROM suggestions ORDER BY id DESC"
   ).all();
   return json(results || []);
 });
+
 router.post("/api/suggestions", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
+
+  const userId = body.userId ?? null; // ✅ 추가
+
   const r = await env.DB.prepare(
-    "INSERT INTO suggestions(name, identity, content, created) VALUES(?, ?, ?, ?)"
+    "INSERT INTO suggestions(userId, name, identity, content, created) VALUES(?, ?, ?, ?, ?)"
   )
-    .bind(body.name || "", body.identity || "", body.content || "", created)
+    .bind(userId, body.name || "", body.identity || "", body.content || "", created)
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
-
-export default {
-  async fetch(request, env, ctx) {
-    return router.handle(request, env, ctx);
-  },
-};
 
 // ---- register ----
 router.post("/api/auth/register", async (req, env) => {
