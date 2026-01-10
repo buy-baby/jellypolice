@@ -1,29 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>민원 상세</title>
-  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
-
 <body>
+  <%- include("../partials/header") %>
 
-  <%- include("../partials/admin_header") %>
-  <div class="admin-container">
+  <div class="detail-title-row">
     <h1>📄 민원 상세</h1>
-    <a href="/admin/inquiry" class="back-btn">← 목록으로</a>
+  </div>
 
-    <div class="detail-box">
-      <p><strong>이름:</strong> <%= c.name %></p>
-      <p><strong>고유번호:</strong> <%= c.identity %></p>
-      <p><strong>내용:</strong><br><%= c.content %></p>
-      <p><strong>제출일:</strong> <%= c.created.substring(0,10) %></p>
+  <div class="detail-actions">
+    <a class="back-btn" href="/admin/inquiry">← 목록으로</a>
+  </div>
 
-      <% if (c.file) { %>
-        <a class="file-btn" href="/file/<%= c.file %>">첨부파일 다운로드</a>
-      <% } %>
+  <hr class="detail-divider" />
 
+  <div class="detail-section-title">작성자 계정 정보</div>
 
+  <div class="detail-mini-box">
+    <div class="detail-kv">
+      <div class="detail-k">계정 번호 :</div>
+      <div class="detail-v"><%= (c.userId ?? "-") %></div>
+
+      <div class="detail-k">이름 :</div>
+      <div class="detail-v"><%= c.name || "-" %></div>
+
+      <div class="detail-k">고유번호 :</div>
+      <div class="detail-v"><%= c.identity || "-" %></div>
+
+      <div class="detail-k">아이디 :</div>
+      <div class="detail-v"><%= c.username || "-" %></div>
+    </div>
+  </div>
+
+  <hr class="detail-divider" />
+
+  <div class="detail-section-title">민원 내용</div>
+
+  <div class="detail-content-wrap">
+    <div class="info-box">
+      <p><b>이름:</b> <%= c.name || "-" %></p>
+      <p><b>고유번호:</b> <%= c.identity || "-" %></p>
+
+      <p><b>내용:</b></p>
+      <div class="content-box"><%= c.content || "" %></div>
+
+      <p style="margin-top:16px;"><b>제출일:</b> <%= (c.created || "").slice(0,10) %></p>
+    </div>
   </div>
 </body>
 </html>

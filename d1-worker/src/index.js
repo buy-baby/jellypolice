@@ -240,9 +240,23 @@ router.delete("/api/notices/:id", async (req, env) => {
 // ---- Complaints ----
 router.get("/api/complaints", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
-  const { results } = await env.DB.prepare(
-    "SELECT id, userId, name, identity, content, created, fileName, fileKey FROM complaints ORDER BY id DESC"
-  ).all();
+  
+  const { results } = await env.DB.prepare(`
+    SELECT 
+      c.id,
+      c.userId,
+      c.name,
+      c.identity,
+      c.content,
+      c.created,
+      c.fileName,
+      c.fileKey,
+      u.username
+    FROM complaints c
+    LEFT JOIN users u ON c.userId = u.id
+    ORDER BY c.id DESC
+  `).all();
+
   return json(results || []);
 });
 
@@ -250,7 +264,7 @@ router.post("/api/complaints", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const userId = body.userId ?? null; // ✅ 추가
+  const userId = body.userId ?? null; 
 
   const r = await env.DB.prepare(
     "INSERT INTO complaints(userId, name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?, ?)"
@@ -273,9 +287,21 @@ router.post("/api/complaints", async (req, env) => {
 // ---- Suggestions ----
 router.get("/api/suggestions", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
-  const { results } = await env.DB.prepare(
-    "SELECT id, userId, name, identity, content, created FROM suggestions ORDER BY id DESC"
-  ).all();
+
+  const { results } = await env.DB.prepare(`
+    SELECT 
+      s.id,
+      s.userId,
+      s.name,
+      s.identity,
+      s.content,
+      s.created,
+      u.username
+    FROM suggestions s
+    LEFT JOIN users u ON s.userId = u.id
+    ORDER BY s.id DESC
+  `).all();
+
   return json(results || []);
 });
 
@@ -283,7 +309,7 @@ router.post("/api/suggestions", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const userId = body.userId ?? null; // ✅ 추가
+  const userId = body.userId ?? null; 
 
   const r = await env.DB.prepare(
     "INSERT INTO suggestions(userId, name, identity, content, created) VALUES(?, ?, ?, ?, ?)"
