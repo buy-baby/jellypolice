@@ -58,7 +58,7 @@
           <a class="cardBtn" href="/my/inquiry/<%= c.id %>">
             <div class="topRow">
               <div class="badge"><span class="badgeDot"></span> 민원 #<%= c.id %></div>
-              <div class="meta"><%= (c.created || "").replace("T"," ").slice(0,19) %></div>
+              <div class="meta"><%= formatKST(c.created) %></div>
             </div>
             <div class="preview">
               <%= (c.content || "").slice(0, 70) %><%= (c.content || "").length > 70 ? "..." : "" %>

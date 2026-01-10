@@ -58,7 +58,7 @@
           <a class="cardBtn" href="/my/suggest/<%= s.id %>">
             <div class="topRow">
               <div class="badge"><span class="badgeDot"></span> 건의 #<%= s.id %></div>
-              <div class="meta"><%= (s.created || "").replace("T"," ").slice(0,19) %></div>
+              <div class="meta"><%= formatKST(s.created) %></div>
             </div>
             <div class="preview">
               <%= (s.content || "").slice(0, 70) %><%= (s.content || "").length > 70 ? "..." : "" %>
