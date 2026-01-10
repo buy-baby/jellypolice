@@ -4,31 +4,62 @@
   <meta charset="UTF-8" />
   <title>나의 건의</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .wrap { max-width: 980px; margin: 40px auto; padding: 0 18px; }
+    .title { text-align:center; font-size: 34px; margin: 10px 0 24px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+    .cardBtn{
+      display:flex; flex-direction:column; gap:10px;
+      width:100%;
+      text-decoration:none; color:inherit;
+      background:#fff; border:1px solid rgba(0,0,0,.08);
+      border-radius:14px; padding:16px 16px 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .cardBtn:hover{
+      transform: translateY(-2px);
+      border-color: rgba(26,75,217,.35);
+      box-shadow: 0 10px 26px rgba(0,0,0,.10);
+    }
+    .topRow{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-weight:800; color:#1a4bd9;
+    }
+    .badgeDot{ width:10px; height:10px; border-radius:999px; background:#1a4bd9; }
+    .meta{ font-size:12px; color:#6b7280; }
+    .preview{ font-size:14px; color:#111827; line-height:1.5; }
+    .empty{
+      text-align:center; color:#6b7280; background:#fff;
+      border:1px dashed rgba(0,0,0,.15);
+      border-radius:14px; padding:28px;
+    }
+  </style>
 </head>
 <body>
   <%- include("../partials/header") %>
 
-  <main style="max-width: 900px; margin: 40px auto; padding: 0 16px;">
-    <h1 style="text-align:center;">나의 건의</h1>
+  <main class="wrap">
+    <h1 class="title">나의 건의</h1>
 
     <% if (!suggestions || suggestions.length === 0) { %>
-      <p style="text-align:center; margin-top: 24px;">작성한 건의가 없습니다.</p>
+      <div class="empty">작성한 건의가 없습니다.</div>
     <% } else { %>
-      <ul style="margin-top: 24px; line-height: 1.9;">
+      <div class="grid">
         <% suggestions.forEach(function(s){ %>
-          <li>
-            <a href="/my/suggest/<%= s.id %>">
-              <strong>#<%= s.id %></strong>
-              <span style="margin-left:8px;">
-                <%= (s.content || "").slice(0, 40) %><%= (s.content || "").length > 40 ? "..." : "" %>
-              </span>
-              <span style="margin-left:10px; color:#666; font-size:13px;">
-                (<%= (s.created || "").replace("T"," ").slice(0,19) %>)
-              </span>
-            </a>
-          </li>
+          <a class="cardBtn" href="/my/suggest/<%= s.id %>">
+            <div class="topRow">
+              <div class="badge"><span class="badgeDot"></span> 건의 #<%= s.id %></div>
+              <div class="meta"><%= (s.created || "").replace("T"," ").slice(0,19) %></div>
+            </div>
+            <div class="preview">
+              <%= (s.content || "").slice(0, 70) %><%= (s.content || "").length > 70 ? "..." : "" %>
+            </div>
+          </a>
         <% }) %>
-      </ul>
+      </div>
     <% } %>
   </main>
 </body>
