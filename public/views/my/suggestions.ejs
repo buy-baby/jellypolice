@@ -1,28 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>나의 민원</title>
-  <link rel="stylesheet" href="/css/apply_conditions.css" />
+  <title>나의 건의</title>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-    <%- include("../partials/header") %>
-    <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
-      <h1>나의 건의</h1>
+  <%- include("../partials/header") %>
 
-<% if (!suggestions.length) { %>
-  <p>작성한 건의가 없습니다.</p>
-<% } else { %>
-  <ul>
-    <% suggestions.forEach(s => { %>
-      <li>
-        <a href="/my/suggestions/<%= s.id %>"><%= s.title %></a>
-        <small> - <%= s.created_at %></small>
-      </li>
-    <% }) %>
-  </ul>
-<% } %>
+  <main style="max-width: 900px; margin: 40px auto; padding: 0 16px;">
+    <h1 style="text-align:center;">나의 건의</h1>
 
-    </div>
+    <% if (!suggestions || suggestions.length === 0) { %>
+      <p style="text-align:center; margin-top: 24px;">작성한 건의가 없습니다.</p>
+    <% } else { %>
+      <ul style="margin-top: 24px; line-height: 1.9;">
+        <% suggestions.forEach(function(s){ %>
+          <li>
+            <a href="/my/suggest/<%= s.id %>">
+              <strong>#<%= s.id %></strong>
+              <span style="margin-left:8px;">
+                <%= (s.content || "").slice(0, 40) %><%= (s.content || "").length > 40 ? "..." : "" %>
+              </span>
+              <span style="margin-left:10px; color:#666; font-size:13px;">
+                (<%= (s.created || "").replace("T"," ").slice(0,19) %>)
+              </span>
+            </a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </main>
 </body>
 </html>

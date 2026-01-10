@@ -2,19 +2,25 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>나의 민원</title>
+  <title>나의 건의 상세</title>
   <link rel="stylesheet" href="/css/apply_conditions.css" />
 </head>
 <body>
-    <%- include("../partials/header") %>
-    <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
-      <h1><%= suggestion.title %></h1>
-<small><%= suggestion.created_at %></small>
-<hr />
-<pre style="white-space: pre-wrap;"><%= suggestion.content %></pre>
-<hr />
-<a href="/my/suggestions">목록으로</a>
+  <%- include("../partials/header") %>
 
-    </div>
+  <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
+    <h1>나의 건의 상세</h1>
+
+    <p><strong>작성자</strong>: <%= suggestion.name || "-" %></p>
+    <p><strong>신원</strong>: <%= suggestion.identity || "-" %></p>
+    <p><strong>작성일</strong>: <%= (suggestion.created || "").replace("T"," ").slice(0,19) %></p>
+
+    <hr />
+
+    <pre style="white-space: pre-wrap;"><%= suggestion.content || "" %></pre>
+
+    <hr />
+    <a href="/my/suggest">목록으로</a>
+  </div>
 </body>
 </html>

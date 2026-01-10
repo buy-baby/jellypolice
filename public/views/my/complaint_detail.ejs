@@ -2,19 +2,30 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>나의 건의</title>
+  <title>나의 민원 상세</title>
   <link rel="stylesheet" href="/css/apply_conditions.css" />
 </head>
 <body>
-    <%- include("../partials/header") %>
-    <div>
-        <h1><%= complaint.title %></h1>
-            <small><%= complaint.created_at %></small>
-            <hr />
-                <pre style="white-space: pre-wrap;"><%= complaint.content %></pre>
-            <hr />
-            <a href="/my/complaints">목록으로</a>
+  <%- include("../partials/header") %>
 
-    </div>
+  <div style="max-width:1000px;margin:40px auto;padding:0 18px;">
+    <h1>나의 민원 상세</h1>
+
+    <p><strong>작성자</strong>: <%= complaint.name || "-" %></p>
+    <p><strong>신원</strong>: <%= complaint.identity || "-" %></p>
+    <p><strong>작성일</strong>: <%= (complaint.created || "").replace("T"," ").slice(0,19) %></p>
+
+    <hr />
+
+    <pre style="white-space: pre-wrap;"><%= complaint.content || "" %></pre>
+
+    <% if (complaint.fileName) { %>
+      <hr />
+      <p><strong>첨부파일</strong>: <%= complaint.fileName %></p>
+    <% } %>
+
+    <hr />
+    <a href="/my/inquiry">목록으로</a>
+  </div>
 </body>
 </html>
