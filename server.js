@@ -88,7 +88,7 @@ app.use((req, res, next) => {
 
 // ------------------------- Auth Guards -------------------------
 const requireLogin = (req, res, next) => {
-  if (req.session && req.session.user) return next();
+  if (req.session && req.session.user && req.session.user.id) return next();
   const nextUrl = encodeURIComponent(req.originalUrl || "/");
   return res.redirect(`/auth/required?next=${nextUrl}`);
 };
@@ -101,6 +101,20 @@ const requireAdmin = (req, res, next) => {
   if (req.session.user.role === "admin") return next();
   return res.status(403).send("접근 권한이 없습니다.");
 };
+
+// ------------------------- Debug Routes (배포 확인용) -------------------------
+// 배포된 server.js가 최신인지 확인하려고 만든 라우트.
+// 브라우저에서 /__routes 로 들어가면 지금 등록된 핵심 라우트 문자열을 확인 가능.
+app.get("/__routes", (req, res) => {
+  res.type("text").send(
+`OK
+/my/complaints
+/my/complaints/:id
+/my/suggestions
+/my/suggestions/:id
+`
+  );
+});
 
 // ------------------------- Auth Required Page -------------------------
 app.get("/auth/required", (req, res) => {
@@ -138,7 +152,6 @@ app.post("/register", async (req, res) => {
   } catch (e) {
     console.error("❌ register error:", e);
 
-    // 중복(409) 등일 가능성이 높음. 메시지 조금 친절하게:
     const msg = String(e.message || "");
     if (msg.includes(" 409 ")) {
       return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body });
@@ -166,7 +179,6 @@ app.post("/login", async (req, res) => {
 
     const user = await d1Api("POST", "/api/auth/login", { username, password });
 
-    // 세션 저장
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -174,6 +186,7 @@ app.post("/login", async (req, res) => {
       role: user.role || "user",
     };
 
+    // ✅ nextUrl로 돌아가기 (auth/required에서 넘어온 흐름 포함)
     return res.redirect(nextUrl || "/");
   } catch (e) {
     console.error("❌ login error:", e);
@@ -208,7 +221,6 @@ app.post("/admin/users/:id/role", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     const role = req.body.role === "admin" ? "admin" : "user";
 
-    // 자기 자신을 user로 강등 방지(실수 방지)
     if (req.session.user && Number(req.session.user.id) === id && role !== "admin") {
       return res.status(400).send("자기 자신의 관리자 권한은 해제할 수 없습니다.");
     }
@@ -240,7 +252,6 @@ app.get("/admin/notices/delete/:id", requireAdmin, async (req, res) => {
   res.redirect("/admin/notices");
 });
 
-// 공지 수정 페이지
 app.get("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   const notice = await getNotice(id);
@@ -248,7 +259,6 @@ app.get("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   res.render("admin/notice_edit", { notice });
 });
 
-// 공지 수정 저장
 app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await updateNotice(id, {
@@ -258,7 +268,6 @@ app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   res.redirect("/admin/notices");
 });
 
-// 공지 삭제
 app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await deleteNotice(id);
@@ -428,7 +437,6 @@ app.get("/admin/inquiry", requireAdmin, async (_, res) => {
   res.render("admin/inquiry_list", { complaints });
 });
 
-// 민원 상세보기
 app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
 
@@ -445,7 +453,6 @@ app.get("/admin/suggest", requireAdmin, async (_, res) => {
   res.render("admin/suggest_list", { suggestions });
 });
 
-// 건의 상세보기
 app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
 
@@ -461,7 +468,7 @@ app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
 app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
-// 민원 제출
+// 민원 제출 (로그인 필수 + userId 저장)
 app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
   try {
     const created = new Date().toISOString();
@@ -492,7 +499,7 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
     }
 
     await addComplaint({
-      userId: req.session.user.id,
+      userId: req.session.user.id, // ✅ 핵심
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -508,13 +515,13 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
   }
 });
 
-// 건의 제출
-app.post("/suggest", async (req, res) => {
+// 건의 제출 (로그인 필수 + userId 저장)
+app.post("/suggest", requireLogin, async (req, res) => {
   try {
     const created = new Date().toISOString();
 
     await addSuggestion({
-      userId: req.session.user.id,
+      userId: req.session.user.id, // ✅ 핵심
       name: req.body.name || "",
       identity: req.body.identity || "",
       content: req.body.content || "",
@@ -528,14 +535,12 @@ app.post("/suggest", async (req, res) => {
   }
 });
 
-// -------------------- My Pages --------------------
+// -------------------- My Pages (내 글만 보기) --------------------
 app.get("/my/complaints", requireLogin, async (req, res) => {
   try {
     const userId = Number(req.session.user.id);
-
     const all = await listComplaints();
     const mine = (all || []).filter((c) => Number(c.userId) === userId);
-
     return res.render("my/complaints", { complaints: mine });
   } catch (e) {
     console.error("❌ /my/complaints error:", e);
@@ -564,10 +569,8 @@ app.get("/my/complaints/:id", requireLogin, async (req, res) => {
 app.get("/my/suggestions", requireLogin, async (req, res) => {
   try {
     const userId = Number(req.session.user.id);
-
-    const all = await listSuggestions(); 
+    const all = await listSuggestions();
     const mine = (all || []).filter((s) => Number(s.userId) === userId);
-
     return res.render("my/suggestions", { suggestions: mine });
   } catch (e) {
     console.error("❌ /my/suggestions error:", e);
@@ -586,13 +589,12 @@ app.get("/my/suggestions/:id", requireLogin, async (req, res) => {
     );
 
     if (!suggestion) return res.status(404).send("존재하지 않거나 접근 권한이 없습니다.");
-    return res.render("my/suggestion_detail", { suggestion });
+    return res.render("my/suggestions_detail", { suggestion }); // ✅ 네 파일명에 맞춤
   } catch (e) {
     console.error("❌ /my/suggestions/:id error:", e);
     return res.status(500).send("나의 건의 상세를 불러오지 못했습니다.");
   }
 });
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
