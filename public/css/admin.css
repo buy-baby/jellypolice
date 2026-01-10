@@ -235,7 +235,7 @@ h1 {
 }
 
 .detail-mini-box{
-  width: 320px;           /* 2번째 사진처럼 작은 박스 */
+  width: 320px;          
   margin: 0 auto;
   background: #f0f4ff;
   padding: 16px 18px;
