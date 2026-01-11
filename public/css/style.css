@@ -478,3 +478,52 @@ nav, .navbar, .topbar{
     font-size: 14px;
   }
 }
+
+/* ===== Mobile: mega dropdown visible fix ===== */
+@media (max-width: 520px){
+
+  /* 드롭다운 기준을 각 메뉴 항목으로 잡기 */
+  .mega-dropdown{
+    position: relative;  /* 기존 static -> 모바일에서만 relative */
+  }
+
+  /* 드롭다운을 '해당 메뉴 아래'에 붙여서 내려오게 */
+  .mega-menu{
+    left: 0;
+    right: auto;
+    transform: none;
+
+    width: 92vw;         /* 화면에 맞게 */
+    max-width: 92vw;
+
+    top: calc(100% + 10px);
+    z-index: 99999;      /* 무조건 맨 위 */
+  }
+
+  /* 메뉴바가 스크롤 컨테이너라 드롭다운이 잘릴 수 있어서 */
+  .menu{
+    overflow-x: auto;
+    overflow-y: visible; /* 세로는 보이게 */
+  }
+}
+
+/* ===== Mobile: header full-width & overflow fix ===== */
+html, body{
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.site-header{
+  width: 100%;
+}
+
+.header-inner{
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.home-spacer{ height: 500px; }
+
+@media (max-width: 520px){
+  .home-spacer{ height: 140px; }
+}
