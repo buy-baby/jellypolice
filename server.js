@@ -475,6 +475,20 @@ app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
   res.render("admin/inquiry_view", { c });
 });
 
+app.post("/admin/inquiry/:id/status", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const status = (req.body.status || "").trim();
+
+    await d1Api("PUT", `/api/complaints/${id}/status`, { status });
+    return res.redirect(`/admin/inquiry/view/${id}`);
+  } catch (e) {
+    console.error("❌ status update error:", e);
+    return res.status(500).send("상태 변경에 실패했습니다.");
+  }
+});
+
+
 app.get("/admin/suggest", requireAdmin, async (_, res) => {
   const suggestions = await listSuggestions();
   res.render("admin/suggest_list", { suggestions });

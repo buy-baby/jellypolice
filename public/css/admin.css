@@ -266,6 +266,27 @@ h1 {
   margin: 0 auto;
 }
 
+.status-select{
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #d5d5d5;
+  font-weight: 700;
+  background: #fff;
+}
+
+.status-badge{
+  display:inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: #eef2f9;
+  color: #003c8f;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+
 @media (max-width: 900px){
   .detail-content-wrap{ width: 92%; }
 }

@@ -35,7 +35,10 @@
 
   <main class="wrap">
     <div class="card">
-      <h1 class="h1">나의 민원 상세</h1>
+      <h1 style="display:flex;align-items:center;gap:10px;">
+        나의 민원 상세
+        <span class="status-badge"><%= complaint.status || "접수 중" %></span>
+      </h1>
 
       <div class="info">
         <div class="label">이름</div>

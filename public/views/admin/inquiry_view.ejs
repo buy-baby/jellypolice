@@ -16,6 +16,22 @@
     <a class="back-btn" href="/admin/inquiry">← 목록으로</a>
   </div>
 
+  <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:14px 0;">
+    <a class="back-btn" href="/admin/inquiry">← 목록으로</a>
+
+    <form action="/admin/inquiry/<%= c.id %>/status" method="POST" style="display:flex; gap:10px; align-items:center;">
+      <select name="status" class="status-select">
+      <option value="미접수" <%= c.status === "미접수" ? "selected" : "" %>>미접수</option>
+      <option value="접수 중" <%= c.status === "접수 중" ? "selected" : "" %>>접수 중</option>
+      <option value="접수 완료" <%= c.status === "접수 완료" ? "selected" : "" %>>접수 완료</option>
+      <option value="처리 중" <%= c.status === "처리 중" ? "selected" : "" %>>처리 중</option>
+      <option value="처리 완료" <%= c.status === "처리 완료" ? "selected" : "" %>>처리 완료</option>
+      </select>
+      <button type="submit" class="back-btn">저장</button>
+    </form>
+  </div>
+
+
   <hr class="detail-divider" />
 
   <div class="detail-section-title">작성자 계정 정보</div>

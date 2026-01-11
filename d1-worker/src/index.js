@@ -240,7 +240,7 @@ router.delete("/api/notices/:id", async (req, env) => {
 // ---- Complaints ----
 router.get("/api/complaints", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
-  
+
   const { results } = await env.DB.prepare(`
     SELECT 
       c.id,
@@ -251,6 +251,8 @@ router.get("/api/complaints", async (req, env) => {
       c.created,
       c.fileName,
       c.fileKey,
+      c.status,
+      c.statusUpdatedAt,
       u.username
     FROM complaints c
     LEFT JOIN users u ON c.userId = u.id
@@ -260,14 +262,19 @@ router.get("/api/complaints", async (req, env) => {
   return json(results || []);
 });
 
+
 router.post("/api/complaints", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const userId = body.userId ?? null; 
+  const userId = body.userId ?? null;
+
+  // 기본 : 미접수
+  const status = (body.status || "미접수").trim();
+  const statusUpdatedAt = new Date().toISOString();
 
   const r = await env.DB.prepare(
-    "INSERT INTO complaints(userId, name, identity, content, created, fileName, fileKey) VALUES(?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO complaints(userId, name, identity, content, created, fileName, fileKey, status, statusUpdatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       userId,
@@ -276,12 +283,52 @@ router.post("/api/complaints", async (req, env) => {
       body.content || "",
       created,
       body.fileName || "",
-      body.fileKey || ""
+      body.fileKey || "",
+      status,
+      statusUpdatedAt
     )
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
+
+// complaint status
+const ALLOWED_COMPLAINT_STATUS = new Set([
+  "미접수",
+  "접수 중",
+  "접수 완료",
+  "처리 중",
+  "처리 완료",
+]);
+
+router.put("/api/complaints/:id/status", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const status = String(body.status || "").trim();
+
+  if (!ALLOWED_COMPLAINT_STATUS.has(status)) {
+    return json({ error: "invalid_status" }, { status: 400 });
+  }
+
+  const statusUpdatedAt = new Date().toISOString();
+
+  const r = await env.DB.prepare(
+    "UPDATE complaints SET status = ?, statusUpdatedAt = ? WHERE id = ?"
+  )
+    .bind(status, statusUpdatedAt, id)
+    .run();
+
+  if (!r.meta || r.meta.changes === 0) {
+    return json({ error: "not_found" }, { status: 404 });
+  }
+
+  return ok(); // 204
+});
+
 
 
 // ---- Suggestions ----
