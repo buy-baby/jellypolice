@@ -83,15 +83,101 @@ body {
   background: #002d66;
 }
 
-/* seccess */
+/* =========================
+   Inquiry Success Page
+========================= */
 
-.success-logo {
-  width: 180px;      /* 원하는 크기 */
-  max-width: 60%;
+.success-page{
+  font-family: "Noto Sans KR", sans-serif;
+  background: #f2f6ff;
+  text-align: center;
+}
+
+/* success 페이지 상단(로고 + 타이틀) */
+.success-header{
+  padding-top: 18px;
+}
+
+.success-logo{
+  width: 160px;       /* 로고 크기 여기서 조절 */
+  max-width: 55%;
   height: auto;
   display: block;
-  margin: 30px auto 20px;
+  margin: 22px auto 10px;
 }
+
+.success-title{
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0 0 10px;
+  color: #111;
+}
+
+/* 성공 박스 */
+.success-box{
+  width: 60%;
+  background: #fff;
+  margin: 60px auto 80px;
+  padding: 40px 50px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  animation: successFadeIn 0.4s ease;
+}
+
+.success-icon{
+  font-size: 60px;
+  color: #1a4bd9;
+  margin-bottom: 18px;
+}
+
+.success-subtitle{
+  font-size: 28px;
+  color: #0b3fa7;
+  margin: 0 0 14px;
+}
+
+.success-desc{
+  color: #444;
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.success-btn{
+  background: #1a4bd9;
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  font-size: 17px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.success-btn:hover{
+  filter: brightness(1.15);
+}
+
+@keyframes successFadeIn{
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 반응형 */
+@media (max-width: 900px){
+  .success-box{
+    width: calc(100% - 36px);
+    padding: 28px 18px;
+    margin: 30px auto 60px;
+  }
+  .success-subtitle{
+    font-size: 22px;
+  }
+  .success-desc{
+    font-size: 15px;
+  }
+}
+
 
 
 
