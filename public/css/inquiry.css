@@ -83,6 +83,17 @@ body {
   background: #002d66;
 }
 
+/* seccess */
+
+.success-logo {
+  width: 180px;      /* 원하는 크기 */
+  max-width: 60%;
+  height: auto;
+  display: block;
+  margin: 30px auto 20px;
+}
+
+
 
 /* =========================
    시민 페이지 공통 헤더
