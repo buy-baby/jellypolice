@@ -226,6 +226,27 @@ body {
   background: #f2f7ff;
 }
 
+@media (max-width: 900px){
+  .header-inner{
+    padding: 16px 16px;
+    gap: 10px;
+  }
+
+  .site-logo{
+    height: 38px;
+  }
+
+  .site-title{
+    font-size: 18px;
+  }
+
+  .account-btn{
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+
 
 /* 모바일 대응 */
 @media (max-width: 1024px){

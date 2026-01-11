@@ -309,3 +309,74 @@ body {
 .account-item:hover{
   background: #f2f7ff;
 }
+
+@media (max-width: 900px){
+  .header-inner{
+    padding: 16px 16px;
+    gap: 10px;
+  }
+
+  .site-logo{
+    height: 38px;
+  }
+
+  .site-title{
+    font-size: 18px;
+  }
+
+  .account-btn{
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+
+
+/* =========================
+   Responsive Base
+========================= */
+
+/* 이미지/박스가 화면 넘치지 않게 */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 화면이 좁아질 때 좌우 여백 기본 확보 */
+@media (max-width: 900px){
+  .submit-container{
+    width: calc(100% - 32px);
+    padding: 24px 18px;
+    margin: 22px auto;
+  }
+
+  .submit-container h2{
+    font-size: 22px;
+  }
+
+  .submit-btn{
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 17px;
+  }
+
+  .back-btn{
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    margin-top: 10px;
+  }
+}
+
+/* 더 작은 폰 */
+@media (max-width: 480px){
+  .submit-container{
+    width: calc(100% - 24px);
+    padding: 20px 14px;
+  }
+
+  .submit-container h2{
+    font-size: 20px;
+  }
+}

@@ -312,3 +312,23 @@ body {
 .account-item:hover{
   background: #f2f7ff;
 }
+
+@media (max-width: 900px){
+  .header-inner{
+    padding: 16px 16px;
+    gap: 10px;
+  }
+
+  .site-logo{
+    height: 38px;
+  }
+
+  .site-title{
+    font-size: 18px;
+  }
+
+  .account-btn{
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
