@@ -349,3 +349,27 @@ nav, .navbar, .topbar{
   color:#555;
   padding: 10px 4px;
 }
+
+/* 약관 동의 */
+
+.agree-box {
+  margin: 14px 0 20px;
+  font-size: 14px;
+}
+
+.agree-box label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.agree-box a {
+  color: #1a4bd9;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.agree-box a:hover {
+  text-decoration: underline;
+}

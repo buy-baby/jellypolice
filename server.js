@@ -160,6 +160,13 @@ app.post("/register", async (req, res) => {
       return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body });
     }
 
+    if (!req.body.agree) {
+      return res.render("auth/register", {
+    error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.",
+    form: req.body,
+    });
+    }  
+
     await d1Api("POST", "/api/auth/register", {
       uniqueCode,
       nickname,
@@ -636,6 +643,16 @@ app.get("/my/complaints", (req, res) => res.redirect("/my/inquiry"));
 app.get("/my/complaints/:id", (req, res) => res.redirect(`/my/inquiry/${req.params.id}`));
 app.get("/my/suggestions", (req, res) => res.redirect("/my/suggest"));
 app.get("/my/suggestions/:id", (req, res) => res.redirect(`/my/suggest/${req.params.id}`));
+
+// --- 약관, 개인정보 처리 방침---
+app.get("/terms", (req, res) => {
+  res.render("legal/terms");
+});
+
+app.get("/privacy", (req, res) => {
+  res.render("legal/privacy");
+});
+
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

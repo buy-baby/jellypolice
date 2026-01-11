@@ -20,6 +20,15 @@
       <input name="nickname" placeholder="닉네임" value="<%= (form.nickname||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
       <input name="username" placeholder="아이디" value="<%= (form.username||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
       <input name="password" type="password" placeholder="비밀번호" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
+      <div class="agree-box">
+        <label>
+          <input type="checkbox" id="agree" name="agree" required />
+          <span>
+            <a href="/terms" target="_blank">이용약관</a> 및
+            <a href="/privacy" target="_blank">개인정보 처리방침</a>에 동의합니다.
+          </span>
+        </label>
+      </div>
 
       <button type="submit" style="padding:12px;border-radius:12px;border:none;background:#1a4bd9;color:#fff;font-weight:900;">
         가입하기
