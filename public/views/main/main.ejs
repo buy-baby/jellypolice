@@ -7,117 +7,113 @@
 
   <!-- 외부 CSS -->
   <link rel="stylesheet" href="/css/style.css">
-
 </head>
 
-<body>
+<body class="page-home">
 
   <%- include("../partials/header") %>
 
   <!-- ========== 메뉴 ========== -->
-<nav class="menu">
+  <nav class="menu home-menu">
 
-  <!-- 소개 -->
-  <div class="mega-dropdown">
-    <a class="menu-btn">소개 <span class="arrow">▼</span></a>
+    <!-- 소개 -->
+    <div class="mega-dropdown">
+      <a class="menu-btn">소개 <span class="arrow">▼</span></a>
 
-    <div class="mega-menu">
-      <div class="mega-title">소개</div>
+      <div class="mega-menu">
+        <div class="mega-title">소개</div>
 
-      <div class="mega-grid">
-        <div class="mega-card" onclick="location.href='/intro/agency'">
-          <h4>경찰청 소개</h4>
-          <p>젤리 경찰청의 역할과 기능</p>
-        </div>
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/intro/agency'">
+            <h4>경찰청 소개</h4>
+            <p>젤리 경찰청의 역할과 기능</p>
+          </div>
 
-        <div class="mega-card" onclick="location.href='/intro/rank'">
-          <h4>직급표</h4>
-          <p>경찰 계급 및 구조 안내</p>
-        </div>
+          <div class="mega-card" onclick="location.href='/intro/rank'">
+            <h4>직급표</h4>
+            <p>경찰 계급 및 구조 안내</p>
+          </div>
 
-        <div class="mega-card" onclick="location.href='/intro/department'">
-          <h4>부서 소개</h4>
-          <p>각 부서의 업무와 역할 설명</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 채용공고 -->
-  <div class="mega-dropdown">
-    <a class="menu-btn">채용공고 <span class="arrow">▼</span></a>
-
-    <div class="mega-menu">
-      <div class="mega-title">채용공고</div>
-
-      <div class="mega-grid">
-        <div class="mega-card" onclick="location.href='/apply/conditions'">
-          <h4>지원 자격</h4>
-          <p>지원 가능한 조건 안내</p>
-        </div>
-
-        <div class="mega-card" onclick="location.href='/apply/apply'">
-          <h4>지원서 작성</h4>
-          <p>온라인 지원서를 작성하세요</p>
+          <div class="mega-card" onclick="location.href='/intro/department'">
+            <h4>부서 소개</h4>
+            <p>각 부서의 업무와 역할 설명</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- 고객센터 -->
-  <div class="mega-dropdown">
-    <a class="menu-btn">고객센터 <span class="arrow">▼</span></a>
+    <!-- 채용공고 -->
+    <div class="mega-dropdown">
+      <a class="menu-btn">채용공고 <span class="arrow">▼</span></a>
 
-    <div class="mega-menu">
-      <div class="mega-title">고객센터</div>
+      <div class="mega-menu">
+        <div class="mega-title">채용공고</div>
 
-      <div class="mega-grid">
-        <div class="mega-card" onclick="location.href='/inquiry'">
-          <h4>민원실</h4>
-          <p>민원을 접수하고 처리 현황 확인</p>
-        </div>
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/apply/conditions'">
+            <h4>지원 자격</h4>
+            <p>지원 가능한 조건 안내</p>
+          </div>
 
-        <div class="mega-card" onclick="location.href='/suggest'">
-          <h4>건의실</h4>
-          <p>개선 의견을 전달할 수 있습니다</p>
+          <div class="mega-card" onclick="location.href='/apply/apply'">
+            <h4>지원서 작성</h4>
+            <p>온라인 지원서를 작성하세요</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-</nav>
+    <!-- 고객센터 -->
+    <div class="mega-dropdown">
+      <a class="menu-btn">고객센터 <span class="arrow">▼</span></a>
 
-<!-- ============================ 중앙 화면 =========================== -->
+      <div class="mega-menu">
+        <div class="mega-title">고객센터</div>
 
+        <div class="mega-grid">
+          <div class="mega-card" onclick="location.href='/inquiry'">
+            <h4>민원실</h4>
+            <p>민원을 접수하고 처리 현황 확인</p>
+          </div>
 
-<!-- 공지사항 -->
-<div class="home-wrap">
-  <div class="home-main">
-    <div style="height: 500px;"></div>
-  </div>
-
-  <aside class="notice-panel">
-    <div class="notice-head">
-      <div class="notice-title">공지사항</div>
-      <a class="notice-more" href="/notice">더보기</a>
+          <div class="mega-card" onclick="location.href='/suggest'">
+            <h4>건의실</h4>
+            <p>개선 의견을 전달할 수 있습니다</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="notice-list">
-      <% if (!notices || notices.length === 0) { %>
-        <div class="notice-empty">등록된 공지사항이 없습니다.</div>
-      <% } else { %>
-        <% notices.slice(0,5).forEach(n => { %>
-          <a class="notice-item" href="/notice/<%= n.id %>">
-            <div class="notice-item-title"><%= n.title %></div>
-            <div class="notice-item-snippet"><%= (n.content || "").slice(0, 40) %>...</div>
-          </a>
-        <% }) %>
-      <% } %>
+  </nav>
+
+  <!-- ============================ 중앙 화면 =========================== -->
+
+  <div class="home-wrap home-wrap--responsive">
+    <div class="home-main">
+      <!-- ⚠️ 모바일에서 과도한 공간의 주범이라 inline height 제거하고 클래스로 처리 -->
+      <div class="home-spacer"></div>
     </div>
-  </aside>
-</div>
 
+    <aside class="notice-panel home-notice">
+      <div class="notice-head">
+        <div class="notice-title">공지사항</div>
+        <a class="notice-more" href="/notice">더보기</a>
+      </div>
 
+      <div class="notice-list">
+        <% if (!notices || notices.length === 0) { %>
+          <div class="notice-empty">등록된 공지사항이 없습니다.</div>
+        <% } else { %>
+          <% notices.slice(0,5).forEach(n => { %>
+            <a class="notice-item" href="/notice/<%= n.id %>">
+              <div class="notice-item-title"><%= n.title %></div>
+              <div class="notice-item-snippet"><%= (n.content || "").slice(0, 40) %>...</div>
+            </a>
+          <% }) %>
+        <% } %>
+      </div>
+    </aside>
+  </div>
 
   <!-- 드롭다운 JS -->
   <script>

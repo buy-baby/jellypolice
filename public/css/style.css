@@ -252,27 +252,6 @@ body {
   background: #f2f7ff;
 }
 
-@media (max-width: 900px){
-  .header-inner{
-    padding: 16px 16px;
-    gap: 10px;
-  }
-
-  .site-logo{
-    height: 38px;
-  }
-
-  .site-title{
-    font-size: 18px;
-  }
-
-  .account-btn{
-    font-size: 14px;
-    padding: 8px 10px;
-  }
-}
-
-
 /* =========================   중앙 화면   ========================= */
 
 .home-wrap{
@@ -393,4 +372,109 @@ nav, .navbar, .topbar{
 
 .agree-box a:hover {
   text-decoration: underline;
+}
+
+/* ============================================================
+   ✅ 여기부터 "모바일에서 메인만 안 깨지게" 덮어쓰기 추가
+   (PC 디자인은 그대로 유지)
+============================================================ */
+
+/* 1) 헤더(파란 상단바)도 모바일에서 글씨/패딩 살짝 줄이기 */
+@media (max-width: 900px){
+  .header-inner{
+    padding: 16px 16px;
+    gap: 10px;
+  }
+  .site-logo{
+    height: 38px;
+  }
+  .site-title{
+    font-size: 18px;
+  }
+  .account-btn{
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+/* 2) 메인 메뉴(소개/채용공고/고객센터) 줄바꿈 방지 + 공지패널/레이아웃 모바일 최적화 */
+@media (max-width: 520px){
+
+  /* (A) 메뉴바: 1줄 유지 + 좌우 스크롤(줄바꿈 방지) */
+  .menu{
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .menu::-webkit-scrollbar{ display: none; }
+
+  .mega-dropdown{
+    flex: 0 0 auto;
+  }
+
+  .menu .menu-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+
+    font-size: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .arrow{
+    font-size: 12px;
+  }
+
+  /* (B) 드롭다운(mega-menu) 모바일에서 1열로 바꿔서 안 찌그러지게 */
+  .mega-menu{
+    width: calc(100% - 24px);
+    max-width: 520px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .mega-title{
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .mega-grid{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mega-card{
+    padding: 14px;
+  }
+
+  /* (C) 메인 중앙 레이아웃: 2열 → 세로로 쌓기 */
+  .home-wrap{
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 12px;
+  }
+
+  /* (D) 공지사항 패널: 고정 폭/고정 높이 풀어주기 */
+  .notice-panel{
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 200px;
+    margin-left: 0;
+    padding: 16px 14px 12px;
+  }
+
+  .notice-title{
+    font-size: 22px;
+  }
+  .notice-more{
+    font-size: 14px;
+  }
 }
