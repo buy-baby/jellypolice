@@ -7,39 +7,52 @@
 </head>
 
 <body>
-
   <%- include("../partials/admin_header") %>
+
   <div class="admin-container">
-    <h1>💡 건의 목록</h1>
-    <a href="/admin" class="back-btn">← 관리자 메인</a>
+    <div class="admin-page-title">
+      <span class="admin-page-icon">💡</span>
+      <h1>건의 목록</h1>
+    </div>
 
-    <table class="admin-table">
-      <tr>
-        <th>#</th>
-        <th>이름</th>
-        <th>고유번호</th>
-        <th>내용</th>
-        <th>날짜</th>
-        <th>보기</th>
-      </tr>
+    <div class="admin-page-actions">
+      <a href="/admin" class="back-btn">← 관리자 메인</a>
+    </div>
 
-      <% suggestions.forEach((s, i) => { %>
-        <tr>
-          <td><%= i + 1 %></td>
-          <td><%= s.name %></td>
-          <td><%= s.identity %></td>
-          <td class="ellipsis"><%= s.content %></td>
-          <td><%= s.created.substring(0,10) %></td>
+    <% if (!suggestions || suggestions.length === 0) { %>
+      <div class="admin-empty">등록된 건의가 없습니다.</div>
+    <% } else { %>
+      <div class="admin-cards">
+        <% suggestions.forEach((s) => { %>
+          <a class="admin-card" href="/admin/suggest/view/<%= s.id %>">
+            <div class="admin-card-top">
+              <div class="dot"></div>
+              <div class="admin-card-title">건의 #<%= s.id %></div>
+              <div class="admin-card-date"><%= s.created ? s.created.substring(0,10) : '' %></div>
+            </div>
 
-          <td>
-            <a class="view-btn" href="/admin/suggest/view/<%= s.id %>">
-              보기
-            </a>
-          </td>
-        </tr>
-      <% }) %>
+            <div class="admin-card-meta">
+              <div class="row">
+                <span class="k">이름</span>
+                <span class="v"><%= s.name || '—' %></span>
+              </div>
+              <div class="row">
+                <span class="k">고유번호</span>
+                <span class="v"><%= s.identity || '—' %></span>
+              </div>
+              <div class="row">
+                <span class="k">내용</span>
+                <span class="v ell"><%= s.content || '—' %></span>
+              </div>
+            </div>
 
-    </table>
+            <div class="admin-card-bottom">
+              <span class="admin-card-link">보기 →</span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
   </div>
 </body>
 </html>

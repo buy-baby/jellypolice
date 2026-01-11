@@ -7,31 +7,48 @@
 </head>
 
 <body>
+  <%- include("../partials/admin_header") %>
 
-  <%- include("../partials/admin_header") %>  
   <div class="admin-container">
-    <h1>📄 민원 목록</h1>
-    <a href="/admin" class="back-btn">← 관리자 메인</a>
+    <div class="admin-page-title">
+      <span class="admin-page-icon">📄</span>
+      <h1>민원 목록</h1>
+    </div>
 
-    <table class="admin-table">
-      <tr>
-        <th>ID</th>
-        <th>이름</th>
-        <th>고유번호</th>
-        <th>날짜</th>
-        <th>보기</th>
-      </tr>
+    <div class="admin-page-actions">
+      <a href="/admin" class="back-btn">← 관리자 메인</a>
+    </div>
 
-      <% complaints.forEach(c => { %>
-        <tr>
-          <td><%= c.id %></td>
-          <td><%= c.name %></td>
-          <td><%= c.identity %></td>
-          <td><%= c.created.substring(0,10) %></td>
-          <td><a class="view-btn" href="/admin/inquiry/view/<%= c.id %>">보기</a></td>
-        </tr>
-      <% }) %>
-    </table>
+    <% if (!complaints || complaints.length === 0) { %>
+      <div class="admin-empty">등록된 민원이 없습니다.</div>
+    <% } else { %>
+      <div class="admin-cards">
+        <% complaints.forEach(c => { %>
+          <a class="admin-card" href="/admin/inquiry/view/<%= c.id %>">
+            <div class="admin-card-top">
+              <div class="dot"></div>
+              <div class="admin-card-title">민원 #<%= c.id %></div>
+              <div class="admin-card-date"><%= c.created ? c.created.substring(0,10) : '' %></div>
+            </div>
+
+            <div class="admin-card-meta">
+              <div class="row">
+                <span class="k">이름</span>
+                <span class="v"><%= c.name || '—' %></span>
+              </div>
+              <div class="row">
+                <span class="k">고유번호</span>
+                <span class="v"><%= c.identity || '—' %></span>
+              </div>
+            </div>
+
+            <div class="admin-card-bottom">
+              <span class="admin-card-link">보기 →</span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
   </div>
 </body>
 </html>

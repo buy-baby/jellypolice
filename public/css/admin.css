@@ -147,6 +147,127 @@ h1 {
   transform: translateY(-4px);
 }
 
+/* ===== Admin Card List (Inquiry/Suggest) ===== */
+.admin-page-title{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin: 18px 0 8px;
+}
+.admin-page-icon{ font-size: 26px; }
+.admin-page-title h1{
+  margin:0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.admin-page-actions{
+  display:flex;
+  justify-content:center;
+  margin: 8px 0 18px;
+}
+
+.admin-empty{
+  max-width: 760px;
+  margin: 0 auto;
+  text-align:center;
+  padding: 26px 16px;
+  border-radius: 14px;
+  background:#fff;
+  border:1px solid #e9eef5;
+  color:#6b7280;
+}
+
+.admin-cards{
+  max-width: 900px;
+  margin: 0 auto;
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-card{
+  display:block;
+  text-decoration:none;
+  color: inherit;
+  background:#fff;
+  border:1px solid #e9eef5;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.admin-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.10);
+  border-color: #cfe0ff;
+}
+
+.admin-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.admin-card-title{
+  font-weight: 900;
+  font-size: 16px;
+}
+.admin-card-date{
+  font-size: 12px;
+  color:#6b7280;
+  white-space: nowrap;
+}
+
+.admin-card-meta{
+  display:grid;
+  gap: 8px;
+}
+.admin-card-meta .row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+.admin-card-meta .k{
+  font-size: 12px;
+  color:#6b7280;
+}
+.admin-card-meta .v{
+  font-size: 13px;
+  font-weight: 700;
+  color:#111827;
+  text-align:right;
+  max-width: 72%;
+  overflow:hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-card-meta .v.ell{
+  max-width: 72%;
+}
+
+.admin-card-bottom{
+  display:flex;
+  justify-content:flex-end;
+  margin-top: 12px;
+}
+.admin-card-link{
+  font-weight: 800;
+  font-size: 13px;
+  color:#1d4ed8;
+}
+
+@media (max-width: 900px){
+  .admin-cards{ grid-template-columns: 1fr; }
+  .admin-page-title h1{ font-size: 26px; }
+}
+
+
 /* 소개 수정 영역 */
 .admin-edit-box {
   width: 70%;
