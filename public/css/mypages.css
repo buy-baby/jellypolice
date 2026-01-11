@@ -1,0 +1,41 @@
+.detail-title {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+/* 상태 공통 스타일 */
+.status-badge {
+  font-size: 13px;  
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-left: 10px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* 상태별 색상 */
+.status-미접수 {
+  background: #e0e0e0;
+  color: #555;
+}
+
+.status-접수중 {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-접수완료 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-처리중 {
+  background: #ffe5d0;
+  color: #a84300;
+}
+
+.status-처리완료 {
+  background: #e7f0ff;
+  color: #1a4bd9;
+}
