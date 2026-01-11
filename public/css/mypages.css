@@ -1,3 +1,146 @@
+/* =========================
+   My Pages 공통 레이아웃/카드
+========================= */
+
+.wrap {
+  max-width: 980px;
+  margin: 40px auto;
+  padding: 0 18px;
+}
+
+.card{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:16px;
+  padding:22px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.08);
+}
+
+.h1{
+  font-size: 32px;
+  margin: 0 0 16px;
+  text-align:center;
+}
+
+/* 상세 페이지 정보 그리드 */
+.info{
+  display:grid;
+  grid-template-columns: 140px 1fr;
+  gap:10px 14px;
+  margin: 10px 0 18px;
+}
+
+.label{ color:#6b7280; font-weight:700; }
+.value{ color:#111827; font-weight:700; }
+
+.content{
+  background:#f7f9ff;
+  border:1px solid rgba(26,75,217,.12);
+  border-radius:14px;
+  padding:16px;
+  white-space: pre-wrap;
+  line-height:1.7;
+}
+
+/* 버튼 */
+.btnRow{
+  display:flex;
+  justify-content:center;
+  margin-top: 18px;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 18px;
+  border-radius:12px;
+  background:#1a4bd9;
+  color:#fff;
+  text-decoration:none;
+  font-weight:800;
+  box-shadow: 0 10px 24px rgba(26,75,217,.25);
+}
+
+.btn:hover{ filter: brightness(0.95); }
+
+/* =========================
+   My Pages 목록(카드 버튼)
+========================= */
+
+.title{
+  text-align:center;
+  font-size: 34px;
+  margin: 10px 0 24px;
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 720px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+.cardBtn{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.cardBtn:hover{
+  transform: translateY(-2px);
+  border-color: rgba(26,75,217,.35);
+  box-shadow: 0 10px 26px rgba(0,0,0,.10);
+}
+
+.topRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:800;
+  color:#1a4bd9;
+}
+
+.badgeDot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:#1a4bd9;
+}
+
+.meta{ font-size:12px; color:#6b7280; }
+.preview{ font-size:14px; color:#111827; line-height:1.5; }
+
+.empty{
+  text-align:center;
+  color:#6b7280;
+  background:#fff;
+  border:1px dashed rgba(0,0,0,.15);
+  border-radius:14px;
+  padding:28px;
+}
+
+
 .detail-title {
   font-size: 26px;
   font-weight: 800;
