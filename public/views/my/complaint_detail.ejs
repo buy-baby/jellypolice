@@ -37,8 +37,11 @@
     <div class="card">
       <h1 style="display:flex;align-items:center;gap:10px;">
         나의 민원 상세
-        <span class="status-badge"><%= complaint.status || "접수 중" %></span>
+        <span class="status-badge status-<%= (complaint.status || "미접수").replace(/\s/g, "") %>">
+          <%= complaint.status || "미접수" %>
+        </span>
       </h1>
+
 
       <div class="info">
         <div class="label">이름</div>

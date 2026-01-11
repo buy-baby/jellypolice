@@ -3,9 +3,8 @@
   font-weight: 800;
 }
 
-/* 상태 공통 스타일 */
 .status-badge {
-  font-size: 13px;  
+  font-size: 13px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
@@ -39,6 +38,7 @@
   background: #e7f0ff;
   color: #1a4bd9;
 }
+
 
 /* =========================
    시민 페이지 공통 헤더
