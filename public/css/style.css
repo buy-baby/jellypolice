@@ -527,3 +527,47 @@ html, body{
 @media (max-width: 520px){
   .home-spacer{ height: 140px; }
 }
+
+/* ===== Mobile: mega dropdown FIX (overflow에 안 잘리게 fixed) ===== */
+@media (max-width: 520px){
+
+  /* 메뉴바는 가로 스크롤 유지 */
+  .menu{
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .menu::-webkit-scrollbar{ display:none; }
+
+  /* ✅ 드롭다운 패널은 화면 위에 띄움 (부모 overflow 무시) */
+  .mega-menu{
+    position: fixed;          /* 핵심 */
+    left: 50%;
+    transform: translateX(-50%);
+    top: 132px;               /* 헤더+메뉴 아래쯤(필요시 120~150 조절) */
+
+    width: calc(100% - 24px);
+    max-width: 520px;
+
+    padding: 18px 16px;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+
+    z-index: 999999;          /* 무조건 맨 위 */
+  }
+
+  /* 모바일에서는 카드 1열 */
+  .mega-grid{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mega-title{
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+}
