@@ -328,12 +328,16 @@ router.post("/api/auth/register", async (req, env) => {
   const nickname = (body.nickname || "").trim();
   const username = (body.username || "").trim();
   const password = body.password || "";
+  const agree = body.agree === true;
 
   if (!uniqueCode || !nickname || !username || !password) {
     return json({ error: "all_fields_required" }, { status: 400 });
   }
 
-  // 중복 체크
+  if (!agree) {
+    return json({ error: "terms_not_agreed" }, { status: 400 });
+  }
+
   const exists = await env.DB.prepare(
     "SELECT id FROM users WHERE LOWER(username) = LOWER(?)"
   ).bind(username).first();
@@ -344,15 +348,17 @@ router.post("/api/auth/register", async (req, env) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const createdAt = new Date().toISOString();
+  const agreedAt = new Date().toISOString();
 
   const r = await env.DB.prepare(
-    "INSERT INTO users(uniqueCode, nickname, username, passwordHash, role, createdAt) VALUES(?, ?, ?, ?, 'user', ?)"
+    "INSERT INTO users(uniqueCode, nickname, username, passwordHash, role, createdAt, agreed, agreedAt) VALUES(?, ?, ?, ?, 'user', ?, 1, ?)"
   )
-    .bind(uniqueCode, nickname, username, passwordHash, createdAt)
+    .bind(uniqueCode, nickname, username, passwordHash, createdAt, agreedAt)
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
+
 
 // --- login ---
 

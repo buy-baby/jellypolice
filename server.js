@@ -172,6 +172,7 @@ app.post("/register", async (req, res) => {
       nickname,
       username,
       password,
+      agree: !!req.body.agree
     });
 
     return res.redirect("/login");
