@@ -6,8 +6,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
-
-// ✅ passport는 파일 상단에서 1번만
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 
@@ -80,60 +78,68 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    // ✅ express-session은 boolean이 안전함
     secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 6, // 6시간
   }
 }));
 
-// ✅ locals
+//  locals
 app.use((req, res, next) => {
   res.locals.me = req.session.user || null;
   next();
 });
 
 
-// =============================================================
-// ✅ 디스코드 "연결" (로그인 아님) - session 설정 바로 아래에 둔다
-// =============================================================
+//  디스코드 
 app.use(passport.initialize());
 
-passport.use("discord-link", new DiscordStrategy(
-  {
-    clientID: process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_LINK_CALLBACK_URL,
-    scope: ["identify"],
-  },
-  (accessToken, refreshToken, profile, done) => {
-    const discord_id = profile.id;
-    const discord_name = profile.global_name || profile.username;
-    return done(null, { discord_id, discord_name });
-  }
-));
-
-// 디스코드 연결 시작
-app.get("/auth/discord/link", passport.authenticate("discord-link"));
-
-// 디스코드 연결 콜백
-app.get(
-  "/auth/discord/callback",
-  passport.authenticate("discord-link", { failureRedirect: "/register" }),
-  (req, res) => {
-    req.session.discordLink = {
-      discord_id: req.user.discord_id,
-      discord_name: req.user.discord_name,
-    };
-    return res.redirect("/register");
-  }
+passport.use(
+  "discord-link",
+  new DiscordStrategy(
+    {
+      clientID: process.env.DISCORD_CLIENT_ID,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
+      callbackURL: process.env.DISCORD_LINK_CALLBACK_URL,
+      scope: ["identify"],
+    },
+    (accessToken, refreshToken, profile, done) => {
+      try {
+        const discord_id = profile.id;
+        const discord_name = profile.global_name || profile.username;
+        return done(null, { discord_id, discord_name });
+      } catch (e) {
+        return done(e);
+      }
+    }
+  )
 );
 
-// 디스코드 연결 해제
+app.get(
+  "/auth/discord/link",
+  passport.authenticate("discord-link", { session: false })
+);
+
+app.get("/auth/discord/callback", (req, res, next) => {
+  passport.authenticate("discord-link", { session: false }, (err, user) => {
+    if (err) {
+      console.error("❌ Discord callback error:", err);
+      return res.redirect("/register");
+    }
+    if (!user) return res.redirect("/register");
+
+    req.session.discordLink = {
+      discord_id: user.discord_id,
+      discord_name: user.discord_name,
+    };
+
+    return res.redirect("/register");
+  })(req, res, next);
+});
+
 app.get("/auth/discord/unlink", (req, res) => {
   delete req.session.discordLink;
   return res.redirect("/register");
 });
-
 
 // ------------------------- UTC -> KST -------------------------
 function formatKST(iso) {
