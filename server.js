@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
 
+// ✅ Redis(Valkey) 세션 스토어 (Render Key Value)
+const RedisStore = require("connect-redis").default;
+const { createClient } = require("redis");
+
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 
@@ -34,6 +38,32 @@ const r2 = new S3Client({
   },
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
+
+// ------------------------- ✅ Redis(Valkey) 세션 스토어 -------------------------
+const redisUrl = (process.env.REDIS_URL || "").trim();
+
+let redisClient = null;
+let redisStore = null;
+
+if (redisUrl) {
+  redisClient = createClient({ url: redisUrl });
+
+  redisClient.on("error", (err) => {
+    console.error("❌ Redis error:", err);
+  });
+
+  // 연결은 비동기 (서버 시작은 그대로)
+  redisClient.connect()
+    .then(() => console.log("✅ Redis connected"))
+    .catch((e) => console.error("❌ Redis connect failed:", e));
+
+  redisStore = new RedisStore({
+    client: redisClient,
+    prefix: "sess:",
+  });
+} else {
+  console.warn("⚠️ REDIS_URL is not set. Falling back to MemoryStore (dev only).");
+}
 
 // ------------------------- D1 API helper (Worker 호출) -------------------------
 async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TOKEN || "") {
@@ -71,7 +101,9 @@ app.set("views", path.join(__dirname, "public", "views"));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// ✅ 세션: RedisStore 적용 (경고 제거)
 app.use(session({
+  store: redisStore || undefined,
   secret: process.env.SESSION_SECRET || "jellypolice-session-secret",
   resave: false,
   saveUninitialized: false,
@@ -107,7 +139,7 @@ function formatKST(iso) {
 }
 app.locals.formatKST = formatKST;
 
-// ---------------------- KSTD -------------------------
+// ---------------------- KST Date only -------------------------
 function formatKSTDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -119,7 +151,6 @@ function formatKSTDate(iso) {
   });
 }
 app.locals.formatKSTDate = formatKSTDate;
-
 
 // ------------------------ Discord Refresh Check --------------------------
 function canRefreshDiscord(lastIso) {
@@ -135,7 +166,7 @@ function shouldForceDiscordRefresh(req) {
   const me = req.session?.user;
   if (!me || !me.id) return false;
 
-  // 디스코드 연결이 없는 계정이면(원래 가입 정책상 없음) 강제 갱신 대상 아님
+  // 디스코드 연결이 없는 계정이면 강제 갱신 대상 아님
   if (!me.discord_id) return false;
 
   const last = me.discord_last_verified_at || "";
@@ -286,12 +317,9 @@ app.get("/auth/discord/callback", (req, res, next) => {
         const me = req.session.user;
         if (!me || !me.id) return res.redirect("/login");
 
-        // 보안: 다른 디스코드로 승인해도 바뀌지 않게 막고 싶으면 아래 체크 유지
-        // (강제 갱신은 "이 계정에 연결된 디스코드"를 갱신하는 것이므로)
+        // 다른 디스코드로 승인해버리면 계속 갱신 요구
         if (String(me.discord_id || "") !== String(user.discord_id || "")) {
-          // 다른 계정 승인해버림 -> 계속 갱신 요구
           console.error("❌ discord id mismatch during refresh");
-          // 다시 refresh로
           req.session.discordFlow = { mode: "refresh", returnTo: flow.returnTo || "/" };
           return res.redirect("/auth/discord/refresh");
         }
