@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
+
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
 
@@ -52,7 +53,6 @@ async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TO
 
   const text = await res.text().catch(() => "");
   if (!res.ok) {
-    // text에 {"error":"discord_conflict"} 같은 JSON이 들어오면 그대로 메시지에 붙음
     throw new Error(`D1 API ${method} ${apiPath} failed: ${res.status} ${text}`);
   }
 
@@ -83,14 +83,68 @@ app.use(session({
   }
 }));
 
-//  locals
+// locals
 app.use((req, res, next) => {
   res.locals.me = req.session.user || null;
+  res.locals.request = req;
   next();
 });
 
+// ------------------------- UTC -> KST -------------------------
+function formatKST(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+}
+app.locals.formatKST = formatKST;
 
-//  디스코드 
+// ------------------------ Discord Refresh Check --------------------------
+function canRefreshDiscord(lastIso) {
+  if (!lastIso) return true; // 한번도 갱신 안 했으면 갱신 필요로 간주
+  const last = new Date(lastIso).getTime();
+  if (!Number.isFinite(last)) return true;
+  const diff = Date.now() - last;
+  return diff >= 1000 * 60 * 60 * 24 * 7; // 7일
+}
+app.locals.canRefreshDiscord = canRefreshDiscord;
+
+function shouldForceDiscordRefresh(req) {
+  const me = req.session?.user;
+  if (!me || !me.id) return false;
+
+  // 디스코드 연결이 없는 계정이면(원래 가입 정책상 없음) 강제 갱신 대상 아님
+  if (!me.discord_id) return false;
+
+  const last = me.discord_last_verified_at || "";
+  return app.locals.canRefreshDiscord(last);
+}
+
+// ------------------------- Auth Guards -------------------------
+const requireLogin = (req, res, next) => {
+  if (req.session && req.session.user && req.session.user.id) return next();
+  const nextUrl = encodeURIComponent(req.originalUrl || "/");
+  return res.redirect(`/auth/required?next=${nextUrl}`);
+};
+
+const requireAdmin = (req, res, next) => {
+  if (!req.session || !req.session.user) {
+    const nextUrl = encodeURIComponent(req.originalUrl || "/admin");
+    return res.redirect(`/auth/required?next=${nextUrl}`);
+  }
+  if (req.session.user.role === "admin") return next();
+  return res.status(403).send("접근 권한이 없습니다.");
+};
+
+// ------------------------- Passport (Discord) -------------------------
 app.use(passport.initialize());
 
 passport.use(
@@ -114,66 +168,39 @@ passport.use(
   )
 );
 
-app.get(
-  "/auth/discord/link",
-  passport.authenticate("discord-link", { session: false })
-);
+// ------------------------- ✅ 강제 갱신 전역 미들웨어 -------------------------
+// 로그인 돼 있고 7일 지났으면 -> 무조건 /auth/discord/refresh 로 보낸다.
+app.use((req, res, next) => {
+  // 루프 방지 예외 경로
+  const allowPrefixes = [
+    "/login",
+    "/logout",
+    "/register",
+    "/auth/required",
+    "/auth/discord",      // refresh/callback/link/unlink 포함
+    "/css",
+    "/js",
+    "/images",
+    "/uploads",
+    "/favicon",
+    "/__routes",
+  ];
 
-app.get("/auth/discord/callback", (req, res, next) => {
-  passport.authenticate("discord-link", { session: false }, (err, user) => {
-    if (err) {
-      console.error("❌ Discord callback error:", err);
-      return res.redirect("/register");
-    }
-    if (!user) return res.redirect("/register");
-
-    req.session.discordLink = {
-      discord_id: user.discord_id,
-      discord_name: user.discord_name,
-    };
-
-    return res.redirect("/register");
-  })(req, res, next);
-});
-
-app.get("/auth/discord/unlink", (req, res) => {
-  delete req.session.discordLink;
-  return res.redirect("/register");
-});
-
-// ------------------------- UTC -> KST -------------------------
-function formatKST(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-}
-app.locals.formatKST = formatKST;
-
-
-// ------------------------- Auth Guards -------------------------
-const requireLogin = (req, res, next) => {
-  if (req.session && req.session.user && req.session.user.id) return next();
-  const nextUrl = encodeURIComponent(req.originalUrl || "/");
-  return res.redirect(`/auth/required?next=${nextUrl}`);
-};
-
-const requireAdmin = (req, res, next) => {
-  if (!req.session || !req.session.user) {
-    const nextUrl = encodeURIComponent(req.originalUrl || "/admin");
-    return res.redirect(`/auth/required?next=${nextUrl}`);
+  if (allowPrefixes.some(p => req.path.startsWith(p))) {
+    return next();
   }
-  if (req.session.user.role === "admin") return next();
-  return res.status(403).send("접근 권한이 없습니다.");
-};
+
+  if (req.session?.user?.id && shouldForceDiscordRefresh(req)) {
+    // 원래 가려던 곳 기억
+    req.session.discordFlow = {
+      mode: "refresh",
+      returnTo: req.originalUrl || "/",
+    };
+    return res.redirect("/auth/discord/refresh");
+  }
+
+  next();
+});
 
 // ------------------------- Debug Routes (배포 확인용) -------------------------
 app.get("/__routes", (req, res) => {
@@ -194,6 +221,94 @@ app.get("/auth/required", (req, res) => {
     message: "해당 기능을 이용하기 위해서 로그인이 필요합니다.",
     nextUrl,
   });
+});
+
+// ------------------------- Discord Link (Register Flow) -------------------------
+app.get("/auth/discord/link", (req, res, next) => {
+  // 회원가입 연결용 플로우 지정
+  req.session.discordFlow = { mode: "register", returnTo: "/register" };
+  return passport.authenticate("discord-link", { session: false })(req, res, next);
+});
+
+// ------------------------- ✅ Discord Refresh (Forced Flow) -------------------------
+app.get("/auth/discord/refresh", requireLogin, (req, res, next) => {
+  // 여기 들어오는 순간은 "강제 갱신"이므로 막지 않음
+  // returnTo는 이미 전역 미들웨어에서 넣었지만, 직접 접근 대비해서 보정
+  if (!req.session.discordFlow || req.session.discordFlow.mode !== "refresh") {
+    req.session.discordFlow = { mode: "refresh", returnTo: req.query.next || "/" };
+  }
+  return passport.authenticate("discord-link", { session: false })(req, res, next);
+});
+
+// ------------------------- Discord Callback (Both flows) -------------------------
+app.get("/auth/discord/callback", (req, res, next) => {
+  passport.authenticate("discord-link", { session: false }, async (err, user) => {
+    if (err) {
+      console.error("❌ Discord callback error:", err);
+      // 강제 갱신 중 실패면 로그인 상태라도 진행하면 안 되니 refresh로 되돌림
+      if (req.session?.discordFlow?.mode === "refresh") return res.redirect("/auth/discord/refresh");
+      return res.redirect("/register");
+    }
+    if (!user) {
+      if (req.session?.discordFlow?.mode === "refresh") return res.redirect("/auth/discord/refresh");
+      return res.redirect("/register");
+    }
+
+    const flow = req.session.discordFlow || { mode: "register", returnTo: "/register" };
+    delete req.session.discordFlow;
+
+    // 1) 회원가입 연결(기존: 세션에만 저장)
+    if (flow.mode === "register") {
+      req.session.discordLink = {
+        discord_id: user.discord_id,
+        discord_name: user.discord_name,
+      };
+      return res.redirect(flow.returnTo || "/register");
+    }
+
+    // 2) ✅ 강제 새로고침: DB 업데이트 + 세션 업데이트
+    if (flow.mode === "refresh") {
+      try {
+        const me = req.session.user;
+        if (!me || !me.id) return res.redirect("/login");
+
+        // 보안: 다른 디스코드로 승인해도 바뀌지 않게 막고 싶으면 아래 체크 유지
+        // (강제 갱신은 "이 계정에 연결된 디스코드"를 갱신하는 것이므로)
+        if (String(me.discord_id || "") !== String(user.discord_id || "")) {
+          // 다른 계정 승인해버림 -> 계속 갱신 요구
+          console.error("❌ discord id mismatch during refresh");
+          // 다시 refresh로
+          req.session.discordFlow = { mode: "refresh", returnTo: flow.returnTo || "/" };
+          return res.redirect("/auth/discord/refresh");
+        }
+
+        const result = await d1Api("PUT", `/api/users/${me.id}/discord`, {
+          discord_id: me.discord_id,
+          discord_name: user.discord_name,
+        });
+
+        // 세션도 갱신
+        req.session.user.discord_name = user.discord_name;
+        req.session.user.discord_last_verified_at =
+          result?.discord_last_verified_at || new Date().toISOString();
+
+        return res.redirect(flow.returnTo || "/");
+      } catch (e) {
+        console.error("❌ Discord refresh update error:", e);
+        // 실패면 계속 강제 갱신 상태 유지
+        req.session.discordFlow = { mode: "refresh", returnTo: flow.returnTo || "/" };
+        return res.redirect("/auth/discord/refresh");
+      }
+    }
+
+    return res.redirect("/");
+  })(req, res, next);
+});
+
+// (선택) 회원가입 단계에서 연결 해제 버튼을 남기고 싶다면 유지
+app.get("/auth/discord/unlink", (req, res) => {
+  delete req.session.discordLink;
+  return res.redirect("/register");
 });
 
 // ------------------------- Register (D1) -------------------------
@@ -317,7 +432,17 @@ app.post("/login", async (req, res) => {
       username: user.username,
       nickname: user.nickname,
       role: user.role || "user",
+
+      discord_id: user.discord_id || "",
+      discord_name: user.discord_name || "",
+      discord_last_verified_at: user.discord_last_verified_at || "",
     };
+
+    // ✅ 로그인 직후 바로 강제 갱신 대상이면 "바로 refresh로"
+    if (shouldForceDiscordRefresh(req)) {
+      req.session.discordFlow = { mode: "refresh", returnTo: nextUrl || "/" };
+      return res.redirect("/auth/discord/refresh");
+    }
 
     return res.redirect(nextUrl || "/");
   } catch (e) {
@@ -686,9 +811,6 @@ app.get("/my/inquiry", requireLogin, async (req, res) => {
     const userId = String(req.session.user.id);
 
     const all = await listComplaints();
-    console.log("SESSION USER ID:", userId);
-    console.log("COMPLAINT TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
-
     const mine = (all || []).filter((c) => String(c.userId) === userId);
 
     return res.render("my/complaints", { complaints: mine });
@@ -721,8 +843,6 @@ app.get("/my/suggest", requireLogin, async (req, res) => {
     const userId = String(req.session.user.id);
 
     const all = await listSuggestions();
-    console.log("SUGGEST TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
-
     const mine = (all || []).filter((s) => String(s.userId) === userId);
 
     return res.render("my/suggestions", { suggestions: mine });
@@ -763,7 +883,6 @@ app.get("/terms", (req, res) => {
 app.get("/privacy", (req, res) => {
   res.render("legal/privacy");
 });
-
 
 // error check
 app.use((err, req, res, next) => {

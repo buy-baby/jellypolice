@@ -260,7 +260,6 @@ router.post("/api/complaints", async (req, env) => {
   const created = body.created || new Date().toISOString();
 
   const userId = body.userId ?? null;
-
   const status = (body.status || "미접수").trim();
   const statusUpdatedAt = new Date().toISOString();
 
@@ -365,7 +364,6 @@ router.post("/api/auth/register", async (req, env) => {
   const password = body.password || "";
   const agree = body.agree === true;
 
-  // ✅ 디스코드 필수 + 저장
   const discord_id = (body.discord_id || "").trim();
   const discord_name = (body.discord_name || "").trim();
 
@@ -377,12 +375,10 @@ router.post("/api/auth/register", async (req, env) => {
     return json({ error: "terms_not_agreed" }, { status: 400 });
   }
 
-  // ✅ 디스코드 연결 필수
   if (!discord_id || !discord_name) {
     return json({ error: "discord_required" }, { status: 400 });
   }
 
-  // ✅ 디스코드 중복 연결 방지
   const discordExists = await env.DB.prepare(
     "SELECT id FROM users WHERE discord_id = ?"
   ).bind(discord_id).first();
@@ -391,7 +387,6 @@ router.post("/api/auth/register", async (req, env) => {
     return json({ error: "discord_conflict" }, { status: 409 });
   }
 
-  // 기존: username 중복 체크
   const exists = await env.DB.prepare(
     "SELECT id FROM users WHERE LOWER(username) = LOWER(?)"
   ).bind(username).first();
@@ -403,13 +398,14 @@ router.post("/api/auth/register", async (req, env) => {
   const passwordHash = await bcrypt.hash(password, 10);
   const createdAt = new Date().toISOString();
   const agreedAt = new Date().toISOString();
+  const now = new Date().toISOString(); // ✅ 가입 시점에 갱신 시각 저장
 
   const r = await env.DB.prepare(
     `INSERT INTO users(
       uniqueCode, nickname, username, passwordHash, role, createdAt, agreed, agreedAt,
-      discord_id, discord_name
+      discord_id, discord_name, discord_last_verified_at
     )
-    VALUES(?, ?, ?, ?, 'user', ?, 1, ?, ?, ?)`
+    VALUES(?, ?, ?, ?, 'user', ?, 1, ?, ?, ?, ?)`
   )
     .bind(
       uniqueCode,
@@ -419,7 +415,8 @@ router.post("/api/auth/register", async (req, env) => {
       createdAt,
       agreedAt,
       discord_id,
-      discord_name
+      discord_name,
+      now
     )
     .run();
 
@@ -438,7 +435,11 @@ router.post("/api/auth/login", async (req, env) => {
   }
 
   const user = await env.DB.prepare(
-    "SELECT id, uniqueCode, nickname, username, passwordHash, role, createdAt FROM users WHERE LOWER(username) = LOWER(?)"
+    `SELECT
+      id, uniqueCode, nickname, username, passwordHash, role, createdAt,
+      discord_id, discord_name, discord_last_verified_at
+     FROM users
+     WHERE LOWER(username) = LOWER(?)`
   ).bind(username).first();
 
   if (!user) return json({ error: "invalid_credentials" }, { status: 401 });
@@ -453,18 +454,62 @@ router.post("/api/auth/login", async (req, env) => {
     username: user.username,
     role: user.role,
     createdAt: user.createdAt,
+
+    discord_id: user.discord_id || "",
+    discord_name: user.discord_name || "",
+    discord_last_verified_at: user.discord_last_verified_at || "",
   });
 });
 
-// --- users ---
+// --- users (admin list) ---
 router.get("/api/admin/users", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
   const { results } = await env.DB.prepare(
-    "SELECT id, uniqueCode, nickname, username, role, createdAt, discord_id, discord_name FROM users ORDER BY id DESC LIMIT 500"
+    `SELECT
+      id, uniqueCode, nickname, username, role, createdAt,
+      discord_id, discord_name, discord_last_verified_at
+     FROM users
+     ORDER BY id DESC
+     LIMIT 500`
   ).all();
 
   return json(results || []);
+});
+
+// ✅ 디스코드 표시명/갱신시각 업데이트 (서버만 호출: 관리자 토큰 필요)
+router.put("/api/users/:id/discord", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const discord_id = String(body.discord_id || "").trim();
+  const discord_name = String(body.discord_name || "").trim();
+
+  if (!discord_id || !discord_name) {
+    return json({ error: "discord_required" }, { status: 400 });
+  }
+
+  const row = await env.DB.prepare(
+    "SELECT discord_id FROM users WHERE id = ?"
+  ).bind(id).first();
+
+  if (!row) return json({ error: "not_found" }, { status: 404 });
+  if (String(row.discord_id || "") !== discord_id) {
+    return json({ error: "discord_mismatch" }, { status: 409 });
+  }
+
+  const now = new Date().toISOString();
+
+  await env.DB.prepare(
+    "UPDATE users SET discord_name = ?, discord_last_verified_at = ? WHERE id = ?"
+  )
+    .bind(discord_name, now, id)
+    .run();
+
+  return json({ ok: true, discord_last_verified_at: now });
 });
 
 // --- role ---
