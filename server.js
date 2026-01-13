@@ -758,5 +758,12 @@ app.get("/privacy", (req, res) => {
   res.render("legal/privacy");
 });
 
+
+// error check
+app.use((err, req, res, next) => {
+  console.error("🔥 GLOBAL ERROR:", err);
+  res.status(500).send("Internal Server Error");
+});
+
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
