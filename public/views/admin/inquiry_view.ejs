@@ -16,41 +16,59 @@
     <a class="back-btn" href="/admin/inquiry">← 목록으로</a>
   </div>
 
-  <div style="display:flex; gap:12px; justify-content:center; align-items:center; margin:14px 0;">
+  <div class="detail-top-actions">
     <a class="back-btn" href="/admin/inquiry">← 목록으로</a>
 
-    <form action="/admin/inquiry/<%= c.id %>/status" method="POST" style="display:flex; gap:10px; align-items:center;">
+    <form action="/admin/inquiry/<%= c.id %>/status" method="POST" class="detail-status-form">
       <select name="status" class="status-select">
-      <option value="미접수" <%= c.status === "미접수" ? "selected" : "" %>>미접수</option>
-      <option value="접수 중" <%= c.status === "접수 중" ? "selected" : "" %>>접수 중</option>
-      <option value="접수 완료" <%= c.status === "접수 완료" ? "selected" : "" %>>접수 완료</option>
-      <option value="처리 중" <%= c.status === "처리 중" ? "selected" : "" %>>처리 중</option>
-      <option value="처리 완료" <%= c.status === "처리 완료" ? "selected" : "" %>>처리 완료</option>
+        <option value="미접수" <%= c.status === "미접수" ? "selected" : "" %>>미접수</option>
+        <option value="접수 중" <%= c.status === "접수 중" ? "selected" : "" %>>접수 중</option>
+        <option value="접수 완료" <%= c.status === "접수 완료" ? "selected" : "" %>>접수 완료</option>
+        <option value="처리 중" <%= c.status === "처리 중" ? "selected" : "" %>>처리 중</option>
+        <option value="처리 완료" <%= c.status === "처리 완료" ? "selected" : "" %>>처리 완료</option>
       </select>
       <button type="submit" class="back-btn">저장</button>
     </form>
   </div>
 
-
   <hr class="detail-divider" />
 
   <div class="detail-section-title">작성자 계정 정보</div>
 
-  <div class="detail-mini-box">
-    <div class="detail-kv">
-      <div class="detail-k">계정 번호 :</div>
-      <div class="detail-v"><%= (c.userId ?? "-") %></div>
+  <!-- ✅ 여기부터 변경: 박스 2개 나란히 -->
+  <div class="detail-mini-row">
+    <!-- 기존 박스 -->
+    <div class="detail-mini-box">
+      <div class="detail-kv">
+        <div class="detail-k">계정 번호 :</div>
+        <div class="detail-v"><%= (c.userId ?? "-") %></div>
 
-      <div class="detail-k">이름 :</div>
-      <div class="detail-v"><%= c.name || "-" %></div>
+        <div class="detail-k">이름 :</div>
+        <div class="detail-v"><%= c.name || "-" %></div>
 
-      <div class="detail-k">고유번호 :</div>
-      <div class="detail-v"><%= c.identity || "-" %></div>
+        <div class="detail-k">고유번호 :</div>
+        <div class="detail-v"><%= c.identity || "-" %></div>
 
-      <div class="detail-k">아이디 :</div>
-      <div class="detail-v"><%= c.username || "-" %></div>
+        <div class="detail-k">아이디 :</div>
+        <div class="detail-v"><%= c.username || "-" %></div>
+      </div>
+    </div>
+
+    <!-- ✅ 추가 박스: 디스코드 정보 -->
+    <div class="detail-mini-box">
+      <div class="detail-kv">
+        <div class="detail-k">디스코드 ID :</div>
+        <div class="detail-v"><%= c.discord_id || "-" %></div>
+
+        <div class="detail-k">디스코드 닉네임 :</div>
+        <div class="detail-v"><%= c.discord_name || "-" %></div>
+
+        <div class="detail-k">닉네임 갱신일 :</div>
+        <div class="detail-v"><%= (c.discord_last_verified_at || "").slice(0,10) || "-" %></div>
+      </div>
     </div>
   </div>
+  <!-- ✅ 여기까지 -->
 
   <hr class="detail-divider" />
 

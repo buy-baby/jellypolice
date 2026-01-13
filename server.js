@@ -107,6 +107,20 @@ function formatKST(iso) {
 }
 app.locals.formatKST = formatKST;
 
+// ---------------------- KSTD -------------------------
+function formatKSTDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+app.locals.formatKSTDate = formatKSTDate;
+
+
 // ------------------------ Discord Refresh Check --------------------------
 function canRefreshDiscord(lastIso) {
   if (!lastIso) return true; // 한번도 갱신 안 했으면 갱신 필요로 간주

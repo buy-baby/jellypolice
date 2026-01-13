@@ -3,51 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <title>유저 관리</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
 </head>
 <body>
-  <div style="max-width:1100px;margin:40px auto;padding:24px;">
-    <h1 style="font-size:28px;font-weight:900;letter-spacing:-1px;">유저 관리</h1>
+  <div class="users-container">
+    <h1 class="users-title">유저 관리</h1>
 
-    <div style="margin:14px 0;display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="/admin" style="font-weight:800;color:#1a4bd9;text-decoration:none;">← 관리자 메인</a>
-      <a href="/logout" style="font-weight:800;color:#1a4bd9;text-decoration:none;">로그아웃</a>
+    <div class="users-links">
+      <a href="/admin" class="users-link">← 관리자 메인</a>
+      <a href="/logout" class="users-link">로그아웃</a>
     </div>
 
-    <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #ddd;">
-      <thead>
-        <tr style="background:#f7fbff;">
-          <th style="padding:10px;border-bottom:1px solid #ddd;">ID</th>
-          <th style="padding:10px;border-bottom:1px solid #ddd;">고유번호</th>
-          <th style="padding:10px;border-bottom:1px solid #ddd;">닉네임</th>
-          <th style="padding:10px;border-bottom:1px solid #ddd;">아이디</th>
-          <th style="padding:10px;border-bottom:1px solid #ddd;">권한</th>
-          <th style="padding:10px;border-bottom:1px solid #ddd;">변경</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% (users || []).forEach(u => { %>
+    <div class="users-table-wrap">
+      <table class="users-table">
+        <thead>
           <tr>
-            <td style="padding:10px;border-bottom:1px solid #eee;"><%= u.id %></td>
-            <td style="padding:10px;border-bottom:1px solid #eee;"><%= u.uniqueCode %></td>
-            <td style="padding:10px;border-bottom:1px solid #eee;"><%= u.nickname %></td>
-            <td style="padding:10px;border-bottom:1px solid #eee;"><%= u.username %></td>
-            <td style="padding:10px;border-bottom:1px solid #eee;"><b><%= u.role %></b></td>
-            <td style="padding:10px;border-bottom:1px solid #eee;">
-              <form method="POST" action="/admin/users/<%= u.id %>/role" style="display:flex;gap:8px;align-items:center;">
-                <select name="role" style="padding:8px;border-radius:10px;border:1px solid #ccc;">
-                  <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
-                  <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>admin</option>
-                </select>
-                <button type="submit" style="padding:8px 12px;border:none;border-radius:10px;background:#1a4bd9;color:#fff;font-weight:900;">
-                  저장
-                </button>
-              </form>
-            </td>
+            <th>ID</th>
+            <th>고유번호</th>
+            <th>닉네임</th>
+            <th>아이디</th>
+
+            <!-- ✅ 추가 -->
+            <th>디스코드 ID</th>
+            <th>디스코드 닉네임</th>
+            <th>닉네임 갱신일</th>
+
+            <th>권한</th>
+            <th>변경</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          <% (users || []).forEach(u => { %>
+            <tr>
+              <td><%= u.id %></td>
+              <td><%= u.uniqueCode %></td>
+              <td><%= u.nickname %></td>
+              <td><%= u.username %></td>
+
+              <!-- ✅ 추가 -->
+              <td class="mono"><%= u.discord_id || "-" %></td>
+              <td><%= u.discord_name || "-" %></td>
+              <td><%= (u.discord_last_verified_at || "").slice(0,10) || "-" %></td>
+
+              <td><b><%= u.role %></b></td>
+
+              <td>
+                <form method="POST" action="/admin/users/<%= u.id %>/role" class="users-role-form">
+                  <select name="role" class="users-role-select">
+                    <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>user</option>
+                    <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>admin</option>
+                  </select>
+                  <button type="submit" class="users-save-btn">저장</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>

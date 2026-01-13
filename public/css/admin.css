@@ -528,3 +528,143 @@ html, body {
 .account-item:hover{
   background: #f2f7ff;
 }
+
+
+/* =========================
+   /admin/users (유저 관리)
+========================= */
+
+.users-container{
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.users-title{
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  margin: 0;
+  text-align: left;
+  color: #111;
+}
+
+.users-links{
+  margin: 14px 0;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.users-link{
+  font-weight: 800;
+  color:#1a4bd9;
+  text-decoration:none;
+}
+
+.users-link:hover{
+  text-decoration: underline;
+}
+
+.users-table-wrap{
+  width: 100%;
+  background:#fff;
+  border:1px solid #ddd;
+  overflow:auto;
+}
+
+.users-table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+
+.users-table thead tr{
+  background:#f7fbff;
+}
+
+.users-table th{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+  text-align:center;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.users-table td{
+  padding:10px;
+  border-bottom:1px solid #eee;
+  text-align:center;
+  font-weight:700;
+}
+
+.users-role-form{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.users-role-select{
+  padding:8px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-weight:700;
+  background:#fff;
+}
+
+.users-save-btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:10px;
+  background:#1a4bd9;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.users-save-btn:hover{
+  filter: brightness(0.95);
+}
+
+.mono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+
+/* =========================
+   관리자 상세(민원/건의) 2박스
+========================= */
+
+.detail-top-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  margin:14px 0;
+  flex-wrap:wrap;
+}
+
+.detail-status-form{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+/* ✅ 작성자/디스코드 박스 2개 가로 배치 */
+.detail-mini-row{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  align-items:stretch;
+  flex-wrap:wrap;
+}
+
+/* 기존 detail-mini-box는 width 320px 고정이었는데
+   2개 배치 시 보기 좋게 살짝 유연하게 */
+.detail-mini-box{
+  width: 340px;
+  max-width: calc(100vw - 40px);
+}

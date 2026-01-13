@@ -246,7 +246,15 @@ router.get("/api/complaints", async (req, env) => {
       c.fileKey,
       c.status,
       c.statusUpdatedAt,
-      u.username
+
+      u.username,
+      u.nickname,
+      u.uniqueCode,
+
+      u.discord_id,
+      u.discord_name,
+      u.discord_last_verified_at
+
     FROM complaints c
     LEFT JOIN users u ON c.userId = u.id
     ORDER BY c.id DESC
@@ -476,6 +484,7 @@ router.get("/api/admin/users", async (req, env) => {
 
   return json(results || []);
 });
+
 
 // ✅ 디스코드 표시명/갱신시각 업데이트 (서버만 호출: 관리자 토큰 필요)
 router.put("/api/users/:id/discord", async (req, env) => {
