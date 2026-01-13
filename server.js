@@ -1,3 +1,5 @@
+// server.js (전체본 - Render Key Value(Valkey) Redis 세션스토어 적용, 버전 호환)
+
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -6,10 +8,6 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
-
-// ✅ Redis(Valkey) 세션 스토어 (Render Key Value)
-const RedisStore = require("connect-redis").default;
-const { createClient } = require("redis");
 
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
@@ -39,9 +37,35 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// ------------------------- ✅ Redis(Valkey) 세션 스토어 -------------------------
-const redisUrl = (process.env.REDIS_URL || "").trim();
+// ------------------------- ✅ Redis(Valkey) 세션 스토어 (버전 호환) -------------------------
+const { createClient } = require("redis");
 
+// connect-redis 버전별 export 형태가 달라서 안전하게 처리
+const connectRedisImport = require("connect-redis");
+
+// v6+: { default: RedisStore } 형태일 수 있음
+// v5: connectRedis(session) 함수 형태일 수 있음
+function buildRedisStore(sessionModule) {
+  // case1) default export가 클래스
+  if (connectRedisImport && typeof connectRedisImport.default === "function") {
+    return connectRedisImport.default;
+  }
+  // case2) 자체가 클래스
+  if (connectRedisImport && typeof connectRedisImport === "function" && connectRedisImport.name === "RedisStore") {
+    return connectRedisImport;
+  }
+  // case3) connectRedis(session) => RedisStore
+  if (connectRedisImport && typeof connectRedisImport === "function") {
+    return connectRedisImport(sessionModule);
+  }
+  // case4) { RedisStore } 형태
+  if (connectRedisImport && typeof connectRedisImport.RedisStore === "function") {
+    return connectRedisImport.RedisStore;
+  }
+  return null;
+}
+
+const redisUrl = (process.env.REDIS_URL || "").trim();
 let redisClient = null;
 let redisStore = null;
 
@@ -52,15 +76,19 @@ if (redisUrl) {
     console.error("❌ Redis error:", err);
   });
 
-  // 연결은 비동기 (서버 시작은 그대로)
   redisClient.connect()
     .then(() => console.log("✅ Redis connected"))
     .catch((e) => console.error("❌ Redis connect failed:", e));
 
-  redisStore = new RedisStore({
-    client: redisClient,
-    prefix: "sess:",
-  });
+  const RedisStore = buildRedisStore(session);
+  if (!RedisStore) {
+    console.error("❌ connect-redis export 형태를 인식하지 못했습니다. connect-redis 버전을 확인해주세요.");
+  } else {
+    redisStore = new RedisStore({
+      client: redisClient,
+      prefix: "sess:",
+    });
+  }
 } else {
   console.warn("⚠️ REDIS_URL is not set. Falling back to MemoryStore (dev only).");
 }
@@ -154,21 +182,18 @@ app.locals.formatKSTDate = formatKSTDate;
 
 // ------------------------ Discord Refresh Check --------------------------
 function canRefreshDiscord(lastIso) {
-  if (!lastIso) return true; // 한번도 갱신 안 했으면 갱신 필요로 간주
+  if (!lastIso) return true;
   const last = new Date(lastIso).getTime();
   if (!Number.isFinite(last)) return true;
   const diff = Date.now() - last;
-  return diff >= 1000 * 60 * 60 * 24 * 7; // 7일
+  return diff >= 1000 * 60 * 60 * 24 * 7;
 }
 app.locals.canRefreshDiscord = canRefreshDiscord;
 
 function shouldForceDiscordRefresh(req) {
   const me = req.session?.user;
   if (!me || !me.id) return false;
-
-  // 디스코드 연결이 없는 계정이면 강제 갱신 대상 아님
   if (!me.discord_id) return false;
-
   const last = me.discord_last_verified_at || "";
   return app.locals.canRefreshDiscord(last);
 }
@@ -214,15 +239,13 @@ passport.use(
 );
 
 // ------------------------- ✅ 강제 갱신 전역 미들웨어 -------------------------
-// 로그인 돼 있고 7일 지났으면 -> 무조건 /auth/discord/refresh 로 보낸다.
 app.use((req, res, next) => {
-  // 루프 방지 예외 경로
   const allowPrefixes = [
     "/login",
     "/logout",
     "/register",
     "/auth/required",
-    "/auth/discord",      // refresh/callback/link/unlink 포함
+    "/auth/discord",
     "/css",
     "/js",
     "/images",
@@ -231,12 +254,9 @@ app.use((req, res, next) => {
     "/__routes",
   ];
 
-  if (allowPrefixes.some(p => req.path.startsWith(p))) {
-    return next();
-  }
+  if (allowPrefixes.some(p => req.path.startsWith(p))) return next();
 
   if (req.session?.user?.id && shouldForceDiscordRefresh(req)) {
-    // 원래 가려던 곳 기억
     req.session.discordFlow = {
       mode: "refresh",
       returnTo: req.originalUrl || "/",
@@ -247,7 +267,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ------------------------- Debug Routes (배포 확인용) -------------------------
+// ------------------------- Debug Routes -------------------------
 app.get("/__routes", (req, res) => {
   res.type("text").send(
 `OK
@@ -270,15 +290,12 @@ app.get("/auth/required", (req, res) => {
 
 // ------------------------- Discord Link (Register Flow) -------------------------
 app.get("/auth/discord/link", (req, res, next) => {
-  // 회원가입 연결용 플로우 지정
   req.session.discordFlow = { mode: "register", returnTo: "/register" };
   return passport.authenticate("discord-link", { session: false })(req, res, next);
 });
 
 // ------------------------- ✅ Discord Refresh (Forced Flow) -------------------------
 app.get("/auth/discord/refresh", requireLogin, (req, res, next) => {
-  // 여기 들어오는 순간은 "강제 갱신"이므로 막지 않음
-  // returnTo는 이미 전역 미들웨어에서 넣었지만, 직접 접근 대비해서 보정
   if (!req.session.discordFlow || req.session.discordFlow.mode !== "refresh") {
     req.session.discordFlow = { mode: "refresh", returnTo: req.query.next || "/" };
   }
@@ -290,7 +307,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
   passport.authenticate("discord-link", { session: false }, async (err, user) => {
     if (err) {
       console.error("❌ Discord callback error:", err);
-      // 강제 갱신 중 실패면 로그인 상태라도 진행하면 안 되니 refresh로 되돌림
       if (req.session?.discordFlow?.mode === "refresh") return res.redirect("/auth/discord/refresh");
       return res.redirect("/register");
     }
@@ -302,7 +318,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
     const flow = req.session.discordFlow || { mode: "register", returnTo: "/register" };
     delete req.session.discordFlow;
 
-    // 1) 회원가입 연결(기존: 세션에만 저장)
     if (flow.mode === "register") {
       req.session.discordLink = {
         discord_id: user.discord_id,
@@ -311,13 +326,11 @@ app.get("/auth/discord/callback", (req, res, next) => {
       return res.redirect(flow.returnTo || "/register");
     }
 
-    // 2) ✅ 강제 새로고침: DB 업데이트 + 세션 업데이트
     if (flow.mode === "refresh") {
       try {
         const me = req.session.user;
         if (!me || !me.id) return res.redirect("/login");
 
-        // 다른 디스코드로 승인해버리면 계속 갱신 요구
         if (String(me.discord_id || "") !== String(user.discord_id || "")) {
           console.error("❌ discord id mismatch during refresh");
           req.session.discordFlow = { mode: "refresh", returnTo: flow.returnTo || "/" };
@@ -329,7 +342,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
           discord_name: user.discord_name,
         });
 
-        // 세션도 갱신
         req.session.user.discord_name = user.discord_name;
         req.session.user.discord_last_verified_at =
           result?.discord_last_verified_at || new Date().toISOString();
@@ -337,7 +349,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
         return res.redirect(flow.returnTo || "/");
       } catch (e) {
         console.error("❌ Discord refresh update error:", e);
-        // 실패면 계속 강제 갱신 상태 유지
         req.session.discordFlow = { mode: "refresh", returnTo: flow.returnTo || "/" };
         return res.redirect("/auth/discord/refresh");
       }
@@ -347,7 +358,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
   })(req, res, next);
 });
 
-// (선택) 회원가입 단계에서 연결 해제 버튼을 남기고 싶다면 유지
 app.get("/auth/discord/unlink", (req, res) => {
   delete req.session.discordLink;
   return res.redirect("/register");
@@ -372,28 +382,15 @@ app.post("/register", async (req, res) => {
     const discordLink = req.session.discordLink || null;
 
     if (!uniqueCode || !nickname || !username || !password) {
-      return res.render("auth/register", {
-        error: "모든 항목을 입력해주세요.",
-        form: req.body,
-        discordLink,
-      });
+      return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body, discordLink });
     }
 
     if (!req.body.agree) {
-      return res.render("auth/register", {
-        error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.",
-        form: req.body,
-        discordLink,
-      });
+      return res.render("auth/register", { error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.", form: req.body, discordLink });
     }
 
-    // ✅ 디스코드 연결 필수
     if (!discordLink || !discordLink.discord_id || !discordLink.discord_name) {
-      return res.render("auth/register", {
-        error: "디스코드 계정을 연결해야 가입할 수 있습니다.",
-        form: req.body,
-        discordLink: null,
-      });
+      return res.render("auth/register", { error: "디스코드 계정을 연결해야 가입할 수 있습니다.", form: req.body, discordLink: null });
     }
 
     await d1Api("POST", "/api/auth/register", {
@@ -412,42 +409,21 @@ app.post("/register", async (req, res) => {
     console.error("❌ register error:", e);
 
     const msg = String(e.message || "");
-
     if (msg.includes(" 409 ")) {
       if (msg.includes("discord_conflict")) {
-        return res.render("auth/register", {
-          error: "이미 다른 계정에 연결된 디스코드입니다.",
-          form: req.body,
-          discordLink: req.session.discordLink || null,
-        });
+        return res.render("auth/register", { error: "이미 다른 계정에 연결된 디스코드입니다.", form: req.body, discordLink: req.session.discordLink || null });
       }
       if (msg.includes("username_taken")) {
-        return res.render("auth/register", {
-          error: "이미 사용 중인 아이디입니다.",
-          form: req.body,
-          discordLink: req.session.discordLink || null,
-        });
+        return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body, discordLink: req.session.discordLink || null });
       }
-      return res.render("auth/register", {
-        error: "이미 사용 중인 정보가 있습니다.",
-        form: req.body,
-        discordLink: req.session.discordLink || null,
-      });
+      return res.render("auth/register", { error: "이미 사용 중인 정보가 있습니다.", form: req.body, discordLink: req.session.discordLink || null });
     }
 
     if (msg.includes("discord_required")) {
-      return res.render("auth/register", {
-        error: "디스코드 계정을 연결해야 가입할 수 있습니다.",
-        form: req.body,
-        discordLink: req.session.discordLink || null,
-      });
+      return res.render("auth/register", { error: "디스코드 계정을 연결해야 가입할 수 있습니다.", form: req.body, discordLink: req.session.discordLink || null });
     }
 
-    return res.render("auth/register", {
-      error: "회원가입 중 오류가 발생했습니다.",
-      form: req.body,
-      discordLink: req.session.discordLink || null,
-    });
+    return res.render("auth/register", { error: "회원가입 중 오류가 발생했습니다.", form: req.body, discordLink: req.session.discordLink || null });
   }
 });
 
@@ -474,13 +450,11 @@ app.post("/login", async (req, res) => {
       username: user.username,
       nickname: user.nickname,
       role: user.role || "user",
-
       discord_id: user.discord_id || "",
       discord_name: user.discord_name || "",
       discord_last_verified_at: user.discord_last_verified_at || "",
     };
 
-    // ✅ 로그인 직후 바로 강제 갱신 대상이면 "바로 refresh로"
     if (shouldForceDiscordRefresh(req)) {
       req.session.discordFlow = { mode: "refresh", returnTo: nextUrl || "/" };
       return res.redirect("/auth/discord/refresh");
@@ -496,9 +470,7 @@ app.post("/login", async (req, res) => {
 
 // ------------------------- Logout -------------------------
 app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/");
-  });
+  req.session.destroy(() => res.redirect("/"));
 });
 
 // ------------------------- Admin Main -------------------------
@@ -539,10 +511,7 @@ app.get("/admin/notices", requireAdmin, async (_, res) => {
 });
 
 app.post("/admin/notices", requireAdmin, async (req, res) => {
-  await addNotice({
-    title: req.body.title || "",
-    content: req.body.content || "",
-  });
+  await addNotice({ title: req.body.title || "", content: req.body.content || "" });
   res.redirect("/admin/notices");
 });
 
@@ -560,10 +529,7 @@ app.get("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
 
 app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
-  await updateNotice(id, {
-    title: req.body.title || "",
-    content: req.body.content || "",
-  });
+  await updateNotice(id, { title: req.body.title || "", content: req.body.content || "" });
   res.redirect("/admin/notices");
 });
 
@@ -601,10 +567,7 @@ app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
 });
 
 app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
-  await setAgency({
-    title: req.body.title || "",
-    content: req.body.content || "",
-  });
+  await setAgency({ title: req.body.title || "", content: req.body.content || "" });
   res.redirect("/intro/agency");
 });
 
@@ -620,11 +583,7 @@ app.post("/admin/edit/department", requireAdmin, async (req, res) => {
     desc: t.desc || "",
   }));
 
-  await setDepartment({
-    title: req.body.title || "부서 소개",
-    teams,
-  });
-
+  await setDepartment({ title: req.body.title || "부서 소개", teams });
   res.redirect("/intro/department");
 });
 
@@ -637,18 +596,11 @@ app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
 app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
   const origin = await getRank();
 
-  Object.keys(origin.high || {}).forEach((k) => {
-    origin.high[k] = req.body[`high_${k}`] || "";
-  });
-
-  Object.keys(origin.mid || {}).forEach((k) => {
-    origin.mid[k] = req.body[`mid_${k}`] || "";
-  });
+  Object.keys(origin.high || {}).forEach((k) => { origin.high[k] = req.body[`high_${k}`] || ""; });
+  Object.keys(origin.mid || {}).forEach((k) => { origin.mid[k] = req.body[`mid_${k}`] || ""; });
 
   Object.keys(origin.normal || {}).forEach((rank) => {
-    origin.normal[rank] = [1, 2, 3, 4, 5].map((i) =>
-      req.body[`normal_${rank}_${i}`] || ""
-    );
+    origin.normal[rank] = [1, 2, 3, 4, 5].map((i) => req.body[`normal_${rank}_${i}`] || "");
   });
 
   origin.probation = [1, 2, 3, 4, 5].map((i) => req.body[`probation_${i}`] || "");
@@ -667,23 +619,11 @@ app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
   const next = {
     title: req.body.title || "젤리 경찰청 채용 안내",
     cards: {
-      eligibility: {
-        title: req.body.eligibility_title || "지원 자격 안내",
-        content: req.body.eligibility_content || "",
-      },
-      disqualify: {
-        title: req.body.disqualify_title || "지원 불가 사유",
-        content: req.body.disqualify_content || "",
-      },
-      preference: {
-        title: req.body.preference_title || "지원 우대 사항",
-        content: req.body.preference_content || "",
-      },
+      eligibility: { title: req.body.eligibility_title || "지원 자격 안내", content: req.body.eligibility_content || "" },
+      disqualify: { title: req.body.disqualify_title || "지원 불가 사유", content: req.body.disqualify_content || "" },
+      preference: { title: req.body.preference_title || "지원 우대 사항", content: req.body.preference_content || "" },
     },
-    side: {
-      linkText: req.body.side_linkText || "링크1",
-      linkUrl: req.body.side_linkUrl || "#",
-    },
+    side: { linkText: req.body.side_linkText || "링크1", linkUrl: req.body.side_linkUrl || "#" },
   };
 
   await setApplyConditions(next);
@@ -721,7 +661,6 @@ app.get("/notice/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const notice = await getNotice(id);
-
     if (!notice) return res.status(404).send("공지사항을 찾을 수 없습니다.");
     res.render("notice/view", { notice });
   } catch (e) {
@@ -741,7 +680,6 @@ app.get("/admin/inquiry/view/:id", requireAdmin, async (req, res) => {
 
   const complaints = await listComplaints();
   const c = (complaints || []).find((x) => Number(x.id) === id);
-
   if (!c) return res.status(404).send("민원을 찾을 수 없습니다.");
 
   res.render("admin/inquiry_view", { c });
@@ -751,7 +689,6 @@ app.post("/admin/inquiry/:id/status", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const status = (req.body.status || "").trim();
-
     await d1Api("PUT", `/api/complaints/${id}/status`, { status });
     return res.redirect(`/admin/inquiry/view/${id}`);
   } catch (e) {
@@ -770,7 +707,6 @@ app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
 
   const suggestions = await listSuggestions();
   const s = (suggestions || []).find((x) => Number(x.id) === id);
-
   if (!s) return res.status(404).send("건의를 찾을 수 없습니다.");
 
   res.render("admin/suggest_view", { s });
@@ -851,10 +787,8 @@ app.post("/suggest", requireLogin, async (req, res) => {
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
-
     const all = await listComplaints();
     const mine = (all || []).filter((c) => String(c.userId) === userId);
-
     return res.render("my/complaints", { complaints: mine });
   } catch (e) {
     console.error("❌ /my/inquiry error:", e);
@@ -883,10 +817,8 @@ app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
 app.get("/my/suggest", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
-
     const all = await listSuggestions();
     const mine = (all || []).filter((s) => String(s.userId) === userId);
-
     return res.render("my/suggestions", { suggestions: mine });
   } catch (e) {
     console.error("❌ /my/suggest error:", e);
