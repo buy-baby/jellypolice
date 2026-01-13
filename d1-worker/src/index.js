@@ -63,9 +63,9 @@ const DEFAULT_PAGES = {
     title: "젤리 경찰청 채용 안내",
     cards: {
       eligibility: {
-       title: "지원 자격 안내",
-       content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-     },
+        title: "지원 자격 안내",
+        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
+      },
       disqualify: {
         title: "지원 불가 사유",
         content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
@@ -80,8 +80,8 @@ const DEFAULT_PAGES = {
       linkUrl: "#",
     },
   },
-
 };
+
 async function getOrSeedPage(env, key) {
   const row = await env.DB.prepare("SELECT page_json FROM pages WHERE page_key = ?")
     .bind(key)
@@ -153,8 +153,6 @@ router.put("/api/apply/conditions", async (req, env) => {
 });
 
 // ---- Notices ----
-
-// 시민용: 공지 목록 (기본 5개)
 router.get("/api/notices", async (req, env) => {
   const url = new URL(req.url);
   const limit = Math.min(Number(url.searchParams.get("limit") || 5), 20);
@@ -168,7 +166,6 @@ router.get("/api/notices", async (req, env) => {
   return json(results || []);
 });
 
-// 관리자용: 공지 추가
 router.post("/api/notices", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
@@ -188,7 +185,6 @@ router.post("/api/notices", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-// 공지 단건 조회 (시민/관리자 공용)
 router.get("/api/notices/:id", async (req, env) => {
   const id = Number(req.params.id);
   if (!id) return json({ error: "bad_id" }, { status: 400 });
@@ -203,7 +199,6 @@ router.get("/api/notices/:id", async (req, env) => {
   return json(row);
 });
 
-// 관리자용: 공지 수정
 router.put("/api/notices/:id", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
@@ -222,11 +217,9 @@ router.put("/api/notices/:id", async (req, env) => {
     .run();
   if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
 
-  return ok(); // 204
+  return ok();
 });
 
-
-// 관리자용: 공지 삭제
 router.delete("/api/notices/:id", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
@@ -234,7 +227,7 @@ router.delete("/api/notices/:id", async (req, env) => {
   if (!id) return json({ error: "bad_id" }, { status: 400 });
 
   await env.DB.prepare("DELETE FROM notices WHERE id = ?").bind(id).run();
-  return ok(); // 204
+  return ok();
 });
 
 // ---- Complaints ----
@@ -262,14 +255,12 @@ router.get("/api/complaints", async (req, env) => {
   return json(results || []);
 });
 
-
 router.post("/api/complaints", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
   const userId = body.userId ?? null;
 
-  // 기본 : 미접수
   const status = (body.status || "미접수").trim();
   const statusUpdatedAt = new Date().toISOString();
 
@@ -292,7 +283,6 @@ router.post("/api/complaints", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-// complaint status
 const ALLOWED_COMPLAINT_STATUS = new Set([
   "미접수",
   "접수 중",
@@ -326,10 +316,8 @@ router.put("/api/complaints/:id/status", async (req, env) => {
     return json({ error: "not_found" }, { status: 404 });
   }
 
-  return ok(); // 204
+  return ok();
 });
-
-
 
 // ---- Suggestions ----
 router.get("/api/suggestions", async (req, env) => {
@@ -356,7 +344,7 @@ router.post("/api/suggestions", async (req, env) => {
   const body = await readBody(req);
   const created = body.created || new Date().toISOString();
 
-  const userId = body.userId ?? null; 
+  const userId = body.userId ?? null;
 
   const r = await env.DB.prepare(
     "INSERT INTO suggestions(userId, name, identity, content, created) VALUES(?, ?, ?, ?, ?)"
@@ -377,6 +365,10 @@ router.post("/api/auth/register", async (req, env) => {
   const password = body.password || "";
   const agree = body.agree === true;
 
+  // ✅ 디스코드 필수 + 저장
+  const discord_id = (body.discord_id || "").trim();
+  const discord_name = (body.discord_name || "").trim();
+
   if (!uniqueCode || !nickname || !username || !password) {
     return json({ error: "all_fields_required" }, { status: 400 });
   }
@@ -385,6 +377,21 @@ router.post("/api/auth/register", async (req, env) => {
     return json({ error: "terms_not_agreed" }, { status: 400 });
   }
 
+  // ✅ 디스코드 연결 필수
+  if (!discord_id || !discord_name) {
+    return json({ error: "discord_required" }, { status: 400 });
+  }
+
+  // ✅ 디스코드 중복 연결 방지
+  const discordExists = await env.DB.prepare(
+    "SELECT id FROM users WHERE discord_id = ?"
+  ).bind(discord_id).first();
+
+  if (discordExists) {
+    return json({ error: "discord_conflict" }, { status: 409 });
+  }
+
+  // 기존: username 중복 체크
   const exists = await env.DB.prepare(
     "SELECT id FROM users WHERE LOWER(username) = LOWER(?)"
   ).bind(username).first();
@@ -398,17 +405,28 @@ router.post("/api/auth/register", async (req, env) => {
   const agreedAt = new Date().toISOString();
 
   const r = await env.DB.prepare(
-    "INSERT INTO users(uniqueCode, nickname, username, passwordHash, role, createdAt, agreed, agreedAt) VALUES(?, ?, ?, ?, 'user', ?, 1, ?)"
+    `INSERT INTO users(
+      uniqueCode, nickname, username, passwordHash, role, createdAt, agreed, agreedAt,
+      discord_id, discord_name
+    )
+    VALUES(?, ?, ?, ?, 'user', ?, 1, ?, ?, ?)`
   )
-    .bind(uniqueCode, nickname, username, passwordHash, createdAt, agreedAt)
+    .bind(
+      uniqueCode,
+      nickname,
+      username,
+      passwordHash,
+      createdAt,
+      agreedAt,
+      discord_id,
+      discord_name
+    )
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-
 // --- login ---
-
 router.post("/api/auth/login", async (req, env) => {
   const body = await readBody(req);
 
@@ -423,13 +441,11 @@ router.post("/api/auth/login", async (req, env) => {
     "SELECT id, uniqueCode, nickname, username, passwordHash, role, createdAt FROM users WHERE LOWER(username) = LOWER(?)"
   ).bind(username).first();
 
-  // 보안상 아이디/비번 틀림은 같은 메시지
   if (!user) return json({ error: "invalid_credentials" }, { status: 401 });
 
   const okPw = await bcrypt.compare(password, user.passwordHash || "");
   if (!okPw) return json({ error: "invalid_credentials" }, { status: 401 });
 
-  // passwordHash는 절대 반환하지 않기
   return json({
     id: user.id,
     uniqueCode: user.uniqueCode,
@@ -441,12 +457,11 @@ router.post("/api/auth/login", async (req, env) => {
 });
 
 // --- users ---
-
 router.get("/api/admin/users", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
   const { results } = await env.DB.prepare(
-    "SELECT id, uniqueCode, nickname, username, role, createdAt FROM users ORDER BY id DESC LIMIT 500"
+    "SELECT id, uniqueCode, nickname, username, role, createdAt, discord_id, discord_name FROM users ORDER BY id DESC LIMIT 500"
   ).all();
 
   return json(results || []);

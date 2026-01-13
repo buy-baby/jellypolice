@@ -7,6 +7,10 @@ const cookieParser = require("cookie-parser");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
 
+// ✅ passport는 파일 상단에서 1번만
+const passport = require("passport");
+const DiscordStrategy = require("passport-discord").Strategy;
+
 const {
   getAgency, setAgency,
   getRank, setRank,
@@ -50,10 +54,10 @@ async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TO
 
   const text = await res.text().catch(() => "");
   if (!res.ok) {
+    // text에 {"error":"discord_conflict"} 같은 JSON이 들어오면 그대로 메시지에 붙음
     throw new Error(`D1 API ${method} ${apiPath} failed: ${res.status} ${text}`);
   }
 
-  // 204 대비
   return text ? JSON.parse(text) : null;
 }
 
@@ -76,21 +80,65 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: "auto",
+    // ✅ express-session은 boolean이 안전함
+    secure: process.env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 6, // 6시간
   }
 }));
 
+// ✅ locals
 app.use((req, res, next) => {
   res.locals.me = req.session.user || null;
   next();
 });
 
-// ------------------------- UTC -> KST -------------------------
 
+// =============================================================
+// ✅ 디스코드 "연결" (로그인 아님) - session 설정 바로 아래에 둔다
+// =============================================================
+app.use(passport.initialize());
+
+passport.use("discord-link", new DiscordStrategy(
+  {
+    clientID: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: process.env.DISCORD_LINK_CALLBACK_URL,
+    scope: ["identify"],
+  },
+  (accessToken, refreshToken, profile, done) => {
+    const discord_id = profile.id;
+    const discord_name = profile.global_name || profile.username;
+    return done(null, { discord_id, discord_name });
+  }
+));
+
+// 디스코드 연결 시작
+app.get("/auth/discord/link", passport.authenticate("discord-link"));
+
+// 디스코드 연결 콜백
+app.get(
+  "/auth/discord/callback",
+  passport.authenticate("discord-link", { failureRedirect: "/register" }),
+  (req, res) => {
+    req.session.discordLink = {
+      discord_id: req.user.discord_id,
+      discord_name: req.user.discord_name,
+    };
+    return res.redirect("/register");
+  }
+);
+
+// 디스코드 연결 해제
+app.get("/auth/discord/unlink", (req, res) => {
+  delete req.session.discordLink;
+  return res.redirect("/register");
+});
+
+
+// ------------------------- UTC -> KST -------------------------
 function formatKST(iso) {
   if (!iso) return "";
-  const d = new Date(iso); 
+  const d = new Date(iso);
   return d.toLocaleString("ko-KR", {
     timeZone: "Asia/Seoul",
     year: "numeric",
@@ -122,8 +170,6 @@ const requireAdmin = (req, res, next) => {
 };
 
 // ------------------------- Debug Routes (배포 확인용) -------------------------
-// 배포된 server.js가 최신인지 확인하려고 만든 라우트.
-// 브라우저에서 /__routes 로 들어가면 지금 등록된 핵심 라우트 문자열을 확인 가능.
 app.get("/__routes", (req, res) => {
   res.type("text").send(
 `OK
@@ -146,45 +192,99 @@ app.get("/auth/required", (req, res) => {
 
 // ------------------------- Register (D1) -------------------------
 app.get("/register", (req, res) => {
-  res.render("auth/register", { error: null, form: {} });
+  res.render("auth/register", {
+    error: null,
+    form: {},
+    discordLink: req.session.discordLink || null,
+  });
 });
 
 app.post("/register", async (req, res) => {
   try {
     const uniqueCode = (req.body.uniqueCode || "").trim();
-    const nickname = (req.body.nickname || "").trim();
-    const username = (req.body.username || "").trim();
-    const password = (req.body.password || "");
+    const nickname   = (req.body.nickname || "").trim();
+    const username   = (req.body.username || "").trim();
+    const password   = (req.body.password || "");
+
+    const discordLink = req.session.discordLink || null;
 
     if (!uniqueCode || !nickname || !username || !password) {
-      return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body });
+      return res.render("auth/register", {
+        error: "모든 항목을 입력해주세요.",
+        form: req.body,
+        discordLink,
+      });
     }
 
     if (!req.body.agree) {
       return res.render("auth/register", {
-    error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.",
-    form: req.body,
-    });
-    }  
+        error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.",
+        form: req.body,
+        discordLink,
+      });
+    }
+
+    // ✅ 디스코드 연결 필수
+    if (!discordLink || !discordLink.discord_id || !discordLink.discord_name) {
+      return res.render("auth/register", {
+        error: "디스코드 계정을 연결해야 가입할 수 있습니다.",
+        form: req.body,
+        discordLink: null,
+      });
+    }
 
     await d1Api("POST", "/api/auth/register", {
       uniqueCode,
       nickname,
       username,
       password,
-      agree: !!req.body.agree
+      agree: !!req.body.agree,
+      discord_id: discordLink.discord_id,
+      discord_name: discordLink.discord_name,
     });
 
+    delete req.session.discordLink;
     return res.redirect("/login");
   } catch (e) {
     console.error("❌ register error:", e);
 
     const msg = String(e.message || "");
+
     if (msg.includes(" 409 ")) {
-      return res.render("auth/register", { error: "이미 사용 중인 아이디입니다.", form: req.body });
+      if (msg.includes("discord_conflict")) {
+        return res.render("auth/register", {
+          error: "이미 다른 계정에 연결된 디스코드입니다.",
+          form: req.body,
+          discordLink: req.session.discordLink || null,
+        });
+      }
+      if (msg.includes("username_taken")) {
+        return res.render("auth/register", {
+          error: "이미 사용 중인 아이디입니다.",
+          form: req.body,
+          discordLink: req.session.discordLink || null,
+        });
+      }
+      return res.render("auth/register", {
+        error: "이미 사용 중인 정보가 있습니다.",
+        form: req.body,
+        discordLink: req.session.discordLink || null,
+      });
     }
 
-    return res.render("auth/register", { error: "회원가입 중 오류가 발생했습니다.", form: req.body });
+    if (msg.includes("discord_required")) {
+      return res.render("auth/register", {
+        error: "디스코드 계정을 연결해야 가입할 수 있습니다.",
+        form: req.body,
+        discordLink: req.session.discordLink || null,
+      });
+    }
+
+    return res.render("auth/register", {
+      error: "회원가입 중 오류가 발생했습니다.",
+      form: req.body,
+      discordLink: req.session.discordLink || null,
+    });
   }
 });
 
@@ -213,7 +313,6 @@ app.post("/login", async (req, res) => {
       role: user.role || "user",
     };
 
-    // ✅ nextUrl로 돌아가기 (auth/required에서 넘어온 흐름 포함)
     return res.redirect(nextUrl || "/");
   } catch (e) {
     console.error("❌ login error:", e);
@@ -488,7 +587,6 @@ app.post("/admin/inquiry/:id/status", requireAdmin, async (req, res) => {
   }
 });
 
-
 app.get("/admin/suggest", requireAdmin, async (_, res) => {
   const suggestions = await listSuggestions();
   res.render("admin/suggest_list", { suggestions });
@@ -509,7 +607,7 @@ app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
 app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
-// 민원 제출 (로그인 필수 + userId 저장)
+// 민원 제출
 app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
   try {
     const created = new Date().toISOString();
@@ -556,7 +654,7 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
   }
 });
 
-// 건의 제출 (로그인 필수 + userId 저장)
+// 건의 제출
 app.post("/suggest", requireLogin, async (req, res) => {
   try {
     const created = new Date().toISOString();
@@ -575,17 +673,13 @@ app.post("/suggest", requireLogin, async (req, res) => {
     return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
   }
 });
-// -------------------- My Pages (내 글만 보기) --------------------
 
-// 주소: /my/inquiry, /my/suggest
-
-// 나의 민원 목록
+// -------------------- My Pages --------------------
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
 
     const all = await listComplaints();
-    // 디버그(필요하면 잠깐 켜고 나중에 지워도 됨)
     console.log("SESSION USER ID:", userId);
     console.log("COMPLAINT TOTAL:", (all || []).length, "SAMPLE:", (all || [])[0]);
 
@@ -598,7 +692,6 @@ app.get("/my/inquiry", requireLogin, async (req, res) => {
   }
 });
 
-// 나의 민원 상세
 app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
@@ -617,7 +710,6 @@ app.get("/my/inquiry/:id", requireLogin, async (req, res) => {
   }
 });
 
-// 나의 건의 목록
 app.get("/my/suggest", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
@@ -634,7 +726,6 @@ app.get("/my/suggest", requireLogin, async (req, res) => {
   }
 });
 
-// 나의 건의 상세
 app.get("/my/suggest/:id", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
@@ -653,7 +744,6 @@ app.get("/my/suggest/:id", requireLogin, async (req, res) => {
   }
 });
 
-// ---- (선택) 예전 주소 호환: /my/complaints, /my/suggestions 로 와도 같은 페이지로 보내기 ----
 app.get("/my/complaints", (req, res) => res.redirect("/my/inquiry"));
 app.get("/my/complaints/:id", (req, res) => res.redirect(`/my/inquiry/${req.params.id}`));
 app.get("/my/suggestions", (req, res) => res.redirect("/my/suggest"));
@@ -667,7 +757,6 @@ app.get("/terms", (req, res) => {
 app.get("/privacy", (req, res) => {
   res.render("legal/privacy");
 });
-
 
 // -------------------- Server --------------------
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

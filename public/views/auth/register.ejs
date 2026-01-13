@@ -30,6 +30,25 @@
         </label>
       </div>
 
+      <div class="discord-link-box">
+  <% if (discordLink && discordLink.discord_id) { %>
+    <div style="padding:12px 14px;border:1px solid #cfe0ff;background:#f2f7ff;border-radius:12px;margin-bottom:14px;">
+      ✅ 디스코드 연결됨: <strong><%= discordLink.discord_name %></strong>
+      <div style="margin-top:8px;">
+        <a href="/auth/discord/unlink" style="color:#1a4bd9;font-weight:800;text-decoration:none;">연결 해제</a>
+      </div>
+    </div>
+  <% } else { %>
+    <div style="padding:12px 14px;border:1px solid #ffd1d1;background:#fff5f5;border-radius:12px;margin-bottom:14px;">
+      <div style="font-weight:900;margin-bottom:8px;">⚠️ 디스코드 계정 연결이 필요합니다.</div>
+      <a href="/auth/discord/link" style="display:inline-block;background:#5865F2;color:#fff;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:900;">
+        디스코드 연결하기
+      </a>
+    </div>
+  <% } %>
+</div>
+
+
       <button type="submit" style="padding:12px;border-radius:12px;border:none;background:#1a4bd9;color:#fff;font-weight:900;">
         가입하기
       </button>

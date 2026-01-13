@@ -52,3 +52,7 @@ ALTER TABLE users ADD COLUMN agreedAt TEXT;
 
 ALTER TABLE complaints ADD COLUMN status TEXT NOT NULL DEFAULT '접수 중';
 ALTER TABLE complaints ADD COLUMN statusUpdatedAt TEXT;
+
+ALTER TABLE users ADD COLUMN discord_id TEXT;
+ALTER TABLE users ADD COLUMN discord_name TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
