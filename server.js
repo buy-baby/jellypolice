@@ -1,4 +1,4 @@
-// server.js (전체본 - Render Key Value(Valkey) Redis 세션스토어 적용, 버전 호환)
+
 
 const express = require("express");
 const fs = require("fs");
@@ -11,6 +11,9 @@ const session = require("express-session");
 
 const passport = require("passport");
 const DiscordStrategy = require("passport-discord").Strategy;
+
+// ✅ Discord Webhook helper
+const { sendDiscordWebhook } = require("./src/discordWebhook");
 
 const {
   getAgency, setAgency,
@@ -756,6 +759,34 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       fileKey,
     });
 
+    // ✅ 디스코드 웹훅 알림 (민원)
+    const me = req.session.user;
+    await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
+      username: "JellyPolice",
+      embeds: [
+        {
+          title: "📩 새 민원 접수",
+          description:
+            `**이름:** ${req.body.name || "-"}\n` +
+            `**신분:** ${req.body.identity || "-"}\n` +
+            `**작성자:** ${me?.nickname || me?.username || "알 수 없음"}\n` +
+            `**접수시간:** <t:${Math.floor(Date.now() / 1000)}:F>`,
+          fields: [
+            {
+              name: "내용",
+              value: (req.body.content || "").slice(0, 900) || "-",
+            },
+            ...(fileName
+              ? [{
+                  name: "첨부",
+                  value: `${fileName}${fileKey ? `\n키: ${fileKey}` : ""}`,
+                }]
+              : []),
+          ],
+        },
+      ],
+    });
+
     return res.redirect("/inquiry/success");
   } catch (err) {
     console.error("❌ 민원 제출 오류:", err);
@@ -774,6 +805,28 @@ app.post("/suggest", requireLogin, async (req, res) => {
       identity: req.body.identity || "",
       content: req.body.content || "",
       created,
+    });
+
+    // ✅ 디스코드 웹훅 알림 (건의)
+    const me = req.session.user;
+    await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_SUGGESTION, {
+      username: "JellyPolice",
+      embeds: [
+        {
+          title: "💡 새 건의 접수",
+          description:
+            `**이름:** ${req.body.name || "-"}\n` +
+            `**신분:** ${req.body.identity || "-"}\n` +
+            `**작성자:** ${me?.nickname || me?.username || "알 수 없음"}\n` +
+            `**접수시간:** <t:${Math.floor(Date.now() / 1000)}:F>`,
+          fields: [
+            {
+              name: "내용",
+              value: (req.body.content || "").slice(0, 900) || "-",
+            },
+          ],
+        },
+      ],
     });
 
     return res.redirect("/suggest/success");
