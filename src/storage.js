@@ -251,6 +251,21 @@ function setUserRole(userId, role) {
   return true;
 }
 
+async function addAuditLog(payload) {
+  if (useD1()) return apiFetch("/api/audit-logs", { method: "POST", body: payload, admin: true });
+  return true;
+}
+
+async function listAuditLogs({ limit = 100, action, actor_user_id } = {}) {
+  if (!useD1()) return [];
+  const qs = new URLSearchParams();
+  qs.set("limit", String(Math.min(Number(limit || 100), 200)));
+  if (action) qs.set("action", action);
+  if (actor_user_id != null) qs.set("actor_user_id", String(actor_user_id));
+  return apiFetch(`/api/audit-logs?${qs.toString()}`, { admin: true });
+}
+
+
 module.exports = {
   getAgency,
   setAgency,
@@ -274,4 +289,6 @@ module.exports = {
   findUserById,
   createUser,
   setUserRole,
+  addAuditLog,
+  listAuditLogs,
 };

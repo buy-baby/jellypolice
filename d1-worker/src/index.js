@@ -558,6 +558,49 @@ router.put("/api/admin/users/:id/role", async (req, env) => {
   return ok();
 });
 
+// ---- Audit Logs ----
+router.post("/api/audit-logs", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const body = await readBody(req);
+
+  const created = new Date().toISOString();
+
+  const actor_user_id = body.actor_user_id ?? null;
+  const actor_username = (body.actor_username || "").slice(0, 60);
+  const actor_nickname = (body.actor_nickname || "").slice(0, 60);
+  const actor_role = (body.actor_role || "").slice(0, 30);
+  const actor_discord_id = (body.actor_discord_id || "").slice(0, 40);
+
+  const action = (body.action || "").trim().slice(0, 80);
+  if (!action) return json({ error: "action_required" }, { status: 400 });
+
+  const target_type = (body.target_type || "").slice(0, 40);
+  const target_id = body.target_id != null ? String(body.target_id).slice(0, 60) : "";
+  const ip = (body.ip || "").slice(0, 80);
+  const ua = (body.ua || "").slice(0, 200);
+  const detail = body.detail != null ? JSON.stringify(body.detail).slice(0, 4000) : "";
+
+  const r = await env.DB.prepare(
+    `INSERT INTO audit_logs(
+      created,
+      actor_user_id, actor_username, actor_nickname, actor_role, actor_discord_id,
+      action, target_type, target_id,
+      ip, ua, detail
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      created,
+      actor_user_id, actor_username, actor_nickname, actor_role, actor_discord_id,
+      action, target_type, target_id,
+      ip, ua, detail
+    )
+    .run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+
 router.all("*", () => json({ error: "not_found" }, { status: 404 }));
 
 export default {

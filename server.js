@@ -1,4 +1,4 @@
-
+// server.js (전체본 - 감사로그 적용: 로그인/어드민접속 로그 제외)
 
 const express = require("express");
 const fs = require("fs");
@@ -24,6 +24,8 @@ const {
   getApplyConditions, setApplyConditions,
   listNotices, addNotice, deleteNotice,
   getNotice, updateNotice,
+  addAuditLog,
+  listAuditLogs, // (지금은 사용 안 해도 OK, 나중에 로그 페이지 만들 때 씀)
 } = require("./src/storage");
 
 const app = express();
@@ -152,6 +154,39 @@ app.use((req, res, next) => {
   res.locals.request = req;
   next();
 });
+
+// ------------------------- ✅ 감사 로그 헬퍼 -------------------------
+function getClientIp(req) {
+  return (req.ip || "").toString();
+}
+
+async function auditLog(req, {
+  action,
+  targetType = "",
+  targetId = "",
+  detail = null,
+} = {}) {
+  try {
+    const me = req.session?.user || null;
+
+    await addAuditLog({
+      actor_user_id: me?.id ?? null,
+      actor_username: me?.username ?? "",
+      actor_nickname: me?.nickname ?? "",
+      actor_role: me?.role ?? "",
+      actor_discord_id: me?.discord_id ?? "",
+      action,
+      target_type: targetType,
+      target_id: targetId,
+      ip: getClientIp(req),
+      ua: req.headers["user-agent"] || "",
+      detail,
+    });
+  } catch (e) {
+    // 로그 실패가 본 기능을 망치면 안 됨
+    console.error("❌ auditLog failed:", e?.message || e);
+  }
+}
 
 // ------------------------- UTC -> KST -------------------------
 function formatKST(iso) {
@@ -349,6 +384,17 @@ app.get("/auth/discord/callback", (req, res, next) => {
         req.session.user.discord_last_verified_at =
           result?.discord_last_verified_at || new Date().toISOString();
 
+        // ✅ 감사로그: 디스코드 연동 갱신
+        await auditLog(req, {
+          action: "discord_refresh",
+          targetType: "user",
+          targetId: me.id,
+          detail: {
+            discord_id: me.discord_id,
+            discord_name: user.discord_name,
+          },
+        });
+
         return res.redirect(flow.returnTo || "/");
       } catch (e) {
         console.error("❌ Discord refresh update error:", e);
@@ -404,6 +450,18 @@ app.post("/register", async (req, res) => {
       agree: !!req.body.agree,
       discord_id: discordLink.discord_id,
       discord_name: discordLink.discord_name,
+    });
+
+    // ✅ 감사로그: 회원가입 (로그인 전이라 actor가 null일 수 있음)
+    await auditLog(req, {
+      action: "auth_register",
+      targetType: "auth",
+      detail: {
+        username,
+        nickname,
+        discord_id: discordLink.discord_id,
+        discord_name: discordLink.discord_name,
+      },
     });
 
     delete req.session.discordLink;
@@ -463,6 +521,7 @@ app.post("/login", async (req, res) => {
       return res.redirect("/auth/discord/refresh");
     }
 
+    // ❌ 로그인 로그는 요청대로 제외
     return res.redirect(nextUrl || "/");
   } catch (e) {
     console.error("❌ login error:", e);
@@ -500,6 +559,15 @@ app.post("/admin/users/:id/role", requireAdmin, async (req, res) => {
     }
 
     await d1Api("PUT", `/api/admin/users/${id}/role`, { role });
+
+    // ✅ 감사로그: 유저 권한 변경
+    await auditLog(req, {
+      action: "user_role_change",
+      targetType: "user",
+      targetId: id,
+      detail: { role },
+    });
+
     return res.redirect("/admin/users");
   } catch (e) {
     console.error("❌ admin role change error:", e);
@@ -515,11 +583,29 @@ app.get("/admin/notices", requireAdmin, async (_, res) => {
 
 app.post("/admin/notices", requireAdmin, async (req, res) => {
   await addNotice({ title: req.body.title || "", content: req.body.content || "" });
+
+  // ✅ 감사로그: 공지 작성
+  await auditLog(req, {
+    action: "notice_create",
+    targetType: "notice",
+    detail: { title: req.body.title || "" },
+  });
+
   res.redirect("/admin/notices");
 });
 
 app.get("/admin/notices/delete/:id", requireAdmin, async (req, res) => {
-  await deleteNotice(Number(req.params.id));
+  const id = Number(req.params.id);
+  await deleteNotice(id);
+
+  // ✅ 감사로그: 공지 삭제 (GET 삭제도 로그는 남김)
+  await auditLog(req, {
+    action: "notice_delete",
+    targetType: "notice",
+    targetId: id,
+    detail: { via: "GET" },
+  });
+
   res.redirect("/admin/notices");
 });
 
@@ -533,12 +619,30 @@ app.get("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
 app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await updateNotice(id, { title: req.body.title || "", content: req.body.content || "" });
+
+  // ✅ 감사로그: 공지 수정
+  await auditLog(req, {
+    action: "notice_update",
+    targetType: "notice",
+    targetId: id,
+    detail: { title: req.body.title || "" },
+  });
+
   res.redirect("/admin/notices");
 });
 
 app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await deleteNotice(id);
+
+  // ✅ 감사로그: 공지 삭제
+  await auditLog(req, {
+    action: "notice_delete",
+    targetType: "notice",
+    targetId: id,
+    detail: { via: "POST" },
+  });
+
   res.redirect("/admin/notices");
 });
 
@@ -546,6 +650,15 @@ app.post("/admin/notices/:id/pin", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     await updateNotice(id, { pinned: 1 });
+
+    // ✅ 감사로그: 공지 고정/해제 (action 하나로 통일)
+    await auditLog(req, {
+      action: "notice_pin",
+      targetType: "notice",
+      targetId: id,
+      detail: { pinned: 1 },
+    });
+
     return res.redirect("/admin/notices");
   } catch (e) {
     console.error("❌ notice pin error:", e);
@@ -557,13 +670,21 @@ app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     await updateNotice(id, { pinned: 0 });
+
+    // ✅ 감사로그: 공지 고정/해제
+    await auditLog(req, {
+      action: "notice_pin",
+      targetType: "notice",
+      targetId: id,
+      detail: { pinned: 0 },
+    });
+
     return res.redirect("/admin/notices");
   } catch (e) {
     console.error("❌ notice unpin error:", e);
     return res.status(500).send("공지 고정 해제에 실패했습니다.");
   }
 });
-
 
 // ------------------------- Public Pages -------------------------
 app.get("/", async (_, res) => {
@@ -594,6 +715,14 @@ app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
 
 app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
   await setAgency({ title: req.body.title || "", content: req.body.content || "" });
+
+  // ✅ 감사로그: 경찰청 소개 수정
+  await auditLog(req, {
+    action: "agency_update",
+    targetType: "page",
+    targetId: "agency",
+  });
+
   res.redirect("/intro/agency");
 });
 
@@ -610,6 +739,14 @@ app.post("/admin/edit/department", requireAdmin, async (req, res) => {
   }));
 
   await setDepartment({ title: req.body.title || "부서 소개", teams });
+
+  // ✅ 감사로그: 부서 소개 수정
+  await auditLog(req, {
+    action: "department_update",
+    targetType: "page",
+    targetId: "department",
+  });
+
   res.redirect("/intro/department");
 });
 
@@ -632,6 +769,14 @@ app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
   origin.probation = [1, 2, 3, 4, 5].map((i) => req.body[`probation_${i}`] || "");
 
   await setRank(origin);
+
+  // ✅ 감사로그: 직급표 수정
+  await auditLog(req, {
+    action: "rank_update",
+    targetType: "page",
+    targetId: "rank",
+  });
+
   res.redirect("/intro/rank");
 });
 
@@ -653,6 +798,14 @@ app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
   };
 
   await setApplyConditions(next);
+
+  // ✅ 감사로그: 채용 안내 수정
+  await auditLog(req, {
+    action: "apply_conditions_update",
+    targetType: "page",
+    targetId: "apply_conditions",
+  });
+
   return res.redirect("/apply/conditions");
 });
 
@@ -715,7 +868,17 @@ app.post("/admin/inquiry/:id/status", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     const status = (req.body.status || "").trim();
+
     await d1Api("PUT", `/api/complaints/${id}/status`, { status });
+
+    // ✅ 감사로그: 민원 상태 변경
+    await auditLog(req, {
+      action: "complaint_status_update",
+      targetType: "complaint",
+      targetId: id,
+      detail: { status },
+    });
+
     return res.redirect(`/admin/inquiry/view/${id}`);
   } catch (e) {
     console.error("❌ status update error:", e);
@@ -782,14 +945,30 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       fileKey,
     });
 
-const me = req.session.user;
-const roleMention = "<@&1460793406535237733>";
-const author = me?.nickname || me?.username || "알 수 없음";
+    // ✅ 감사로그: 민원 접수
+    await auditLog(req, {
+      action: "complaint_create",
+      targetType: "complaint",
+      detail: {
+        name: req.body.name || "",
+        identity: req.body.identity || "",
+        hasFile: !!req.file,
+      },
+    });
 
-await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
-  content: `${roleMention} ${author}님이 민원을 작성하였습니다`,
-  allowed_mentions: { roles: ["1460793406535237733"] },
-});
+    // ✅ 디스코드 알림(실패해도 민원 접수는 성공 처리)
+    try {
+      const me = req.session.user;
+      const roleMention = "<@&1460793406535237733>";
+      const author = me?.nickname || me?.username || "알 수 없음";
+
+      await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
+        content: `${roleMention} ${author}님이 민원을 작성하였습니다`,
+        allowed_mentions: { roles: ["1460793406535237733"] },
+      });
+    } catch (e) {
+      console.error("❌ complaint webhook error:", e?.message || e);
+    }
 
     return res.redirect("/inquiry/success");
   } catch (err) {
@@ -811,14 +990,29 @@ app.post("/suggest", requireLogin, async (req, res) => {
       created,
     });
 
-const me = req.session.user;
-const roleMention = "<@&1460793406535237733>";
-const author = me?.nickname || me?.username || "알 수 없음";
+    // ✅ 감사로그: 건의 접수
+    await auditLog(req, {
+      action: "suggestion_create",
+      targetType: "suggestion",
+      detail: {
+        name: req.body.name || "",
+        identity: req.body.identity || "",
+      },
+    });
 
-await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_SUGGESTION, {
-  content: `${roleMention} ${author}님이 건의를 작성하였습니다`,
-  allowed_mentions: { roles: ["1460793406535237733"] },
-});
+    // ✅ 디스코드 알림(실패해도 건의 접수는 성공 처리)
+    try {
+      const me = req.session.user;
+      const roleMention = "<@&1460793406535237733>";
+      const author = me?.nickname || me?.username || "알 수 없음";
+
+      await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_SUGGESTION, {
+        content: `${roleMention} ${author}님이 건의를 작성하였습니다`,
+        allowed_mentions: { roles: ["1460793406535237733"] },
+      });
+    } catch (e) {
+      console.error("❌ suggestion webhook error:", e?.message || e);
+    }
 
     return res.redirect("/suggest/success");
   } catch (err) {

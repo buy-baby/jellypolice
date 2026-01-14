@@ -58,3 +58,23 @@ ALTER TABLE users ADD COLUMN discord_name TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
 
 ALTER TABLE notices ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  created TEXT NOT NULL,
+  actor_user_id INTEGER,
+  actor_username TEXT,
+  actor_nickname TEXT,
+  actor_role TEXT,
+  actor_discord_id TEXT,
+  action TEXT NOT NULL,
+  target_type TEXT,
+  target_id TEXT,
+  ip TEXT,
+  ua TEXT,
+  detail TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_logs(actor_user_id);
