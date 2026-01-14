@@ -759,33 +759,14 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       fileKey,
     });
 
-    // ✅ 디스코드 웹훅 알림 (민원)
-    const me = req.session.user;
-    await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
-      username: "JellyPolice",
-      embeds: [
-        {
-          title: "📩 새 민원 접수",
-          description:
-            `**이름:** ${req.body.name || "-"}\n` +
-            `**신분:** ${req.body.identity || "-"}\n` +
-            `**작성자:** ${me?.nickname || me?.username || "알 수 없음"}\n` +
-            `**접수시간:** <t:${Math.floor(Date.now() / 1000)}:F>`,
-          fields: [
-            {
-              name: "내용",
-              value: (req.body.content || "").slice(0, 900) || "-",
-            },
-            ...(fileName
-              ? [{
-                  name: "첨부",
-                  value: `${fileName}${fileKey ? `\n키: ${fileKey}` : ""}`,
-                }]
-              : []),
-          ],
-        },
-      ],
-    });
+const me = req.session.user;
+const roleMention = "<@&1460793406535237733>";
+const author = me?.nickname || me?.username || "알 수 없음";
+
+await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
+  content: `${roleMention} ${author}님이 민원을 작성하였습니다`,
+  allowed_mentions: { roles: ["1460793406535237733"] },
+});
 
     return res.redirect("/inquiry/success");
   } catch (err) {
@@ -807,27 +788,14 @@ app.post("/suggest", requireLogin, async (req, res) => {
       created,
     });
 
-    // ✅ 디스코드 웹훅 알림 (건의)
-    const me = req.session.user;
-    await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_SUGGESTION, {
-      username: "JellyPolice",
-      embeds: [
-        {
-          title: "💡 새 건의 접수",
-          description:
-            `**이름:** ${req.body.name || "-"}\n` +
-            `**신분:** ${req.body.identity || "-"}\n` +
-            `**작성자:** ${me?.nickname || me?.username || "알 수 없음"}\n` +
-            `**접수시간:** <t:${Math.floor(Date.now() / 1000)}:F>`,
-          fields: [
-            {
-              name: "내용",
-              value: (req.body.content || "").slice(0, 900) || "-",
-            },
-          ],
-        },
-      ],
-    });
+const me = req.session.user;
+const roleMention = "<@&1460793406535237733>";
+const author = me?.nickname || me?.username || "알 수 없음";
+
+await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_SUGGESTION, {
+  content: `${roleMention} ${author}님이 건의를 작성하였습니다`,
+  allowed_mentions: { roles: ["1460793406535237733"] },
+});
 
     return res.redirect("/suggest/success");
   } catch (err) {
