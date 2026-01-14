@@ -56,3 +56,5 @@ ALTER TABLE complaints ADD COLUMN statusUpdatedAt TEXT;
 ALTER TABLE users ADD COLUMN discord_id TEXT;
 ALTER TABLE users ADD COLUMN discord_name TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
+
+ALTER TABLE notices ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;

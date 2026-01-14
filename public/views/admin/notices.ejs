@@ -38,6 +38,7 @@
             <th>ID</th>
             <th>제목</th>
             <th>등록일</th>
+            <th>고정</th>
             <th>수정</th>
           </tr>
         </thead>
@@ -45,8 +46,26 @@
           <% notices.forEach(n => { %>
             <tr>
               <td><%= n.id %></td>
-              <td style="text-align:left;"><%= n.title %></td>
+              <td style="text-align:left;">
+                <% if (Number(n.pinned) === 1) { %>
+                  <strong>[고정]</strong>
+                <% } %>
+                <%= n.title %>
+              </td>
               <td><%= (n.created || "").substring(0,10) %></td>
+
+              <td>
+                <% if (Number(n.pinned) === 1) { %>
+                  <form method="POST" action="/admin/notices/<%= n.id %>/unpin" style="display:inline;">
+                    <button type="submit" class="btn-edit">해제</button>
+                  </form>
+                <% } else { %>
+                  <form method="POST" action="/admin/notices/<%= n.id %>/pin" style="display:inline;">
+                    <button type="submit" class="btn-edit">고정</button>
+                  </form>
+                <% } %>
+              </td>
+
               <td>
                 <a class="btn-edit" href="/admin/notices/<%= n.id %>/edit">수정</a>
               </td>

@@ -158,7 +158,7 @@ router.get("/api/notices", async (req, env) => {
   const limit = Math.min(Number(url.searchParams.get("limit") || 5), 20);
 
   const { results } = await env.DB.prepare(
-    "SELECT id, title, content, created FROM notices ORDER BY id DESC LIMIT ?"
+    "SELECT id, title, content, created, pinned FROM notices ORDER BY pinned DESC, id DESC LIMIT ?"
   )
     .bind(limit)
     .all();
@@ -176,10 +176,13 @@ router.post("/api/notices", async (req, env) => {
 
   const created = new Date().toISOString();
 
+  // pinned는 기본 0 (혹시 body로 들어와도 안전하게 처리)
+  const pinned = Number(body.pinned) === 1 ? 1 : 0;
+
   const r = await env.DB.prepare(
-    "INSERT INTO notices(title, content, created) VALUES(?, ?, ?)"
+    "INSERT INTO notices(title, content, created, pinned) VALUES(?, ?, ?, ?)"
   )
-    .bind(title, content, created)
+    .bind(title, content, created, pinned)
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
@@ -190,7 +193,7 @@ router.get("/api/notices/:id", async (req, env) => {
   if (!id) return json({ error: "bad_id" }, { status: 400 });
 
   const row = await env.DB.prepare(
-    "SELECT id, title, content, created FROM notices WHERE id = ?"
+    "SELECT id, title, content, created, pinned FROM notices WHERE id = ?"
   )
     .bind(id)
     .first();
@@ -206,6 +209,22 @@ router.put("/api/notices/:id", async (req, env) => {
   if (!id) return json({ error: "bad_id" }, { status: 400 });
 
   const body = await readBody(req);
+
+  // ✅ 1) pinned만 바꾸는 요청 지원 (핀/언핀)
+  if (Object.prototype.hasOwnProperty.call(body, "pinned")) {
+    const pinned = Number(body.pinned) === 1 ? 1 : 0;
+
+    const r = await env.DB.prepare(
+      "UPDATE notices SET pinned = ? WHERE id = ?"
+    )
+      .bind(pinned, id)
+      .run();
+
+    if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+    return ok();
+  }
+
+  // ✅ 2) 기존대로 title/content 수정도 지원
   const title = (body.title || "").trim();
   const content = (body.content || "").trim();
   if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
@@ -215,8 +234,8 @@ router.put("/api/notices/:id", async (req, env) => {
   )
     .bind(title, content, id)
     .run();
-  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
 
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
   return ok();
 });
 

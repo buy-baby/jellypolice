@@ -1,13 +1,8 @@
 const fs = require("fs");
 
-// 이 프로젝트는 "D1(진짜 DB)"를 쓰기 위해, 서버(Express)가 Cloudflare Worker API를 호출하는 구조야.
-// - D1은 Worker 바인딩(DB)로만 접근 가능
-// - Express는 D1에 직접 연결 못 해서, Worker API(D1 API)를 중간에 둬.
-//
 // ✅ 환경변수
-// - D1_API_BASE: Worker 배포 주소 (예: https://jelly-d1-api.<your-subdomain>.workers.dev)
+// - D1_API_BASE: Worker 배포 주소
 // - D1_API_TOKEN: (선택) Worker에서 검증하는 관리자 토큰
-
 const D1_API_BASE = (process.env.D1_API_BASE || "").replace(/\/+$/, "");
 const D1_API_TOKEN = process.env.D1_API_TOKEN || "";
 
@@ -30,7 +25,6 @@ const RANK_DB = "./database/rank.json";
 const DEPT_DB = "./database/department.json";
 const APPLY_COND_DB = "./database/apply_conditions.json";
 const USERS_DB = "./database/users.json";
-
 
 ensureDB(USERS_DB, []);
 ensureDB(COMPLAINT_DB, []);
@@ -62,7 +56,6 @@ ensureDB(APPLY_COND_DB, {
   side: { linkText: "링크1", linkUrl: "#" },
 });
 
-
 // -------------------- Worker API helper --------------------
 async function apiFetch(path, { method = "GET", body, admin = false } = {}) {
   const url = `${D1_API_BASE}${path}`;
@@ -71,7 +64,6 @@ async function apiFetch(path, { method = "GET", body, admin = false } = {}) {
     "Content-Type": "application/json",
   };
 
-  // admin=true 인 작업은 토큰이 있으면 붙여 줌(Worker에서 검증)
   if (admin && D1_API_TOKEN) {
     headers.Authorization = `Bearer ${D1_API_TOKEN}`;
   }
@@ -87,7 +79,6 @@ async function apiFetch(path, { method = "GET", body, admin = false } = {}) {
     throw new Error(`D1 API ${method} ${path} failed: ${res.status} ${text}`);
   }
 
-  // 일부 응답은 빈 바디일 수 있음
   const txt = await res.text();
   if (!txt) return null;
   return JSON.parse(txt);
@@ -124,7 +115,6 @@ async function setDepartment(data) {
   return true;
 }
 
-//
 async function getApplyConditions() {
   if (useD1()) return apiFetch("/api/apply/conditions");
   return readJSON(APPLY_COND_DB);
@@ -135,7 +125,6 @@ async function setApplyConditions(data) {
   writeJSON(APPLY_COND_DB, data);
   return true;
 }
-
 
 // -------------------- Complaints / Suggestions --------------------
 async function listComplaints() {
@@ -179,13 +168,19 @@ async function addSuggestion(data) {
 }
 
 // -------------------- Notices --------------------
+// ✅ pinned 컬럼 추가 후에도 storage.js는 API 호출만 하면 됨.
+// - 목록 정렬(고정 우선)은 Worker API에서 ORDER BY pinned DESC 해야 함.
+// - updateNotice로 pinned(0/1) 업데이트를 보내는 방식
+
 async function listNotices(limit = 5) {
   if (useD1()) return apiFetch(`/api/notices?limit=${encodeURIComponent(limit)}`);
   return [];
 }
 
 async function addNotice(data) {
-  if (useD1()) return apiFetch("/api/notices", { method: "POST", body: data, admin: true });
+  // 새 공지는 기본 pinned=0 (Worker가 DEFAULT 0을 갖고 있어도 안전하게 보냄)
+  const payload = { ...data, pinned: 0 };
+  if (useD1()) return apiFetch("/api/notices", { method: "POST", body: payload, admin: true });
   return true;
 }
 
@@ -198,15 +193,11 @@ async function getNotice(id) {
   const nid = Number(id);
   if (!nid) return null;
   if (useD1()) return apiFetch(`/api/notices/${nid}`);
-  return null; 
-}
-
-async function getNotice(id) {
-  if (useD1()) return apiFetch(`/api/notices/${id}`);
   return null;
 }
 
 async function updateNotice(id, data) {
+  // data 예: { title, content } 또는 { pinned: 1 } 등 부분 업데이트 가능해야 함 (Worker에서 처리)
   if (useD1()) return apiFetch(`/api/notices/${id}`, { method: "PUT", body: data, admin: true });
   return true;
 }
@@ -260,9 +251,6 @@ function setUserRole(userId, role) {
   return true;
 }
 
-
-
-
 module.exports = {
   getAgency,
   setAgency,
@@ -286,5 +274,4 @@ module.exports = {
   findUserById,
   createUser,
   setUserRole,
-
 };

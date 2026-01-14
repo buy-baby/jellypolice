@@ -542,6 +542,29 @@ app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   res.redirect("/admin/notices");
 });
 
+app.post("/admin/notices/:id/pin", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await updateNotice(id, { pinned: 1 });
+    return res.redirect("/admin/notices");
+  } catch (e) {
+    console.error("❌ notice pin error:", e);
+    return res.status(500).send("공지 고정에 실패했습니다.");
+  }
+});
+
+app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await updateNotice(id, { pinned: 0 });
+    return res.redirect("/admin/notices");
+  } catch (e) {
+    console.error("❌ notice unpin error:", e);
+    return res.status(500).send("공지 고정 해제에 실패했습니다.");
+  }
+});
+
+
 // ------------------------- Public Pages -------------------------
 app.get("/", async (_, res) => {
   const notices = await listNotices(5);
