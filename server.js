@@ -945,7 +945,7 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       fileKey,
     });
 
-    // ✅ 감사로그: 민원 접수
+    // 감사로그: 민원 접수
     await auditLog(req, {
       action: "complaint_create",
       targetType: "complaint",
@@ -956,15 +956,17 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       },
     });
 
-    // ✅ 디스코드 알림(실패해도 민원 접수는 성공 처리)
+    // 디스코드 알림
     try {
       const me = req.session.user;
-      const roleMention = "<@&1460793406535237733>";
+      const roleId = process.env.DISCORD_ROLE_MENTION_ID;
+      const roleMention = roleId ? `<@&${roleId}>` : "";
+
       const author = me?.nickname || me?.username || "알 수 없음";
 
       await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
         content: `${roleMention} ${author}님이 민원을 작성하였습니다`,
-        allowed_mentions: { roles: ["1460793406535237733"] },
+        allowed_mentions: { roles: [roleId] },
       });
     } catch (e) {
       console.error("❌ complaint webhook error:", e?.message || e);
