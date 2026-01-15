@@ -22,23 +22,28 @@
         <div class="label">권한</div>
         <div class="value"><%= (me && me.role) ? me.role : "user" %></div>
 
-        <div class="label">디스코드</div>
-        <div class="value">
-          <% if (me && me.discord_id) { %>
-            연결됨
-            <span class="badge" style="margin-left:8px;">
-              <span class="badgeDot"></span>
-              <%= me.discord_name || me.discord_id %>
-            </span>
+        <div class="card">
+            <h2>디스코드 연동 정보</h2>
 
-            <% if (typeof canRefreshDiscord === "function" && canRefreshDiscord(me.discord_last_verified_at)) { %>
-              <span class="meta" style="margin-left:10px;">(갱신 필요)</span>
+            <% if (me && me.discord_id) { %>
+            <div class="info">
+                <div class="label">연동 상태</div>
+                <div class="value">연결됨</div>
+
+                <div class="label">Discord ID</div>
+                <div class="value"><%= me.discord_id %></div>
+
+                <div class="label">Discord 이름</div>
+                <div class="value"><%= me.discord_name || "알 수 없음" %></div>
+
+                <div class="label">마지막 인증</div>
+                <div class="value"><%= formatKST(me.discord_last_verified_at) %></div>
+            </div>
+            <% } else { %>
+            <p>디스코드가 연결되어 있지 않습니다.</p>
             <% } %>
-          <% } else { %>
-            <span class="meta">미연결</span>
-          <% } %>
         </div>
-      </div>
+
 
       <div class="btnRow">
         <a class="btn" href="/my/inquiry" style="margin-right:10px;">내 민원실</a>
