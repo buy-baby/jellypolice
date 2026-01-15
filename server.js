@@ -1023,6 +1023,24 @@ app.post("/suggest", requireLogin, async (req, res) => {
   }
 });
 
+app.get("/my", requireLogin, async (req, res) => {
+  try {
+    const me = req.session.user;
+
+    return res.render("my/index", {
+      me,
+    });
+  } catch (e) {
+    console.error("❌ /my error:", e);
+    return res.status(500).send("마이페이지를 불러오지 못했습니다.");
+  }
+});
+
+app.get("/my", requireLogin, (req, res) => {
+  res.render("my/index", { me: req.session.user });
+});
+
+
 // -------------------- My Pages --------------------
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {

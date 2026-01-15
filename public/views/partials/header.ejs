@@ -1,7 +1,6 @@
 <header class="site-header">
   <div class="header-inner">
 
-    <!-- 왼쪽 : 로고 + 타이틀 -->
     <a href="/" class="header-left">
       <img src="/images/logo.png" class="site-logo">
       <span class="site-title">젤리 경찰청</span>
@@ -21,23 +20,24 @@
       const loginOrLogoutLink = me ? "/logout" : "/login";
       const loginOrLogoutText = me ? "로그아웃" : "로그인";
 
-      const myInquiryLink = me ? "/my/inquiry" : needLogin("/my/inquiry");
-      const mySuggestLink = me ? "/my/suggest" : needLogin("/my/suggest");
+      // 마이페이지 링크
+      const myPageLink = me ? "/my" : needLogin("/my");
 
       // 관리자 페이지: 관리자면 /admin, 아니면 로그인 필요 페이지로
       const adminLink = (me && me.role === "admin") ? "/admin" : needLogin("/admin");
     %>
 
     <div class="account-menu">
-        <button type="button" class="account-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false">
-          계정 메뉴
-          <span class="account-caret">▼</span>
-        </button>
-      
+      <button type="button" class="account-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false">
+        계정 메뉴
+        <span class="account-caret">▼</span>
+      </button>
+
       <div class="account-dropdown" id="accountDropdown" role="menu">
         <a class="account-item" href="<%= loginOrLogoutLink %>" role="menuitem"><%= loginOrLogoutText %></a>
-        <a class="account-item" href="<%= myInquiryLink %>" role="menuitem">내 민원</a>
-        <a class="account-item" href="<%= mySuggestLink %>" role="menuitem">내 건의</a>
+
+        <a class="account-item" href="<%= myPageLink %>" role="menuitem">마이페이지</a>
+
         <a class="account-item" href="<%= adminLink %>" role="menuitem">관리자 페이지</a>
       </div>
     </div>

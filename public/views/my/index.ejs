@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>마이페이지</title>
+  <link rel="stylesheet" href="/css/mypages.css" />
+</head>
+<body>
+  <%- include("../partials/header") %>
+
+  <div class="wrap">
+    <div class="card">
+      <h1 class="h1">마이페이지</h1>
+
+      <div class="info">
+        <div class="label">닉네임</div>
+        <div class="value"><%= (me && me.nickname) ? me.nickname : "-" %></div>
+
+        <div class="label">아이디</div>
+        <div class="value"><%= (me && me.username) ? me.username : "-" %></div>
+
+        <div class="label">권한</div>
+        <div class="value"><%= (me && me.role) ? me.role : "user" %></div>
+
+        <div class="label">디스코드</div>
+        <div class="value">
+          <% if (me && me.discord_id) { %>
+            연결됨
+            <span class="badge" style="margin-left:8px;">
+              <span class="badgeDot"></span>
+              <%= me.discord_name || me.discord_id %>
+            </span>
+
+            <% if (typeof canRefreshDiscord === "function" && canRefreshDiscord(me.discord_last_verified_at)) { %>
+              <span class="meta" style="margin-left:10px;">(갱신 필요)</span>
+            <% } %>
+          <% } else { %>
+            <span class="meta">미연결</span>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <a class="btn" href="/my/inquiry" style="margin-right:10px;">내 민원실</a>
+        <a class="btn" href="/my/suggest">내 건의실</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
