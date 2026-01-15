@@ -510,6 +510,7 @@ app.post("/login", async (req, res) => {
       id: user.id,
       username: user.username,
       nickname: user.nickname,
+      uniqueCode: user.uniqueCode,
       role: user.role || "user",
       discord_id: user.discord_id || "",
       discord_name: user.discord_name || "",
