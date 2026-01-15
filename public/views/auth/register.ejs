@@ -61,5 +61,71 @@
       <a href="/login" style="font-weight:800;color:#1a4bd9;text-decoration:none;">이미 계정이 있어요 → 로그인</a>
     </div>
   </div>
+
+  <!-- 로컬 스토리지-->
+  <script>
+  (function () {
+    const KEY = "jp_register_draft_v1";
+
+    const form = document.querySelector('form[action="/register"]');
+    if (!form) return;
+
+    const TEXT_FIELDS = ["uniqueCode", "nickname", "username"];
+    const CHECK_FIELDS = ["agree"];
+
+    function qs(name) {
+      return form.querySelector(`[name="${name}"]`);
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+
+        TEXT_FIELDS.forEach((name) => {
+          const el = qs(name);
+          if (!el) return;
+          if (!el.value && draft[name] != null) el.value = String(draft[name]);
+        });
+
+        CHECK_FIELDS.forEach((name) => {
+          const el = qs(name);
+          if (!el) return;
+          if (typeof draft[name] === "boolean") el.checked = draft[name];
+        });
+      } catch (e) {
+        try { localStorage.removeItem(KEY); } catch (_) {}
+      }
+    }
+
+    function saveDraft() {
+      const draft = {};
+      TEXT_FIELDS.forEach((name) => {
+        const el = qs(name);
+        draft[name] = el ? el.value : "";
+      });
+      CHECK_FIELDS.forEach((name) => {
+        const el = qs(name);
+        draft[name] = !!(el && el.checked);
+      });
+
+      try {
+        localStorage.setItem(KEY, JSON.stringify(draft));
+      } catch (e) {
+      }
+    }
+
+    function clearDraft() {
+      try { localStorage.removeItem(KEY); } catch (e) {}
+    }
+
+    loadDraft();
+
+    form.addEventListener("input", saveDraft);
+    form.addEventListener("change", saveDraft);
+  })();
+</script>
+
 </body>
 </html>
