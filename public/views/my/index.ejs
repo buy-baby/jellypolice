@@ -11,13 +11,16 @@
   <div class="wrap">
     <h1 class="h1">마이페이지</h1>
 
-    <!-- ✅ 계정 정보 박스 -->
+    <!-- 계정 정보 박스 -->
     <div class="card">
       <div class="detail-title">계정 정보</div>
 
       <div class="info">
         <div class="label">닉네임</div>
         <div class="value"><%= (me && me.nickname) ? me.nickname : "-" %></div>
+
+        <div class="label">고유번호</div>
+        <div class="value"><%= (me && me.uniqueCode) ? me.uniqueCode : "-" %></div>
 
         <div class="label">아이디</div>
         <div class="value"><%= (me && me.username) ? me.username : "-" %></div>
@@ -27,7 +30,7 @@
       </div>
     </div>
 
-    <!-- ✅ 디스코드 정보 박스 -->
+    <!-- 디스코드 정보 박스 -->
     <div class="card" style="margin-top:16px;">
       <div class="detail-title">디스코드 연동 정보</div>
 
@@ -44,13 +47,18 @@
 
           <div class="label">마지막 인증</div>
           <div class="value"><%= formatKST(me.discord_last_verified_at) %></div>
+
+          <div class="btnRow" style="margin-top:12px;">
+            <a class="btn" href="/auth/discord/refresh">디스코드 정보 갱신</a>
+          </div>
+
         </div>
       <% } else { %>
         <div class="empty">디스코드가 연결되어 있지 않습니다.</div>
       <% } %>
     </div>
 
-    <!-- ✅ 버튼 2개 -->
+    <!-- 버튼 2개 -->
     <div class="btnRow">
       <a class="btn" href="/my/inquiry">내 민원실</a>
       <a class="btn" href="/my/suggest">내 건의실</a>
