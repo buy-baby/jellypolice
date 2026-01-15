@@ -7,10 +7,9 @@
   <link rel="stylesheet" href="/css/header.css">
 </head>
 <body>
+  <%- include("../partials/header") %>
   <div style="max-width:720px;margin:60px auto;padding:24px;">
     <h1 style="font-size:28px;font-weight:900;letter-spacing:-1px;">로그인</h1>
-
-    <%- include("../partials/header") %>
 
     <% if (error) { %>
       <div style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff1f1;border:1px solid #ffb4b4;font-weight:800;">

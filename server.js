@@ -522,7 +522,6 @@ app.post("/login", async (req, res) => {
       return res.redirect("/auth/discord/refresh");
     }
 
-    // ❌ 로그인 로그는 요청대로 제외
     return res.redirect(nextUrl || "/");
   } catch (e) {
     console.error("❌ login error:", e);
