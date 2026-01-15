@@ -537,18 +537,19 @@ h1 {
   flex-wrap:wrap;
 }
 
-/* ✅ 작성자/디스코드 박스 2개 가로 배치 */
 .detail-mini-row{
   display:flex;
-  gap:16px;
+  gap:8px;          
   justify-content:center;
   align-items:stretch;
   flex-wrap:wrap;
+
+  max-width: 720px;   
+  margin: 0 auto;   
 }
 
-/* 기존 detail-mini-box는 width 320px 고정이었는데
-   2개 배치 시 보기 좋게 살짝 유연하게 */
+
 .detail-mini-box{
-  width: 340px;
+  width: 360px;     
   max-width: calc(100vw - 40px);
 }
