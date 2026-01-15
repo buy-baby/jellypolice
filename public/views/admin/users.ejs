@@ -4,15 +4,13 @@
   <meta charset="UTF-8" />
   <title>유저 관리</title>
   <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/admin_header">
 </head>
 <body>
   <div class="users-container">
     <h1 class="users-title">유저 관리</h1>
 
-    <div class="users-links">
-      <a href="/admin" class="users-link">← 관리자 메인</a>
-      <a href="/logout" class="users-link">로그아웃</a>
-    </div>
+    <%- include("../partials/admin_header") %>
 
     <div class="users-table-wrap">
       <table class="users-table">

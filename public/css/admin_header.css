@@ -1,0 +1,116 @@
+
+/* =========================
+   관리자 공통 헤더
+========================= */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+.admin-header {
+  width: 100%;
+  background: #ffffff;             
+  border-bottom: 1px solid #e0e0e0; 
+}
+
+.admin-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-logout {
+  font-size: 15px;
+  font-weight: 600;
+  color: #555;
+  text-decoration: none;
+}
+
+.admin-logout:hover {
+  color: #0b4ea2;
+  text-decoration: underline;
+}
+
+
+
+.admin-logo {
+  height: 40px;
+}
+
+.admin-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0b4ea2;  
+  letter-spacing: -0.5px;
+}
+
+/* ===== 계정 메뉴 드롭다운 ===== */
+.account-menu{
+  position: relative;
+  display: inline-block;
+}
+
+.account-btn{
+  background: transparent;
+  border: 0;
+  color: #000000;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.account-btn:hover{
+  background: rgba(255,255,255,0.12);
+}
+
+.account-caret{
+  margin-left: 6px;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.account-dropdown{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 170px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+  padding: 8px;
+  display: none;
+  z-index: 9999;
+}
+
+.account-dropdown.open{
+  display: block;
+}
+
+.account-item{
+  display: block;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #111;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.account-item:hover{
+  background: #f2f7ff;
+}
