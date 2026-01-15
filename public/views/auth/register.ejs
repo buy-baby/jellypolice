@@ -5,27 +5,27 @@
   <title>회원가입</title>
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/header.css">
+  <link rel="stylesheet" href="/css/auth.css">
 </head>
 <body>
   <%- include("../partials/header") %>
-  <div style="max-width:720px;margin:60px auto;padding:24px;">
-    <h1 style="font-size:28px;font-weight:900;letter-spacing:-1px;">회원가입</h1>
 
+  <div class="auth-wrap">
+    <h1 class="auth-title">회원가입</h1>
 
     <% if (error) { %>
-      <div style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff1f1;border:1px solid #ffb4b4;font-weight:800;">
-        <%= error %>
-      </div>
+      <div class="auth-error"><%= error %></div>
     <% } %>
 
-    <form method="POST" action="/register" style="margin-top:18px;display:grid;gap:12px;">
-      <input name="uniqueCode" placeholder="고유번호" value="<%= (form.uniqueCode||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
-      <input name="nickname" placeholder="닉네임" value="<%= (form.nickname||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
-      <input name="username" placeholder="아이디" value="<%= (form.username||'') %>" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
-      <input name="password" type="password" placeholder="비밀번호" style="padding:12px;border-radius:12px;border:1px solid #ccc;" />
-      <div class="agree-box">
+    <form method="POST" action="/register" class="auth-form">
+      <input name="uniqueCode" placeholder="고유번호" value="<%= (form.uniqueCode||'') %>" class="auth-input" />
+      <input name="nickname" placeholder="닉네임" value="<%= (form.nickname||'') %>" class="auth-input" />
+      <input name="username" placeholder="아이디" value="<%= (form.username||'') %>" class="auth-input" />
+      <input name="password" type="password" placeholder="비밀번호" class="auth-input" />
+
+      <div>
         <label>
-          <input type="checkbox" id="agree" name="agree" required />
+          <input type="checkbox" name="agree" required />
           <span>
             <a href="/terms" target="_blank">이용약관</a> 및
             <a href="/privacy" target="_blank">개인정보 처리방침</a>에 동의합니다.
@@ -34,98 +34,85 @@
       </div>
 
       <div class="discord-link-box">
-  <% if (discordLink && discordLink.discord_id) { %>
-    <div style="padding:12px 14px;border:1px solid #cfe0ff;background:#f2f7ff;border-radius:12px;margin-bottom:14px;">
-      ✅ 디스코드 연결됨: <strong><%= discordLink.discord_name %></strong>
-      <div style="margin-top:8px;">
-        <a href="/auth/discord/unlink" style="color:#1a4bd9;font-weight:800;text-decoration:none;">연결 해제</a>
+        <% if (discordLink && discordLink.discord_id) { %>
+          <div class="auth-box-info auth-box-discord-ok">
+            ✅ 디스코드 연결됨: <strong><%= discordLink.discord_name %></strong>
+            <div style="margin-top:8px;">
+              <a href="/auth/discord/unlink" class="auth-link">연결 해제</a>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="auth-box-info auth-box-discord-warn">
+            <div style="font-weight:900;margin-bottom:8px;">⚠️ 디스코드 계정 연결이 필요합니다.</div>
+            <a href="/auth/discord/link" class="auth-discord-btn">디스코드 연결하기</a>
+          </div>
+        <% } %>
       </div>
-    </div>
-  <% } else { %>
-    <div style="padding:12px 14px;border:1px solid #ffd1d1;background:#fff5f5;border-radius:12px;margin-bottom:14px;">
-      <div style="font-weight:900;margin-bottom:8px;">⚠️ 디스코드 계정 연결이 필요합니다.</div>
-      <a href="/auth/discord/link" style="display:inline-block;background:#5865F2;color:#fff;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:900;">
-        디스코드 연결하기
-      </a>
-    </div>
-  <% } %>
-</div>
 
-
-      <button type="submit" style="padding:12px;border-radius:12px;border:none;background:#1a4bd9;color:#fff;font-weight:900;">
-        가입하기
-      </button>
+      <button type="submit" class="auth-btn-primary">가입하기</button>
     </form>
 
     <div style="margin-top:14px;">
-      <a href="/login" style="font-weight:800;color:#1a4bd9;text-decoration:none;">이미 계정이 있어요 → 로그인</a>
+      <a href="/login" class="auth-link">이미 계정이 있어요 → 로그인</a>
     </div>
   </div>
 
-  <!-- 로컬 스토리지-->
+  <!-- 로컬스토리지 자동 복원 -->
   <script>
-  (function () {
-    const KEY = "jp_register_draft_v1";
+    (function () {
+      const KEY = "jp_register_draft_v1";
+      const form = document.querySelector('form[action="/register"]');
+      if (!form) return;
 
-    const form = document.querySelector('form[action="/register"]');
-    if (!form) return;
+      const TEXT_FIELDS = ["uniqueCode", "nickname", "username"];
+      const CHECK_FIELDS = ["agree"];
 
-    const TEXT_FIELDS = ["uniqueCode", "nickname", "username"];
-    const CHECK_FIELDS = ["agree"];
+      function qs(name) {
+        return form.querySelector(`[name="${name}"]`);
+      }
 
-    function qs(name) {
-      return form.querySelector(`[name="${name}"]`);
-    }
+      function loadDraft() {
+        try {
+          const raw = localStorage.getItem(KEY);
+          if (!raw) return;
+          const draft = JSON.parse(raw);
 
-    function loadDraft() {
-      try {
-        const raw = localStorage.getItem(KEY);
-        if (!raw) return;
-        const draft = JSON.parse(raw);
+          TEXT_FIELDS.forEach((name) => {
+            const el = qs(name);
+            if (!el) return;
+            if (!el.value && draft[name] != null) el.value = String(draft[name]);
+          });
 
+          CHECK_FIELDS.forEach((name) => {
+            const el = qs(name);
+            if (!el) return;
+            if (typeof draft[name] === "boolean") el.checked = draft[name];
+          });
+        } catch (e) {
+          try { localStorage.removeItem(KEY); } catch (_) {}
+        }
+      }
+
+      function saveDraft() {
+        const draft = {};
         TEXT_FIELDS.forEach((name) => {
           const el = qs(name);
-          if (!el) return;
-          if (!el.value && draft[name] != null) el.value = String(draft[name]);
+          draft[name] = el ? el.value : "";
         });
-
         CHECK_FIELDS.forEach((name) => {
           const el = qs(name);
-          if (!el) return;
-          if (typeof draft[name] === "boolean") el.checked = draft[name];
+          draft[name] = !!(el && el.checked);
         });
-      } catch (e) {
-        try { localStorage.removeItem(KEY); } catch (_) {}
+
+        try {
+          localStorage.setItem(KEY, JSON.stringify(draft));
+        } catch (e) {}
       }
-    }
 
-    function saveDraft() {
-      const draft = {};
-      TEXT_FIELDS.forEach((name) => {
-        const el = qs(name);
-        draft[name] = el ? el.value : "";
-      });
-      CHECK_FIELDS.forEach((name) => {
-        const el = qs(name);
-        draft[name] = !!(el && el.checked);
-      });
-
-      try {
-        localStorage.setItem(KEY, JSON.stringify(draft));
-      } catch (e) {
-      }
-    }
-
-    function clearDraft() {
-      try { localStorage.removeItem(KEY); } catch (e) {}
-    }
-
-    loadDraft();
-
-    form.addEventListener("input", saveDraft);
-    form.addEventListener("change", saveDraft);
-  })();
-</script>
-
+      loadDraft();
+      form.addEventListener("input", saveDraft);
+      form.addEventListener("change", saveDraft);
+    })();
+  </script>
 </body>
 </html>

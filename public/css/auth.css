@@ -1,0 +1,131 @@
+.auth-wrap {
+  max-width: 720px;
+  margin: 60px auto;
+  padding: 24px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.auth-error {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff1f1;
+  border: 1px solid #ffb4b4;
+  font-weight: 800;
+}
+
+.auth-form {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.auth-input {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+
+.auth-btn-primary {
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #1a4bd9;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.auth-link {
+  font-weight: 800;
+  color: #1a4bd9;
+  text-decoration: none;
+}
+
+.auth-box-info {
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+
+.auth-box-discord-ok {
+  border: 1px solid #cfe0ff;
+  background: #f2f7ff;
+}
+
+.auth-box-discord-warn {
+  border: 1px solid #ffd1d1;
+  background: #fff5f5;
+}
+
+.auth-discord-btn {
+  display: inline-block;
+  background: #5865F2;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+/* required.ejs */
+
+.required-wrap {
+  max-width: 720px;
+  margin: 80px auto;
+  padding: 24px;
+}
+
+.required-box {
+  background: #f7fbff;
+  border: 3px solid #9fd3e6;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+}
+
+.required-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.required-desc {
+  margin-top: 18px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.required-btns {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.required-btn-primary {
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #1a4bd9;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.required-btn-secondary {
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #e9eef7;
+  color: #111;
+  text-decoration: none;
+  font-weight: 800;
+}
