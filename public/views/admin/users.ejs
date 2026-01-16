@@ -14,7 +14,6 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>고유번호</th>
             <th>닉네임</th>
             <th>아이디</th>
 
@@ -32,11 +31,9 @@
           <% (users || []).forEach(u => { %>
             <tr>
               <td><%= u.id %></td>
-              <td><%= u.uniqueCode %></td>
               <td><%= u.nickname %></td>
               <td><%= u.username %></td>
 
-              <!-- ✅ 추가 -->
               <td class="mono"><%= u.discord_id || "-" %></td>
               <td><%= u.discord_name || "-" %></td>
               <td><%= (u.discord_last_verified_at || "").slice(0,10) || "-" %></td>

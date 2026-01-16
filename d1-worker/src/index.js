@@ -258,7 +258,6 @@ router.get("/api/complaints", async (req, env) => {
       c.id,
       c.userId,
       c.name,
-      c.identity,
       c.content,
       c.created,
       c.fileName,
@@ -268,7 +267,6 @@ router.get("/api/complaints", async (req, env) => {
 
       u.username,
       u.nickname,
-      u.uniqueCode,
 
       u.discord_id,
       u.discord_name,
@@ -291,12 +289,11 @@ router.post("/api/complaints", async (req, env) => {
   const statusUpdatedAt = new Date().toISOString();
 
   const r = await env.DB.prepare(
-    "INSERT INTO complaints(userId, name, identity, content, created, fileName, fileKey, status, statusUpdatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO complaints(userId, name, content, created, fileName, fileKey, status, statusUpdatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       userId,
       body.name || "",
-      body.identity || "",
       body.content || "",
       created,
       body.fileName || "",
@@ -354,7 +351,6 @@ router.get("/api/suggestions", async (req, env) => {
       s.id,
       s.userId,
       s.name,
-      s.identity,
       s.content,
       s.created,
       u.username
@@ -373,9 +369,9 @@ router.post("/api/suggestions", async (req, env) => {
   const userId = body.userId ?? null;
 
   const r = await env.DB.prepare(
-    "INSERT INTO suggestions(userId, name, identity, content, created) VALUES(?, ?, ?, ?, ?)"
+    "INSERT INTO suggestions(userId, name, content, created) VALUES(?, ?, ?, ?, ?)"
   )
-    .bind(userId, body.name || "", body.identity || "", body.content || "", created)
+    .bind(userId, body.name || "", body.content || "", created)
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
@@ -385,7 +381,6 @@ router.post("/api/suggestions", async (req, env) => {
 router.post("/api/auth/register", async (req, env) => {
   const body = await readBody(req);
 
-  const uniqueCode = (body.uniqueCode || "").trim();
   const nickname = (body.nickname || "").trim();
   const username = (body.username || "").trim();
   const password = body.password || "";
@@ -394,7 +389,7 @@ router.post("/api/auth/register", async (req, env) => {
   const discord_id = (body.discord_id || "").trim();
   const discord_name = (body.discord_name || "").trim();
 
-  if (!uniqueCode || !nickname || !username || !password) {
+  if (!nickname || !username || !password) {
     return json({ error: "all_fields_required" }, { status: 400 });
   }
 
@@ -429,13 +424,12 @@ router.post("/api/auth/register", async (req, env) => {
 
   const r = await env.DB.prepare(
     `INSERT INTO users(
-      uniqueCode, nickname, username, passwordHash, role, createdAt, agreed, agreedAt,
+      nickname, username, passwordHash, role, createdAt, agreed, agreedAt,
       discord_id, discord_name, discord_last_verified_at
     )
     VALUES(?, ?, ?, ?, 'user', ?, 1, ?, ?, ?, ?)`
   )
     .bind(
-      uniqueCode,
       nickname,
       username,
       passwordHash,
@@ -463,7 +457,7 @@ router.post("/api/auth/login", async (req, env) => {
 
   const user = await env.DB.prepare(
     `SELECT
-      id, uniqueCode, nickname, username, passwordHash, role, createdAt,
+      id, nickname, username, passwordHash, role, createdAt,
       discord_id, discord_name, discord_last_verified_at
      FROM users
      WHERE LOWER(username) = LOWER(?)`
@@ -476,7 +470,6 @@ router.post("/api/auth/login", async (req, env) => {
 
   return json({
     id: user.id,
-    uniqueCode: user.uniqueCode,
     nickname: user.nickname,
     username: user.username,
     role: user.role,
@@ -494,7 +487,7 @@ router.get("/api/admin/users", async (req, env) => {
 
   const { results } = await env.DB.prepare(
     `SELECT
-      id, uniqueCode, nickname, username, role, createdAt,
+      id, nickname, username, role, createdAt,
       discord_id, discord_name, discord_last_verified_at
      FROM users
      ORDER BY id DESC

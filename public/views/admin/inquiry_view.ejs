@@ -36,9 +36,7 @@
 
   <div class="detail-section-title">작성자 계정 정보</div>
 
-  <!-- ✅ 여기부터 변경: 박스 2개 나란히 -->
   <div class="detail-mini-row">
-    <!-- 기존 박스 -->
     <div class="detail-mini-box">
       <div class="detail-kv">
         <div class="detail-k">계정 번호 :</div>
@@ -47,15 +45,12 @@
         <div class="detail-k">이름 :</div>
         <div class="detail-v"><%= c.name || "-" %></div>
 
-        <div class="detail-k">고유번호 :</div>
-        <div class="detail-v"><%= c.identity || "-" %></div>
 
         <div class="detail-k">아이디 :</div>
         <div class="detail-v"><%= c.username || "-" %></div>
       </div>
     </div>
 
-    <!-- ✅ 추가 박스: 디스코드 정보 -->
     <div class="detail-mini-box">
       <div class="detail-kv">
         <div class="detail-k">디스코드 ID :</div>
@@ -78,7 +73,6 @@
   <div class="detail-content-wrap">
     <div class="info-box">
       <p><b>이름:</b> <%= c.name || "-" %></p>
-      <p><b>고유번호:</b> <%= c.identity || "-" %></p>
 
       <p><b>내용:</b></p>
       <div class="content-box"><%= c.content || "" %></div>

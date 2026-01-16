@@ -78,3 +78,83 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created);
 CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
 CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_logs(actor_user_id);
+
+BEGIN;
+
+CREATE TABLE users_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT NOT NULL,
+  username TEXT NOT NULL UNIQUE,
+  passwordHash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user',
+  createdAt TEXT NOT NULL,
+  agreed INTEGER NOT NULL DEFAULT 0,
+  agreedAt TEXT,
+  discord_id TEXT,
+  discord_name TEXT,
+  discord_last_verified_at TEXT
+);
+
+INSERT INTO users_new (
+  id, nickname, username, passwordHash, role, createdAt,
+  agreed, agreedAt, discord_id, discord_name, discord_last_verified_at
+)
+SELECT
+  id, nickname, username, passwordHash, role, createdAt,
+  agreed, agreedAt, discord_id, discord_name, discord_last_verified_at
+FROM users;
+
+DROP TABLE users;
+ALTER TABLE users_new RENAME TO users;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id);
+
+COMMIT;
+
+BEGIN;
+
+CREATE TABLE complaints_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  content TEXT,
+  created TEXT,
+  fileName TEXT,
+  fileKey TEXT,
+  userId INTEGER,
+  status TEXT NOT NULL DEFAULT '접수 중',
+  statusUpdatedAt TEXT
+);
+
+INSERT INTO complaints_new (
+  id, name, content, created, fileName, fileKey, userId, status, statusUpdatedAt
+)
+SELECT
+  id, name, content, created, fileName, fileKey, userId, status, statusUpdatedAt
+FROM complaints;
+
+DROP TABLE complaints;
+ALTER TABLE complaints_new RENAME TO complaints;
+
+COMMIT;
+
+BEGIN;
+
+CREATE TABLE suggestions_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  content TEXT,
+  created TEXT,
+  userId INTEGER
+);
+
+INSERT INTO suggestions_new (
+  id, name, content, created, userId
+)
+SELECT
+  id, name, content, created, userId
+FROM suggestions;
+
+DROP TABLE suggestions;
+ALTER TABLE suggestions_new RENAME TO suggestions;
+
+COMMIT;

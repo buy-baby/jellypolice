@@ -423,14 +423,13 @@ app.get("/register", (req, res) => {
 
 app.post("/register", async (req, res) => {
   try {
-    const uniqueCode = (req.body.uniqueCode || "").trim();
     const nickname   = (req.body.nickname || "").trim();
     const username   = (req.body.username || "").trim();
     const password   = (req.body.password || "");
 
     const discordLink = req.session.discordLink || null;
 
-    if (!uniqueCode || !nickname || !username || !password) {
+    if (!nickname || !username || !password) {
       return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body, discordLink });
     }
 
@@ -443,7 +442,6 @@ app.post("/register", async (req, res) => {
     }
 
     await d1Api("POST", "/api/auth/register", {
-      uniqueCode,
       nickname,
       username,
       password,
@@ -510,7 +508,6 @@ app.post("/login", async (req, res) => {
       id: user.id,
       username: user.username,
       nickname: user.nickname,
-      uniqueCode: user.uniqueCode,
       role: user.role || "user",
       discord_id: user.discord_id || "",
       discord_name: user.discord_name || "",
@@ -938,7 +935,6 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
     await addComplaint({
       userId: req.session.user.id,
       name: req.body.name || "",
-      identity: req.body.identity || "",
       content: req.body.content || "",
       created,
       fileName,
@@ -951,7 +947,6 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       targetType: "complaint",
       detail: {
         name: req.body.name || "",
-        identity: req.body.identity || "",
         hasFile: !!req.file,
       },
     });
@@ -987,7 +982,6 @@ app.post("/suggest", requireLogin, async (req, res) => {
     await addSuggestion({
       userId: req.session.user.id,
       name: req.body.name || "",
-      identity: req.body.identity || "",
       content: req.body.content || "",
       created,
     });
@@ -998,7 +992,6 @@ app.post("/suggest", requireLogin, async (req, res) => {
       targetType: "suggestion",
       detail: {
         name: req.body.name || "",
-        identity: req.body.identity || "",
       },
     });
 

@@ -18,7 +18,6 @@
     <% } %>
 
     <form method="POST" action="/register" class="auth-form">
-      <input name="uniqueCode" placeholder="고유번호" value="<%= (form.uniqueCode||'') %>" class="auth-input" />
       <input name="nickname" placeholder="닉네임" value="<%= (form.nickname||'') %>" class="auth-input" />
       <input name="username" placeholder="아이디" value="<%= (form.username||'') %>" class="auth-input" />
       <input name="password" type="password" placeholder="비밀번호" class="auth-input" />
@@ -64,7 +63,7 @@
       const form = document.querySelector('form[action="/register"]');
       if (!form) return;
 
-      const TEXT_FIELDS = ["uniqueCode", "nickname", "username"];
+      const TEXT_FIELDS = ["nickname", "username"];
       const CHECK_FIELDS = ["agree"];
 
       function qs(name) {
