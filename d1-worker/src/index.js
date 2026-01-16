@@ -285,11 +285,11 @@ router.post("/api/complaints", async (req, env) => {
   const created = body.created || new Date().toISOString();
 
   const userId = body.userId ?? null;
-  const status = (body.status || "미접수").trim();
+  const status = String(body.status || "미접수").trim();
   const statusUpdatedAt = new Date().toISOString();
 
   const r = await env.DB.prepare(
-    "INSERT INTO complaints(userId, name, content, created, fileName, fileKey, status, statusUpdatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO complaints(userId, name, content, created, fileName, fileKey, status, statusUpdatedAt) VALUES(?, ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       userId,
@@ -305,6 +305,7 @@ router.post("/api/complaints", async (req, env) => {
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
+
 
 const ALLOWED_COMPLAINT_STATUS = new Set([
   "미접수",
@@ -369,13 +370,14 @@ router.post("/api/suggestions", async (req, env) => {
   const userId = body.userId ?? null;
 
   const r = await env.DB.prepare(
-    "INSERT INTO suggestions(userId, name, content, created) VALUES(?, ?, ?, ?, ?)"
+    "INSERT INTO suggestions(userId, name, content, created) VALUES(?, ?, ?, ?)"
   )
     .bind(userId, body.name || "", body.content || "", created)
     .run();
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
+
 
 // ---- register ----
 router.post("/api/auth/register", async (req, env) => {
