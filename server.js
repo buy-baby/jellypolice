@@ -702,13 +702,6 @@ app.get("/", async (req, res) => {
   res.render("main/main", { notices, faqs });
 });
 
-// ✅ 관리자 체크 미들웨어 (네 프로젝트에 맞게 조건만 바꿔줘)
-function requireAdmin(req, res, next) {
-  // 예시: req.session.user?.role === 'admin'
-  // 또는 req.user?.isAdmin === true
-  // 지금은 통과 처리(원하면 너 조건으로 바꿔)
-  return next();
-}
 
 /** 목록 + 추가 폼 */
 app.get("/admin/faqs", requireAdmin, async (req, res) => {
