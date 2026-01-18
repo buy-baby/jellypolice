@@ -789,27 +789,17 @@ app.post("/admin/faqs/:id/delete", requireAdmin, async (req, res) => {
   }
 });
 
-// Admin board
+// =========================
+// 16-2)Admin - Board (D1 Worker API)
+// =========================
 app.get("/admin/board", requireAdmin, async (req, res) => {
   try {
-    // posts + users join (닉네임/아이디 표시)
-    const posts = await dbAll(`
-      SELECT
-        p.id,
-        p.title,
-        p.created_at,
-        u.nickname AS author_nickname,
-        u.username AS author_username
-      FROM board_posts p
-      LEFT JOIN users u ON p.user_id = u.id
-      ORDER BY p.id DESC
-      LIMIT 200
-    `);
-
-    res.render("admin/board/index", { posts: posts || [] });
+    const result = await d1Api("GET", "/api/admin/board/posts?limit=50");
+    const posts = Array.isArray(result) ? result : (result?.posts || []);
+    return res.render("admin/board/index", { posts });
   } catch (e) {
-    console.error("admin board error:", e);
-    res.status(500).send("Internal Server Error");
+    console.error("❌ admin board list error:", e?.message || e);
+    return res.render("admin/board/index", { posts: [] });
   }
 });
 
@@ -818,15 +808,18 @@ app.post("/admin/board/:id/delete", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     if (!id) return res.redirect("/admin/board");
 
-    // (선택) 이미지/첨부도 함께 삭제하려면 여기서 처리
-    await dbRun(`DELETE FROM board_posts WHERE id = ?`, [id]);
-    // 댓글 테이블이 있다면 같이 삭제
-    await dbRun(`DELETE FROM board_comments WHERE post_id = ?`, [id]).catch(()=>{});
+    await d1Api("DELETE", `/api/admin/board/posts/${id}`);
 
-    res.redirect("/admin/board");
+    await auditLog(req, {
+      action: "board_post_delete",
+      targetType: "board_post",
+      targetId: id,
+    });
+
+    return res.redirect("/admin/board");
   } catch (e) {
-    console.error("admin board delete error:", e);
-    res.status(500).send("Internal Server Error");
+    console.error("❌ admin board delete error:", e?.message || e);
+    return res.status(500).send("게시글 삭제에 실패했습니다.");
   }
 });
 

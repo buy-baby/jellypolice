@@ -867,6 +867,53 @@ router.get("/api/board/images/:id", async (req, env) => {
   return json(row);
 });
 
+// ------------------- Board (Admin) ----------------------
+
+// 관리자: 게시글 목록
+router.get("/api/admin/board/posts", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const url = new URL(req.url);
+  const limit = Math.min(Number(url.searchParams.get("limit") || 50), 200);
+
+  // ⚠️ 테이블명이 다르면 여기만 바꾸면 됨
+  const { results } = await env.DB.prepare(`
+    SELECT
+      p.id,
+      p.title,
+      p.created_at,
+      p.author_user_id,
+      u.username as author_username,
+      u.nickname as author_nickname
+    FROM board_posts p
+    LEFT JOIN users u ON u.id = p.author_user_id
+    ORDER BY p.id DESC
+    LIMIT ?
+  `).bind(limit).all();
+
+  return json({ posts: results || [] });
+});
+
+// 관리자: 게시글 삭제 (댓글/이미지까지 같이 정리)
+router.delete("/api/admin/board/posts/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  // 댓글 삭제(있다면)
+  await env.DB.prepare("DELETE FROM board_comments WHERE post_id = ?").bind(id).run();
+
+  // 이미지 메타 삭제(있다면)
+  await env.DB.prepare("DELETE FROM board_images WHERE post_id = ?").bind(id).run();
+
+  // 본문 삭제
+  const r = await env.DB.prepare("DELETE FROM board_posts WHERE id = ?").bind(id).run();
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+
+  return ok();
+});
+
 
 router.all("*", () => json({ error: "not_found" }, { status: 404 }));
 
