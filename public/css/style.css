@@ -224,13 +224,14 @@ nav, .navbar, .topbar{
 
 .faq-panel{
   width: 100%;
-  min-height: 680px;
+  min-height: 420;
   background: #ffffff;
   border: 3px solid #9fd3e6;
   border-radius: 16px;
   padding: 22px 22px 18px;
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
 }
+
 
 .faq-head{
   margin-bottom: 14px;
@@ -594,28 +595,6 @@ nav, .navbar, .topbar{
     padding: 14px 12px;
   }
 
-  /* 오른쪽 컬럼: 공지 + 자유게시판 세로 스택 */
-.home-side{
-  width: 360px;
-  flex: 0 0 360px;
-  margin-left: auto;
-
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.home-side .notice-panel{
-  width: 100%;
-  flex: none;
-  margin-left: 0;
-}
-
-.home-side .board-panel{
-  width: 100%;
-  flex: none;
-}
-
   .notice-title{
     font-size: 22px;
   }
@@ -623,10 +602,7 @@ nav, .navbar, .topbar{
     font-size: 14px;
   }
 
-  .faq-panel{
-    min-height: auto;
-    padding: 18px 14px 14px;
-  }
+
   .faq-title{
     font-size: 22px;
   }
@@ -699,6 +675,8 @@ html, body{
   }
   .menu::-webkit-scrollbar{ display:none; }
 
+
+
   /* ✅ 드롭다운 패널은 화면 위에 띄움 (부모 overflow 무시) */
   .mega-menu{
     position: fixed;          /* 핵심 */
@@ -726,4 +704,28 @@ html, body{
     font-size: 18px;
     margin-bottom: 12px;
   }
+}
+@media (max-width: 520px){
+  .home-side{
+    width: 100%;
+    flex: 1 1 auto;
+    margin-left: 0;
+  }
+}
+
+
+.home-side{
+  width: 360px;
+  flex: 0 0 360px;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-side .notice-panel,
+.home-side .board-panel{
+  width: 100%;
+  flex: none;
+  margin-left: 0;
 }
