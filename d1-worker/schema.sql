@@ -166,3 +166,42 @@ CREATE TABLE IF NOT EXISTS faqs (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+
+-- 자유게시판 글
+CREATE TABLE IF NOT EXISTS free_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  author_username TEXT,
+  author_nickname TEXT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  deleted INTEGER DEFAULT 0
+);
+
+-- 글 이미지 (R2 key 저장)
+CREATE TABLE IF NOT EXISTS free_post_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  file_name TEXT,
+  file_key TEXT NOT NULL,
+  content_type TEXT,
+  size INTEGER,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(post_id) REFERENCES free_posts(id)
+);
+
+-- 댓글
+CREATE TABLE IF NOT EXISTS free_post_comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  user_id INTEGER,
+  author_username TEXT,
+  author_nickname TEXT,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  deleted INTEGER DEFAULT 0,
+  FOREIGN KEY(post_id) REFERENCES free_posts(id)
+);

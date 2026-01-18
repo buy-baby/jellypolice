@@ -373,6 +373,129 @@ nav, .navbar, .topbar{
   text-decoration: underline;
 }
 
+/* ===== Free Board (preview + pages) ===== */
+.board-panel{
+  width: 360px;
+  background: #f7fbff;
+  border: 3px solid #9fd3e6;
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  margin-top: 16px;
+}
+
+.board-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 10px;
+}
+
+.board-title{
+  font-size: 22px;
+  font-weight: 900;
+  color:#111;
+}
+
+.board-more{
+  font-size: 15px;
+  font-weight: 800;
+  color:#1a4bd9;
+  text-decoration:none;
+}
+
+.board-preview{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.board-preview-item{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  padding: 10px 8px;
+  border-bottom: 1px dashed rgba(0,0,0,0.15);
+}
+
+.board-preview-item-title{
+  font-weight: 900;
+  color:#0b3fa7;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.board-preview-item-meta{
+  font-size: 12px;
+  color:#333;
+  opacity: 0.85;
+}
+
+.board-empty{
+  font-size: 14px;
+  color:#555;
+  padding: 10px 4px;
+}
+
+/* board pages */
+.board-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background:#1a4bd9;
+  color:#fff;
+  font-weight:900;
+  text-decoration:none;
+  border:0;
+  cursor:pointer;
+}
+.board-btn--ghost{
+  background:#eef2f9;
+  color:#111;
+}
+
+.board-row{
+  display:block;
+  padding: 12px 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 12px;
+  text-decoration:none;
+  color:inherit;
+  background:#fff;
+}
+.board-row-title{ font-weight: 900; color:#111; margin-bottom:6px; }
+.board-row-meta{ font-size: 13px; color:#444; opacity:0.85; display:flex; gap:6px; }
+
+.board-form input, .board-form textarea{
+  width:100%;
+  box-sizing:border-box;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.18);
+  font-family: inherit;
+}
+.board-form{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.board-upload{ padding: 10px 0; display:flex; flex-direction:column; gap:8px; }
+
+.board-post-meta{ font-size: 13px; color:#444; opacity:0.85; display:flex; gap:8px; margin: 6px 0 14px; }
+.board-post-content{ white-space:pre-wrap; line-height:1.6; }
+
+.board-comment-form{ display:flex; gap:10px; align-items:flex-start; }
+.board-comment-form textarea{
+  flex:1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.18);
+  font-family: inherit;
+}
+.board-comments{ margin-top: 12px; display:flex; flex-direction:column; gap:10px; }
+.board-comment{ border: 1px solid rgba(0,0,0,0.10); border-radius: 12px; padding: 12px; background:#fff; }
+.board-comment-head{ display:flex; justify-content:space-between; gap:10px; font-size: 13px; color:#333; opacity:0.9; margin-bottom: 6px; }
+.board-comment-body{ white-space:pre-wrap; line-height:1.5; }
+
+
 /* ============================================================
    ✅ 여기부터 "모바일에서 메인만 안 깨지게" 덮어쓰기 추가
    (PC 디자인은 그대로 유지)

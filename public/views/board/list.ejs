@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자유게시판</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/header.css">
+</head>
+<body>
+  <%- include("../partials/header") %>
+
+  <div class="container">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <h2 style="margin:0;">자유게시판</h2>
+      <a href="/board/write" class="board-btn">글 작성</a>
+    </div>
+
+    <div class="board-list" style="margin-top:14px;">
+      <% if (!posts || posts.length === 0) { %>
+        <div class="board-empty">등록된 글이 없습니다.</div>
+      <% } else { %>
+        <% posts.forEach(p => { %>
+          <a class="board-row" href="/board/<%= p.id %>">
+            <div class="board-row-title"><%= p.title %></div>
+            <div class="board-row-meta">
+              <span><%= p.author_nickname || p.author_username || "알 수 없음" %></span>
+              <span>·</span>
+              <span><%= (p.created_at || "").slice(0, 10) %></span>
+            </div>
+          </a>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:16px;">
+      <% if (page > 1) { %>
+        <a class="board-page" href="/board?page=<%= page - 1 %>">이전</a>
+      <% } %>
+      <a class="board-page" href="/board?page=<%= page + 1 %>">다음</a>
+    </div>
+  </div>
+</body>
+</html>

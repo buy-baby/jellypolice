@@ -431,6 +431,178 @@ router.put("/api/complaints/:id/status", async (req, env) => {
   return ok();
 });
 
+// ---- Free Board (자유게시판) ----
+
+// 목록
+router.get("/api/board/posts", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const url = new URL(req.url);
+  const limit = Math.min(Number(url.searchParams.get("limit") || 10), 30);
+  const offset = Math.max(Number(url.searchParams.get("offset") || 0), 0);
+
+  const { results } = await env.DB.prepare(`
+    SELECT id, user_id, author_username, author_nickname, title, created_at
+    FROM free_posts
+    WHERE deleted = 0
+    ORDER BY id DESC
+    LIMIT ? OFFSET ?
+  `).bind(limit, offset).all();
+
+  return json(results || []);
+});
+
+// 글 상세 (+ 이미지 + 댓글)
+router.get("/api/board/posts/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const post = await env.DB.prepare(`
+    SELECT id, user_id, author_username, author_nickname, title, content, created_at, updated_at
+    FROM free_posts
+    WHERE id = ? AND deleted = 0
+  `).bind(id).first();
+
+  if (!post) return json({ error: "not_found" }, { status: 404 });
+
+  const { results: images } = await env.DB.prepare(`
+    SELECT id, post_id, file_name, file_key, content_type, size, created_at
+    FROM free_post_images
+    WHERE post_id = ?
+    ORDER BY id ASC
+  `).bind(id).all();
+
+  const { results: comments } = await env.DB.prepare(`
+    SELECT id, post_id, user_id, author_username, author_nickname, content, created_at
+    FROM free_post_comments
+    WHERE post_id = ? AND deleted = 0
+    ORDER BY id ASC
+  `).bind(id).all();
+
+  return json({ post, images: images || [], comments: comments || [] });
+});
+
+// 글 작성 (id 먼저 생성)
+router.post("/api/board/posts", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const body = await readBody(req);
+  const user_id = body.user_id ?? null;
+  const author_username = (body.author_username || "").slice(0, 60);
+  const author_nickname = (body.author_nickname || "").slice(0, 60);
+
+  const title = (body.title || "").trim().slice(0, 120);
+  const content = (body.content || "").trim().slice(0, 20000);
+
+  if (!user_id || !title || !content) {
+    return json({ error: "required" }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+
+  const r = await env.DB.prepare(`
+    INSERT INTO free_posts(
+      user_id, author_username, author_nickname,
+      title, content, created_at, updated_at, deleted
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+  `).bind(
+    user_id, author_username, author_nickname,
+    title, content, now, now
+  ).run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+// 글 이미지 등록 (R2 업로드는 서버가 하고, key만 저장)
+router.post("/api/board/posts/:id/images", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const postId = Number(req.params.id);
+  if (!postId) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const items = Array.isArray(body.items) ? body.items : [];
+  if (items.length === 0) return ok();
+
+  const now = new Date().toISOString();
+
+  // 여러개 insert
+  for (const it of items.slice(0, 10)) {
+    const file_name = String(it.file_name || "").slice(0, 200);
+    const file_key = String(it.file_key || "").slice(0, 400);
+    const content_type = String(it.content_type || "").slice(0, 100);
+    const size = Number(it.size || 0) || 0;
+
+    if (!file_key) continue;
+
+    await env.DB.prepare(`
+      INSERT INTO free_post_images(post_id, file_name, file_key, content_type, size, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(postId, file_name, file_key, content_type, size, now).run();
+  }
+
+  return ok();
+});
+
+// 댓글 작성
+router.post("/api/board/posts/:id/comments", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const postId = Number(req.params.id);
+  if (!postId) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const user_id = body.user_id ?? null;
+  const author_username = (body.author_username || "").slice(0, 60);
+  const author_nickname = (body.author_nickname || "").slice(0, 60);
+
+  const content = (body.content || "").trim().slice(0, 2000);
+  if (!user_id || !content) return json({ error: "required" }, { status: 400 });
+
+  const now = new Date().toISOString();
+
+  const r = await env.DB.prepare(`
+    INSERT INTO free_post_comments(
+      post_id, user_id, author_username, author_nickname,
+      content, created_at, deleted
+    ) VALUES (?, ?, ?, ?, ?, ?, 0)
+  `).bind(postId, user_id, author_username, author_nickname, content, now).run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+// 글 삭제 (작성자 or admin 판단은 "서버"에서 하고, Worker는 그냥 삭제 처리)
+router.delete("/api/board/posts/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const now = new Date().toISOString();
+  await env.DB.prepare(`
+    UPDATE free_posts SET deleted = 1, updated_at = ? WHERE id = ?
+  `).bind(now, id).run();
+
+  return ok();
+});
+
+// 댓글 삭제 (서버에서 권한 검사)
+router.delete("/api/board/comments/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  await env.DB.prepare(`
+    UPDATE free_post_comments SET deleted = 1 WHERE id = ?
+  `).bind(id).run();
+
+  return ok();
+});
+
+
 // ---- Suggestions ----
 router.get("/api/suggestions", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();

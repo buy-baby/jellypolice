@@ -802,7 +802,17 @@ app.post("/admin/faqs/:id/delete", requireAdmin, async (req, res) => {
 // =========================
 app.get("/", async (req, res) => {
   try {
-    // 공지 (storage)
+    // board preview
+    let boardPreview = [];
+    try {
+      const r = await d1Api("GET", "/api/board/posts?limit=5&offset=0");
+      boardPreview = Array.isArray(r) ? r : [];
+  } catch (e) {
+      console.error("❌ board preview load error:", e?.message || e);
+      boardPreview = [];
+  }
+
+    // 공지
     let notices = [];
     try {
       notices = await listNotices(5);
@@ -811,7 +821,7 @@ app.get("/", async (req, res) => {
       notices = [];
     }
 
-    // FAQ (D1 Worker)
+    // FAQ
     let faqs = [];
     try {
       const result = await d1Api("GET", "/api/faqs?limit=5");
@@ -821,7 +831,7 @@ app.get("/", async (req, res) => {
       faqs = [];
     }
 
-    return res.render("main/main", { notices, faqs });
+    return res.render("main/main", { notices, faqs, boardPreview });
   } catch (e) {
     console.error("❌ main route fatal error:", e);
     return res.status(500).send("메인 페이지를 불러오지 못했습니다.");
@@ -1047,6 +1057,158 @@ app.post("/suggest", requireLogin, async (req, res) => {
     return res.status(500).send("건의 제출 중 오류가 발생했습니다.");
   }
 });
+
+// -------------------- Free Board Pages --------------------
+
+// 목록
+app.get("/board", requireLogin, async (req, res) => {
+  try {
+    const page = Math.max(Number(req.query.page || 1), 1);
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const posts = await d1Api("GET", `/api/board/posts?limit=${limit}&offset=${offset}`);
+
+    return res.render("board/list", {
+      posts: Array.isArray(posts) ? posts : [],
+      page,
+    });
+  } catch (e) {
+    console.error("❌ /board error:", e?.message || e);
+    return res.status(500).send("자유게시판을 불러오지 못했습니다.");
+  }
+});
+
+// 작성 페이지
+app.get("/board/write", requireLogin, (req, res) => {
+  res.render("board/write", { error: null, form: {} });
+});
+
+// ✅ 글 작성 (이미지 업로드: 최대 5장)
+app.post("/board/write", requireLogin, upload.array("images", 5), async (req, res) => {
+  try {
+    const title = (req.body.title || "").trim();
+    const content = (req.body.content || "").trim();
+
+    if (!title || !content) {
+      return res.render("board/write", { error: "제목/내용을 입력해주세요.", form: req.body });
+    }
+
+    const me = req.session.user;
+
+    // 1) 글 먼저 생성
+    const created = await d1Api("POST", "/api/board/posts", {
+      user_id: me.id,
+      author_username: me.username,
+      author_nickname: me.nickname,
+      title,
+      content,
+    });
+
+    const postId = created?.id;
+    if (!postId) throw new Error("post_create_failed");
+
+    // 2) 이미지 업로드 (이미지만 허용)
+    const items = [];
+    const files = Array.isArray(req.files) ? req.files : [];
+
+    for (const f of files) {
+      if (!f || !f.mimetype) continue;
+
+      // ✅ 이미지 MIME만 허용
+      if (!/^image\/(png|jpeg|jpg|webp|gif)$/.test(f.mimetype)) {
+        continue;
+      }
+
+      const safeName = (f.originalname || "image")
+        .replace(/[^\w.\-()]+/g, "_")
+        .slice(0, 120);
+
+      const key = `freeboard/${postId}/${Date.now()}-${safeName}`;
+
+      // R2 업로드
+      await r2.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: f.buffer,
+        ContentType: f.mimetype,
+      }));
+
+      items.push({
+        file_name: safeName,
+        file_key: key,
+        content_type: f.mimetype,
+        size: f.size || 0,
+      });
+    }
+
+    // 3) 이미지 메타 저장
+    if (items.length > 0) {
+      await d1Api("POST", `/api/board/posts/${postId}/images`, { items });
+    }
+
+    await auditLog(req, {
+      action: "board_post_create",
+      targetType: "free_post",
+      targetId: postId,
+      detail: { title, images: items.length },
+    });
+
+    return res.redirect(`/board/${postId}`);
+  } catch (e) {
+    console.error("❌ /board/write error:", e?.message || e);
+    return res.status(500).send("글 작성에 실패했습니다.");
+  }
+});
+
+// 상세
+app.get("/board/:id", requireLogin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const data = await d1Api("GET", `/api/board/posts/${id}`);
+
+    // data: { post, images, comments }
+    return res.render("board/view", {
+      post: data?.post || null,
+      images: data?.images || [],
+      comments: data?.comments || [],
+      me: req.session.user,
+    });
+  } catch (e) {
+    console.error("❌ /board/:id error:", e?.message || e);
+    return res.status(500).send("글을 불러오지 못했습니다.");
+  }
+});
+
+// 댓글 작성
+app.post("/board/:id/comment", requireLogin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const content = (req.body.content || "").trim();
+    if (!content) return res.redirect(`/board/${id}`);
+
+    const me = req.session.user;
+
+    await d1Api("POST", `/api/board/posts/${id}/comments`, {
+      user_id: me.id,
+      author_username: me.username,
+      author_nickname: me.nickname,
+      content,
+    });
+
+    await auditLog(req, {
+      action: "board_comment_create",
+      targetType: "free_post",
+      targetId: id,
+    });
+
+    return res.redirect(`/board/${id}`);
+  } catch (e) {
+    console.error("❌ comment error:", e?.message || e);
+    return res.status(500).send("댓글 작성에 실패했습니다.");
+  }
+});
+
 
 // =========================
 // 20) My Pages (중복 제거)
