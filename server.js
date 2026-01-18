@@ -684,10 +684,94 @@ app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
 });
 
 // ------------------------- Public Pages -------------------------
-app.get("/", async (_, res) => {
-  const notices = await listNotices(5);
-  res.render("main/main", { notices });
+app.get("/", async (req, res) => {
+  // notice
+  const notices = await getNoticesSomehow();
+
+  // faqs 
+  let faqs = [];
+  try {
+    const r = await db.prepare(
+      "SELECT id, title, content FROM faqs ORDER BY id DESC"
+    ).all();
+    faqs = r?.results ?? r ?? []; 
+  } catch (e) {
+    faqs = [];
+  }
+
+  res.render("main/main", { notices, faqs });
 });
+
+// ✅ 관리자 체크 미들웨어 (네 프로젝트에 맞게 조건만 바꿔줘)
+function requireAdmin(req, res, next) {
+  // 예시: req.session.user?.role === 'admin'
+  // 또는 req.user?.isAdmin === true
+  // 지금은 통과 처리(원하면 너 조건으로 바꿔)
+  return next();
+}
+
+/** 목록 + 추가 폼 */
+app.get("/admin/faqs", requireAdmin, async (req, res) => {
+  const r = await db.prepare(
+    "SELECT id, title, content, created_at FROM faqs ORDER BY id DESC"
+  ).all();
+  const faqs = r?.results ?? r ?? [];
+  res.render("admin/faqs/index", { faqs });
+});
+
+/** 추가 */
+app.post("/admin/faqs", requireAdmin, async (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) return res.redirect("/admin/faqs");
+
+  await db.prepare(
+    "INSERT INTO faqs (title, content, created_at, updated_at) VALUES (?, ?, datetime('now'), datetime('now'))"
+  ).bind(title.trim(), content.trim()).run?.()
+   ?? db.prepare(
+    "INSERT INTO faqs (title, content, created_at, updated_at) VALUES (?, ?, datetime('now'), datetime('now'))"
+  ).run(title.trim(), content.trim());
+
+  res.redirect("/admin/faqs");
+});
+
+/** 수정 페이지 */
+app.get("/admin/faqs/:id/edit", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const r = await db.prepare(
+    "SELECT id, title, content FROM faqs WHERE id = ?"
+  ).bind(id).first?.()
+   ?? db.prepare("SELECT id, title, content FROM faqs WHERE id = ?").get(id);
+
+  if (!r) return res.redirect("/admin/faqs");
+  res.render("admin/faqs/edit", { faq: r });
+});
+
+/** 수정 저장 */
+app.post("/admin/faqs/:id/edit", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  const { title, content } = req.body;
+
+  await db.prepare(
+    "UPDATE faqs SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?"
+  ).bind(title.trim(), content.trim(), id).run?.()
+   ?? db.prepare(
+    "UPDATE faqs SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(title.trim(), content.trim(), id);
+
+  res.redirect("/admin/faqs");
+});
+
+/** 삭제 */
+app.post("/admin/faqs/:id/delete", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+
+  await db.prepare("DELETE FROM faqs WHERE id = ?").bind(id).run?.()
+   ?? db.prepare("DELETE FROM faqs WHERE id = ?").run(id);
+
+  res.redirect("/admin/faqs");
+});
+
+
 
 app.get("/intro/agency", async (_, res) => {
   const data = await getAgency();

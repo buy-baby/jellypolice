@@ -339,6 +339,16 @@ nav, .navbar, .topbar{
   transform: translateY(-1px);
 }
 
+.faq-empty{
+  padding: 18px 14px;
+  border: 1px dashed rgba(0,0,0,0.18);
+  border-radius: 10px;
+  background: #f7fbff;
+  color: #333;
+  opacity: 0.85;
+}
+
+
 /* 약관 동의 */
 
 .agree-box {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ 수정</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/header.css">
+  <style>
+    .admin-wrap{ max-width: 900px; margin: 24px auto; padding: 0 18px; }
+    .admin-card{ background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:14px; padding:18px; box-shadow:0 10px 22px rgba(0,0,0,.06); }
+    .admin-title{ font-size:24px; font-weight:900; margin:0 0 12px; }
+    input, textarea{
+      width:100%; box-sizing:border-box; padding:12px; border-radius:10px;
+      border:1px solid rgba(0,0,0,.15); font-family: inherit;
+    }
+    textarea{ min-height: 200px; resize: vertical; }
+    .actions{ margin-top: 12px; display:flex; gap:10px; }
+    .btn{ padding:10px 14px; border-radius:10px; border:0; cursor:pointer; font-weight:900; text-decoration:none; }
+    .btn-primary{ background:#1a4bd9; color:#fff; }
+    .btn-ghost{ background:#eef2f9; color:#0b3fa7; }
+  </style>
+</head>
+<body class="page-admin">
+  <%- include("../../partials/header") %>
+
+  <div class="admin-wrap">
+    <div class="admin-card">
+      <h1 class="admin-title">FAQ 수정</h1>
+
+      <form action="/admin/faqs/<%= faq.id %>/edit" method="POST">
+        <div style="display:grid; gap:10px;">
+          <div>
+            <label><b>제목</b></label>
+            <input name="title" value="<%= faq.title %>" required />
+          </div>
+          <div>
+            <label><b>내용</b></label>
+            <textarea name="content" required><%= faq.content %></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">저장</button>
+          <a class="btn btn-ghost" href="/admin/faqs">목록</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

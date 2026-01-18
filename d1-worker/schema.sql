@@ -158,3 +158,11 @@ DROP TABLE suggestions;
 ALTER TABLE suggestions_new RENAME TO suggestions;
 
 COMMIT;
+
+CREATE TABLE IF NOT EXISTS faqs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
