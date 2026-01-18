@@ -12,14 +12,30 @@
   <div class="intro-container">
     <h1 class="page-title"><%= data.title %></h1>
 
-    <% data.teams.forEach(t => { %>
-  <div class="dept-box">
-    <img class="dept-logo" src="<%= t.logo %>" alt="<%= t.name %> 로고">
-    <div class="dept-title"><%= t.name %></div>
-    <div class="dept-text"><%= (t.desc || t.description || "") %></div>
-  </div>
-<% }) %>
+    <% 
+      const logoMap = {
+        "인사팀": "/images/departments/hr.png",
+        "감사팀": "/images/departments/audit.png",
+        "특수 검거 기동대(SCP)": "/images/departments/scp.png",
+        "특공대(SOU)": "/images/departments/sou.png",
+        "항공팀(ASU)": "/images/departments/asu.png",
+      };
+    %>
 
+    <% data.teams.forEach(t => { 
+      const logoSrc = (t.logo && String(t.logo).trim()) || logoMap[t.name] || "/images/departments/default.png";
+    %>
+      <div class="dept-box">
+        <img
+          class="dept-logo"
+          src="<%= logoSrc %>"
+          alt="<%= t.name %> 로고"
+          onerror="this.onerror=null;this.src='/images/departments/default.png';"
+        />
+        <div class="dept-title"><%= t.name %></div>
+        <div class="dept-text"><%= (t.desc || t.description || "") %></div>
+      </div>
+    <% }) %>
   </div>
 
 </body>

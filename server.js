@@ -1372,6 +1372,11 @@ app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
   res.redirect("/intro/agency");
 });
 
+app.get("/admin/edit/department", requireAdmin, async (req, res) => {
+  const data = await getDepartment();
+  return res.render("admin/edit_department", { data });
+});
+
 app.post("/admin/edit/department", requireAdmin, async (req, res) => {
   const rawTeams = Object.values(req.body.teams || {});
 
