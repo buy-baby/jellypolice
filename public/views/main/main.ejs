@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>젤리 경찰청</title>
 
-  <!-- 외부 CSS -->
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/header.css">
 </head>
@@ -20,21 +19,17 @@
     <!-- 소개 -->
     <div class="mega-dropdown">
       <a class="menu-btn">소개 <span class="arrow">▼</span></a>
-
       <div class="mega-menu">
         <div class="mega-title">소개</div>
-
         <div class="mega-grid">
           <div class="mega-card" onclick="location.href='/intro/agency'">
             <h4>경찰청 소개</h4>
             <p>젤리 경찰청의 역할과 기능</p>
           </div>
-
           <div class="mega-card" onclick="location.href='/intro/rank'">
             <h4>직급표</h4>
             <p>경찰 계급 및 구조 안내</p>
           </div>
-
           <div class="mega-card" onclick="location.href='/intro/department'">
             <h4>부서 소개</h4>
             <p>각 부서의 업무와 역할 설명</p>
@@ -46,16 +41,13 @@
     <!-- 채용공고 -->
     <div class="mega-dropdown">
       <a class="menu-btn">채용공고 <span class="arrow">▼</span></a>
-
       <div class="mega-menu">
         <div class="mega-title">채용공고</div>
-
         <div class="mega-grid">
           <div class="mega-card" onclick="location.href='/apply/conditions'">
             <h4>지원 자격</h4>
             <p>지원 가능한 조건 안내</p>
           </div>
-
           <div class="mega-card" onclick="location.href='/apply/apply'">
             <h4>지원서 작성</h4>
             <p>온라인 지원서를 작성하세요</p>
@@ -67,16 +59,13 @@
     <!-- 고객센터 -->
     <div class="mega-dropdown">
       <a class="menu-btn">고객센터 <span class="arrow">▼</span></a>
-
       <div class="mega-menu">
         <div class="mega-title">고객센터</div>
-
         <div class="mega-grid">
           <div class="mega-card" onclick="location.href='/inquiry'">
             <h4>민원실</h4>
             <p>민원을 접수하고 처리 현황 확인</p>
           </div>
-
           <div class="mega-card" onclick="location.href='/suggest'">
             <h4>건의실</h4>
             <p>개선 의견을 전달할 수 있습니다</p>
@@ -88,44 +77,12 @@
   </nav>
 
   <!-- ============================ 중앙 화면 =========================== -->
-
   <div class="home-wrap home-wrap--responsive">
 
-    <!-- ✅ 중앙(FAQ 영역) -->
-    <div class="home-main">
-
-      <section class="faq-panel home-faq">
-        <div class="faq-head">
-          <div class="faq-title">자주 묻는 질문 (FAQ)</div>
-          <div class="faq-desc">자주 문의되는 내용을 정리했습니다.</div>
-        </div>
-
-        <div class="faq-list">
-          <% if (!faqs || faqs.length === 0) { %>
-            <div class="faq-empty">등록된 FAQ가 없습니다.</div>
-          <% } else { %>
-            <% (faqs || []).slice(0,5).forEach((item, idx) => { %>
-              <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
-                <summary class="faq-q">
-                  <span class="faq-bullet">▶</span>
-                  <span class="faq-q-text"><%= item.title %></span>
-                  <span class="faq-arrow">›</span>
-                </summary>
-                <div class="faq-a"><%= item.content %></div>
-              </details>
-            <% }) %>
-          <% } %>
-        </div>
-      </section>
-
-      <!-- 기존 스페이서(PC에서는 0으로, 모바일에서만 약간 여백) -->
-      <div class="home-spacer"></div>
-    </div>
-
-    <!-- ✅ 오른쪽 컬럼: 공지 + 자유게시판을 세로로 쌓기 -->
+    <!-- ✅ 왼쪽 컬럼: 공지 + 자유게시판 -->
     <aside class="home-side">
 
-      <!-- ✅ 공지사항 -->
+      <!-- 공지사항 -->
       <section class="notice-panel home-notice">
         <div class="notice-head">
           <div class="notice-title">공지사항</div>
@@ -146,7 +103,7 @@
         </div>
       </section>
 
-      <!-- ✅ 자유게시판 (공지 바로 아래, 같은 폭) -->
+      <!-- 자유 게시판(프리뷰) -->
       <section class="board-panel">
         <div class="board-head">
           <div class="board-title">자유 게시판</div>
@@ -170,6 +127,36 @@
       </section>
 
     </aside>
+
+    <!-- ✅ 오른쪽: FAQ -->
+    <main class="home-main">
+      <section class="faq-panel home-faq">
+        <div class="faq-head">
+          <div class="faq-title">자주 묻는 질문 (FAQ)</div>
+          <div class="faq-desc">자주 문의되는 내용을 정리했습니다.</div>
+        </div>
+
+        <div class="faq-list">
+          <% if (!faqs || faqs.length === 0) { %>
+            <div class="faq-empty">등록된 FAQ가 없습니다.</div>
+          <% } else { %>
+            <% faqs.slice(0,5).forEach((item, idx) => { %>
+              <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
+                <summary class="faq-q">
+                  <span class="faq-bullet">▶</span>
+                  <span class="faq-q-text"><%= item.title %></span>
+                  <span class="faq-arrow">›</span>
+                </summary>
+                <div class="faq-a"><%= item.content %></div>
+              </details>
+            <% }) %>
+          <% } %>
+        </div>
+      </section>
+
+      <div class="home-spacer"></div>
+    </main>
+
   </div>
 
   <!-- 드롭다운 JS -->

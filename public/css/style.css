@@ -5,7 +5,6 @@ body {
   background: #f6f9ff;
 }
 
-
 /* 메뉴 바 */
 .menu {
   width: 100%;
@@ -13,10 +12,10 @@ body {
   padding: 16px 0;
 
   display: flex;
-  justify-content: center;   /* 가로 중앙 정렬 */
+  justify-content: center;
   align-items: center;
 
-  gap: 120px;                  /* 메뉴 간 거리 */
+  gap: 120px;
   position: relative;
   z-index: 2000;
 }
@@ -36,14 +35,14 @@ body {
 }
 
 .mega-dropdown {
-  position: static;   /* 여기서 부모 기준 positioning 제거 */
+  position: static;
 }
 
 .mega-menu {
   position: absolute;
   top: 100%;
-  left: 50%;                     /* 화면 중앙 기준 */
-  transform: translateX(-50%);   /* 중앙 정렬 */
+  left: 50%;
+  transform: translateX(-50%);
 
   width: 900px;
   max-width: 90%;
@@ -55,7 +54,7 @@ body {
   opacity: 0;
   pointer-events: none;
 
-  display: block;                /* flex 금지 → 세로 찌그러짐 방지 */
+  display: block;
   z-index: 2500;
 }
 .mega-menu.show {
@@ -63,8 +62,7 @@ body {
   pointer-events: auto;
 }
 
-
-/* 🔥 제목이 전체 가로 다 쓰도록 */
+/* 제목 */
 .mega-title {
   width: 100%;
   text-align: left;
@@ -74,14 +72,13 @@ body {
   color: #0b3fa7;
 }
 
-/* 🔥 카드 3개도 전체폭에서 균등하게 정렬 */
+/* 카드 그리드 */
 .mega-grid {
-  width: 100%;           /* ← 이게 핵심 */
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
 }
-
 
 /* 카드 */
 .mega-card {
@@ -91,19 +88,15 @@ body {
   transition: 0.2s;
   cursor: pointer;
 }
-
 .mega-card:hover {
   background: #dbe5f5;
   transform: translateY(-3px);
 }
-
-
 .mega-card h4 {
   margin: 0 0 10px;
   color: #1a4bd9;
   font-size: 18px;
 }
-
 .mega-card p {
   margin: 0;
   font-size: 14px;
@@ -119,76 +112,87 @@ body {
   border-radius: 8px;
 }
 
+/* =========================   중앙 화면(홈)   ========================= */
 
-/* =========================   중앙 화면   ========================= */
-
-.home-wrap{
+.home-wrap {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+
   display: flex;
   gap: 28px;
   align-items: flex-start;
+
   padding: 24px 18px;
   z-index: 1;
   position: relative;
 }
 
-.home-main{
+/* ✅ 왼쪽 컬럼: 공지 + 게시판 */
+.home-side {
+  width: 360px;
+  flex: 0 0 360px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* 공지-게시판 간격 살짝 */
+}
+
+/* ✅ 오른쪽(FAQ 영역) */
+.home-main {
   flex: 1;
   min-width: 0;
   min-height: 0;
+
+  /* "진짜 살짝만" 폭 줄이기 */
+  max-width: 980px; /* 원하면 940~1020 사이로 조절 */
 }
 
-nav, .navbar, .topbar{
+nav, .navbar, .topbar {
   position: relative;
   z-index: 2000;
 }
 
 /* =========================   공지 박스   ========================= */
 
-.notice-panel{
-  width: 360px;
-  min-height: 320px;            /* ✅ 왼쪽 위 “작게” 보이게 최소 높이 축소 */
+.notice-panel {
+  width: 100%;
+  min-height: 320px;
   background: #f7fbff;
   border: 3px solid #9fd3e6;
   border-radius: 16px;
   padding: 18px 18px 14px;
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
-
-  /* ✅ 왼쪽에 고정 */
-  margin-left: 0;
-  flex: 0 0 360px;
 }
 
-.notice-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.notice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 14px;
 }
 
-.notice-title{
+.notice-title {
   font-size: 28px;
   font-weight: 800;
   color: #111;
   letter-spacing: -1px;
 }
 
-.notice-more{
+.notice-more {
   font-size: 16px;
   font-weight: 700;
   color: #1a4bd9;
   text-decoration: none;
 }
 
-.notice-list{
-  display:flex;
-  flex-direction:column;
+.notice-list {
+  display: flex;
+  flex-direction: column;
   gap: 14px;
 }
 
-.notice-item{
+.notice-item {
   padding: 10px 6px;
   border-bottom: 1px dashed rgba(0,0,0,0.15);
   display: block;
@@ -196,182 +200,38 @@ nav, .navbar, .topbar{
   text-decoration: none;
 }
 
-.notice-item:hover {
-  text-decoration: none;
-}
+.notice-item:hover { text-decoration: none; }
 
-.notice-item-title{
+.notice-item-title {
   font-weight: 800;
   font-size: 15px;
-  color:#111;
+  color: #111;
   margin-bottom: 6px;
 }
 
-.notice-item-snippet{
+.notice-item-snippet {
   font-size: 13px;
-  color:#333;
+  color: #333;
   opacity: 0.85;
   line-height: 1.4;
 }
 
-.notice-empty{
+.notice-empty {
   font-size: 14px;
-  color:#555;
+  color: #555;
   padding: 10px 4px;
 }
 
-/* =========================   FAQ 박스 (메인)   ========================= */
+/* =========================   자유 게시판 패널(공지와 같은 카드 스타일)   ========================= */
 
-.faq-panel{
+.board-panel {
   width: 100%;
-  min-height: 420;
-  background: #ffffff;
+  min-height: 320px;
+  background: #f7fbff;
   border: 3px solid #9fd3e6;
   border-radius: 16px;
-  padding: 22px 22px 18px;
+  padding: 18px 18px 14px;
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
-}
-
-
-.faq-head{
-  margin-bottom: 14px;
-}
-
-.faq-title{
-  font-size: 28px;
-  font-weight: 900;
-  color: #111;
-  letter-spacing: -1px;
-  margin-bottom: 6px;
-}
-
-.faq-desc{
-  font-size: 14px;
-  color: #333;
-  opacity: 0.85;
-}
-
-.faq-list{
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.faq-item{
-  border: 1px solid rgba(0,0,0,0.12);
-  border-radius: 10px;
-  background: #f7fbff;
-  overflow: hidden;
-}
-
-.faq-q{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 14px;
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-}
-
-.faq-q::-webkit-details-marker{ display: none; }
-
-.faq-bullet{
-  color: #1a4bd9;
-  font-weight: 900;
-  font-size: 12px;
-  transform: translateY(-1px);
-}
-
-.faq-q-text{
-  flex: 1;
-  font-size: 16px;
-  font-weight: 800;
-  color: #0b3fa7;
-}
-
-.faq-arrow{
-  color: #1a4bd9;
-  font-size: 22px;
-  font-weight: 900;
-  opacity: 0.8;
-}
-
-.faq-a{
-  padding: 0 14px 14px 36px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #222;
-  opacity: 0.92;
-}
-
-.faq-footer{
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0,0,0,0.10);
-  display: flex;
-  justify-content: center;
-}
-
-.faq-cta{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-
-  min-width: 260px;
-  padding: 12px 18px;
-  border-radius: 10px;
-
-  color: #fff;
-  text-decoration: none;
-  font-weight: 900;
-  font-size: 16px;
-
-  background: linear-gradient(180deg, #2a66ff, #0b3fa7);
-  box-shadow: 0 10px 18px rgba(11,63,167,0.25);
-}
-
-.faq-cta:hover{ filter: brightness(1.05); }
-
-.faq-cta-arrow{
-  font-size: 22px;
-  transform: translateY(-1px);
-}
-
-.faq-empty{
-  padding: 18px 14px;
-  border: 1px dashed rgba(0,0,0,0.18);
-  border-radius: 10px;
-  background: #f7fbff;
-  color: #333;
-  opacity: 0.85;
-}
-
-
-/* 약관 동의 */
-
-.agree-box {
-  margin: 14px 0 20px;
-  font-size: 14px;
-}
-
-.agree-box label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.agree-box a {
-  color: #1a4bd9;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.agree-box a:hover {
-  text-decoration: underline;
 }
 
 .board-head{
@@ -427,7 +287,124 @@ nav, .navbar, .topbar{
   padding: 10px 4px;
 }
 
-/* board pages */
+/* =========================   FAQ 박스 (오른쪽)   ========================= */
+
+.faq-panel{
+  width: 100%;
+  min-height: 420px; /* ✅ px 단위 누락 버그 수정 */
+  background: #ffffff;
+  border: 3px solid #9fd3e6;
+  border-radius: 16px;
+  padding: 22px 22px 18px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+}
+
+.faq-head{ margin-bottom: 14px; }
+
+.faq-title{
+  font-size: 28px;
+  font-weight: 900;
+  color: #111;
+  letter-spacing: -1px;
+  margin-bottom: 6px;
+}
+
+.faq-desc{
+  font-size: 14px;
+  color: #333;
+  opacity: 0.85;
+}
+
+.faq-list{
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item{
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  background: #f7fbff;
+  overflow: hidden;
+}
+
+.faq-q{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.faq-q::-webkit-details-marker{ display: none; }
+
+.faq-bullet{
+  color: #1a4bd9;
+  font-weight: 900;
+  font-size: 12px;
+  transform: translateY(-1px);
+}
+
+.faq-q-text{
+  flex: 1;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0b3fa7;
+}
+
+.faq-arrow{
+  color: #1a4bd9;
+  font-size: 22px;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+.faq-a{
+  padding: 0 14px 14px 36px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+  opacity: 0.92;
+}
+
+.faq-empty{
+  padding: 18px 14px;
+  border: 1px dashed rgba(0,0,0,0.18);
+  border-radius: 10px;
+  background: #f7fbff;
+  color: #333;
+  opacity: 0.85;
+}
+
+/* 스페이서 */
+.home-spacer{ height: 0; }
+@media (max-width: 520px){
+  .home-spacer{ height: 12px; }
+}
+
+/* =========================   약관 동의   ========================= */
+
+.agree-box {
+  margin: 14px 0 20px;
+  font-size: 14px;
+}
+.agree-box label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.agree-box a {
+  color: #1a4bd9;
+  font-weight: 700;
+  text-decoration: none;
+}
+.agree-box a:hover { text-decoration: underline; }
+
+/* ========================= board pages (기존 유지) ========================= */
+
 .board-btn{
   display:inline-flex;
   align-items:center;
@@ -441,10 +418,7 @@ nav, .navbar, .topbar{
   border:0;
   cursor:pointer;
 }
-.board-btn--ghost{
-  background:#eef2f9;
-  color:#111;
-}
+.board-btn--ghost{ background:#eef2f9; color:#111; }
 
 .board-row{
   display:block;
@@ -505,184 +479,65 @@ nav, .navbar, .topbar{
   display:block;
 }
 
+/* =========================   모바일(정리해서 1번만)   ========================= */
 
+/* 모바일 header overflow fix */
+html, body{
+  width: 100%;
+  overflow-x: hidden;
+}
+.site-header{ width: 100%; }
+.header-inner{ width: 100%; box-sizing: border-box; }
 
-/* ============================================================
-   ✅ 여기부터 "모바일에서 메인만 안 깨지게" 덮어쓰기 추가
-   (PC 디자인은 그대로 유지)
-============================================================ */
-
-/* 1) 헤더(파란 상단바)도 모바일에서 글씨/패딩 살짝 줄이기 */
+/* 헤더(900px 이하) */
 @media (max-width: 900px){
   .header-inner{
     padding: 16px 16px;
     gap: 10px;
   }
-  .site-logo{
-    height: 38px;
-  }
-  .site-title{
-    font-size: 18px;
-  }
+  .site-logo{ height: 38px; }
+  .site-title{ font-size: 18px; }
   .account-btn{
     font-size: 14px;
     padding: 8px 10px;
   }
 }
 
-/* 2) 메인 메뉴(소개/채용공고/고객센터) 줄바꿈 방지 + 공지패널/레이아웃 모바일 최적화 */
+/* 메인/메뉴/드롭다운 모바일 (520px 이하) */
 @media (max-width: 520px){
 
-  /* (A) 메뉴바: 1줄 유지 + 좌우 스크롤(줄바꿈 방지) */
+  /* 메뉴바: 1줄 유지 + 좌우 스크롤 */
   .menu{
     justify-content: flex-start;
     gap: 10px;
     padding: 10px 12px;
-
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
   }
-  .menu::-webkit-scrollbar{ display: none; }
+  .menu::-webkit-scrollbar{ display:none; }
 
-  .mega-dropdown{
-    flex: 0 0 auto;
-  }
+  .mega-dropdown{ flex: 0 0 auto; }
 
   .menu .menu-btn{
     display: inline-flex;
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-
     font-size: 14px;
     padding: 12px 14px;
     border-radius: 12px;
   }
 
-  .arrow{
-    font-size: 12px;
-  }
+  .arrow{ font-size: 12px; }
 
-  /* (B) 드롭다운(mega-menu) 모바일에서 1열로 바꿔서 안 찌그러지게 */
+  /* ✅ 드롭다운 패널은 fixed로 띄움(overflow 영향 없음) */
   .mega-menu{
-    width: calc(100% - 24px);
-    max-width: 520px;
+    position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    padding: 18px 16px;
-    border-radius: 16px;
-  }
-
-  .mega-title{
-    font-size: 18px;
-    margin-bottom: 12px;
-  }
-
-  .mega-grid{
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .mega-card{
-    padding: 14px;
-  }
-
-  /* (C) 메인 중앙 레이아웃: 2열 → 세로로 쌓기 */
-  .home-wrap{
-    flex-direction: column;
-    gap: 14px;
-    padding: 14px 12px;
-  }
-
-  .notice-title{
-    font-size: 22px;
-  }
-  .notice-more{
-    font-size: 14px;
-  }
-
-
-  .faq-title{
-    font-size: 22px;
-  }
-  .faq-q-text{
-    font-size: 15px;
-  }
-}
-
-/* ===== Mobile: mega dropdown visible fix ===== */
-@media (max-width: 520px){
-
-  /* 드롭다운 기준을 각 메뉴 항목으로 잡기 */
-  .mega-dropdown{
-    position: relative;  /* 기존 static -> 모바일에서만 relative */
-  }
-
-  /* 드롭다운을 '해당 메뉴 아래'에 붙여서 내려오게 */
-  .mega-menu{
-    left: 0;
-    right: auto;
-    transform: none;
-
-    width: 92vw;         /* 화면에 맞게 */
-    max-width: 92vw;
-
-    top: calc(100% + 10px);
-    z-index: 99999;      /* 무조건 맨 위 */
-  }
-
-  /* 메뉴바가 스크롤 컨테이너라 드롭다운이 잘릴 수 있어서 */
-  .menu{
-    overflow-x: auto;
-    overflow-y: visible; /* 세로는 보이게 */
-  }
-}
-
-/* ===== Mobile: header full-width & overflow fix ===== */
-html, body{
-  width: 100%;
-  overflow-x: hidden;
-}
-
-.site-header{
-  width: 100%;
-}
-
-.header-inner{
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.home-spacer{ height: 0; }
-
-@media (max-width: 520px){
-  .home-spacer{ height: 12px; }
-}
-
-/* ===== Mobile: mega dropdown FIX (overflow에 안 잘리게 fixed) ===== */
-@media (max-width: 520px){
-
-  /* 메뉴바는 가로 스크롤 유지 */
-  .menu{
-    justify-content: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
-
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-  }
-  .menu::-webkit-scrollbar{ display:none; }
-
-
-
-  /* ✅ 드롭다운 패널은 화면 위에 띄움 (부모 overflow 무시) */
-  .mega-menu{
-    position: fixed;          /* 핵심 */
-    left: 50%;
-    transform: translateX(-50%);
-    top: 132px;               /* 헤더+메뉴 아래쯤(필요시 120~150 조절) */
+    top: 132px;
 
     width: calc(100% - 24px);
     max-width: 520px;
@@ -690,42 +545,42 @@ html, body{
     padding: 18px 16px;
     border-radius: 16px;
     box-shadow: 0 18px 40px rgba(0,0,0,0.18);
-
-    z-index: 999999;          /* 무조건 맨 위 */
-  }
-
-  /* 모바일에서는 카드 1열 */
-  .mega-grid{
-    grid-template-columns: 1fr;
-    gap: 12px;
+    z-index: 999999;
   }
 
   .mega-title{
     font-size: 18px;
     margin-bottom: 12px;
   }
-}
-@media (max-width: 520px){
+  .mega-grid{
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .mega-card{ padding: 14px; }
+
+  /* 홈 레이아웃: 세로 스택 */
+  .home-wrap{
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 12px;
+  }
+
   .home-side{
     width: 100%;
     flex: 1 1 auto;
-    margin-left: 0;
   }
-}
 
+  .notice-title{ font-size: 22px; }
+  .notice-more{ font-size: 14px; }
 
-.home-side{
-  width: 360px;
-  flex: 0 0 360px;
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+  .board-panel{
+    min-height: 200px;
+  }
 
-.home-side .notice-panel,
-.home-side .board-panel{
-  width: 100%;
-  flex: none;
-  margin-left: 0;
+  .faq-title{ font-size: 22px; }
+  .faq-q-text{ font-size: 15px; }
+
+  .home-main{
+    max-width: none;
+  }
 }
