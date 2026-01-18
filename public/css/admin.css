@@ -1,3 +1,6 @@
+/* =========================
+   Base
+========================= */
 body {
   font-family: "Noto Sans KR", sans-serif;
   background: #f6f9ff;
@@ -10,6 +13,9 @@ h1 {
   color: #003c8f;
 }
 
+/* =========================
+   Tables
+========================= */
 .list-table {
   width: 90%;
   margin: 20px auto;
@@ -30,6 +36,9 @@ h1 {
   color: white;
 }
 
+/* =========================
+   Boxes / Common
+========================= */
 .info-box {
   width: 60%;
   margin: 40px auto;
@@ -60,25 +69,41 @@ h1 {
 .delete-btn {
   background: #c62828;
 }
+.delete-btn:hover { background: #9b1f1f; }
+.back-btn:hover { background: #002d66; }
 
-.delete-btn:hover {
-  background: #9b1f1f;
+.btn-edit{
+  display:inline-block;
+  background:#003c8f;
+  color:#fff;
+  padding:10px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  font-weight:700;
 }
+.btn-edit:hover{ background:#002d66; }
 
-.back-btn:hover {
-  background: #002d66;
-}
-
+/* =========================
+   Admin Main Layout
+========================= */
 .admin-container {
   width: 80%;
   margin: 60px auto;
   text-align: center;
 }
 
+/* ✅ 기존: 1줄 3개 그리드 */
+/* ✅ 개선: 화면 좁아지면 자동 줄바꿈 */
 .admin-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 260px);
   justify-content: center;
   gap: 60px;
+}
+
+/* ✅ 2번째 줄은 위에 살짝 간격만 */
+.admin-grid--second{
+  margin-top: 34px;
 }
 
 .admin-box {
@@ -90,6 +115,7 @@ h1 {
   text-decoration: none;
   color: black;
   transition: 0.25s;
+  cursor: pointer;
 }
 
 .admin-box:hover {
@@ -110,44 +136,59 @@ h1 {
   font-size: 15px;
 }
 
-/* 관리자 페이지 */
-.admin-title {
-  text-align: center;
-  font-size: 32px;
-  margin: 40px 0;
+/* ✅ "기능 추가 중" 비활성 */
+.admin-box--disabled{
+  opacity: 0.65;
+  cursor: default;
+  pointer-events: none;
+}
+.admin-box--disabled:hover{
+  transform: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* =========================
+   Admin Edit Area (moved bottom)
+========================= */
+.admin-edit-box {
+  width: 70%;
+  margin: 60px auto 0;
+  background: #f2f5fc;
+  padding: 35px 40px;
+  border-radius: 18px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.15);
+}
+
+.admin-edit-title {
+  font-size: 26px;
+  margin-bottom: 25px;
   color: #003c8f;
+  font-weight: 700;
 }
 
-/* 상단 박스 */
-.admin-top {
+.admin-edit-buttons {
   display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 60px;
-  flex-wrap:wrap;
+  justify-content: space-around;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
-.admin-card.small {
-  width: 180px;
-  height: 90px;
-  background: #eef2f9;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
+.edit-btn {
+  width: 160px;
+  padding: 14px 0;
+  background: #003c8f;
+  color: white;
+  font-size: 18px;
   font-weight: bold;
-  color: #003c8f;
+  text-align: center;
+  border-radius: 10px;
   text-decoration: none;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  transition: transform 0.2s;
 }
+.edit-btn:hover { background: #002b6a; }
 
-.admin-card.small:hover {
-  transform: translateY(-4px);
-}
-
-/* ===== Admin Card List (Inquiry/Suggest) ===== */
+/* =========================
+   Admin Page Title / Cards list (Inquiry/Suggest)
+========================= */
 .admin-page-title{
   display:flex;
   align-items:center;
@@ -247,10 +288,6 @@ h1 {
   white-space: nowrap;
 }
 
-.admin-card-meta .v.ell{
-  max-width: 72%;
-}
-
 .admin-card-bottom{
   display:flex;
   justify-content:flex-end;
@@ -262,66 +299,9 @@ h1 {
   color:#1d4ed8;
 }
 
-@media (max-width: 900px){
-  .admin-cards{ grid-template-columns: 1fr; }
-  .admin-page-title h1{ font-size: 26px; }
-}
-
-
-/* 소개 수정 영역 */
-.admin-edit-box {
-  width: 70%;
-  margin: 0 auto;
-  background: #f2f5fc;
-  padding: 35px 40px;
-  border-radius: 18px;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.15);
-}
-
-.admin-edit-title {
-  font-size: 26px;
-  margin-bottom: 25px;
-  color: #003c8f;
-  font-weight: 700;
-}
-
-.admin-edit-buttons {
-  display: flex;
-  justify-content: space-around;
-}
-
-.edit-btn {
-  width: 160px;
-  padding: 14px 0;
-  background: #003c8f;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 10px;
-  text-decoration: none;
-}
-
-.edit-btn:hover {
-  background: #002b6a;
-}
-
-.btn-edit{
-  display:inline-block;
-  background:#003c8f;
-  color:#fff;
-  padding:10px 14px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:700;
-}
-.btn-edit:hover{ background:#002d66; }
-
-
 /* =========================
-   관리자 상세(민원/건의) 레이아웃
+   Detail (Inquiry/Suggest)
 ========================= */
-
 .detail-title-row{
   display:flex;
   justify-content:center;
@@ -329,10 +309,7 @@ h1 {
   gap:10px;
   margin-top: 10px;
 }
-
-.detail-title-row h1{
-  margin: 0;
-}
+.detail-title-row h1{ margin: 0; }
 
 .detail-actions{
   text-align:center;
@@ -361,13 +338,11 @@ h1 {
   gap: 8px 10px;
   align-items:center;
 }
-
 .detail-k{
   text-align:right;
   font-weight:800;
   color:#111;
 }
-
 .detail-v{
   font-weight:800;
   color:#003c8f;
@@ -398,17 +373,46 @@ h1 {
   border: 1px solid rgba(0,0,0,0.08);
 }
 
-
-@media (max-width: 900px){
-  .detail-content-wrap{ width: 92%; }
+/* Detail 2-box */
+.detail-top-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  margin:14px 0;
+  flex-wrap:wrap;
 }
 
+.detail-status-form{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
 
+.detail-mini-row{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  align-items:stretch;
+  flex-wrap:wrap;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.detail-mini-box{
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  margin: 0 auto;
+  background: #f0f4ff;
+  padding: 16px 18px;
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+}
 
 /* =========================
-   /admin/users (유저 관리)
+   Users
 ========================= */
-
 .users-container{
   max-width: 1100px;
   margin: 40px auto;
@@ -436,10 +440,7 @@ h1 {
   color:#1a4bd9;
   text-decoration:none;
 }
-
-.users-link:hover{
-  text-decoration: underline;
-}
+.users-link:hover{ text-decoration: underline; }
 
 .users-table-wrap{
   width: 100%;
@@ -454,9 +455,7 @@ h1 {
   background:#fff;
 }
 
-.users-table thead tr{
-  background:#f7fbff;
-}
+.users-table thead tr{ background:#f7fbff; }
 
 .users-table th{
   padding:10px;
@@ -498,53 +497,45 @@ h1 {
   font-weight:900;
   cursor:pointer;
 }
-
-.users-save-btn:hover{
-  filter: brightness(0.95);
-}
+.users-save-btn:hover{ filter: brightness(0.95); }
 
 .mono{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-
 /* =========================
-   관리자 상세(민원/건의) 2박스
+   Responsive
 ========================= */
-
-.detail-top-actions{
-  display:flex;
-  gap:12px;
-  justify-content:center;
-  align-items:center;
-  margin:14px 0;
-  flex-wrap:wrap;
+@media (max-width: 1100px){
+  .admin-container{ width: 92%; }
+  .admin-grid{
+    grid-template-columns: repeat(2, 260px);
+    gap: 30px;
+  }
 }
 
-.detail-status-form{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
+@media (max-width: 740px){
+  body{ padding: 18px; }
+  .admin-grid{
+    grid-template-columns: 1fr;
+  }
+  .admin-box{
+    width: min(420px, 100%);
+    margin: 0 auto;
+  }
+  .admin-edit-box{
+    width: 92%;
+    padding: 26px 18px;
+  }
+  .admin-edit-buttons{
+    justify-content:center;
+  }
+  .edit-btn{
+    width: min(360px, 100%);
+  }
 
-.detail-mini-row{
-  display:flex;
-  gap:8px;          
-  justify-content:center;
-  align-items:stretch;
-  flex-wrap:wrap;
+  .admin-cards{ grid-template-columns: 1fr; }
+  .admin-page-title h1{ font-size: 26px; }
 
-  max-width: 720px;   
-  margin: 0 auto;   
-}
-
-.detail-mini-box{
-  width: 360px;
-  max-width: calc(100vw - 40px);
-  margin: 0 auto;
-  background: #f0f4ff;
-  padding: 16px 18px;
-  border-radius: 12px;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+  .detail-content-wrap{ width: 92%; }
 }

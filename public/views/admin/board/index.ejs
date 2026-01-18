@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>게시판 관리</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/admin_header.css">
+</head>
+
+<body>
+  <%- include("../partials/admin_header") %>
+
+  <div class="users-container">
+    <div class="admin-page-title">
+      <div class="admin-page-icon">📝</div>
+      <h1>게시판 관리</h1>
+    </div>
+
+    <div class="admin-page-actions">
+      <a class="btn-edit" href="/admin">← 관리자 메인</a>
+      <a class="btn-edit" href="/board" style="background:#1a4bd9;">게시판 보기</a>
+    </div>
+
+    <% if (!posts || posts.length === 0) { %>
+      <div class="admin-empty">등록된 게시글이 없습니다.</div>
+    <% } else { %>
+
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">ID</th>
+            <th>제목</th>
+            <th style="width:220px;">작성자</th>
+            <th style="width:160px;">작성일</th>
+            <th style="width:140px;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% posts.forEach(p => { %>
+            <tr>
+              <td><%= p.id %></td>
+
+              <td style="text-align:left;">
+                <a href="/board/<%= p.id %>" style="font-weight:800; color:#003c8f; text-decoration:none;">
+                  <%= p.title %>
+                </a>
+              </td>
+
+              <td>
+                <%= p.author_nickname || p.author_username || "알 수 없음" %>
+              </td>
+
+              <td><%= (p.created_at || "").slice(0, 16).replace("T"," ") %></td>
+
+              <td>
+                <form method="POST" action="/admin/board/<%= p.id %>/delete" onsubmit="return confirm('정말 삭제할까요?');" style="display:inline;">
+                  <button class="delete-btn" type="submit" style="border:0; cursor:pointer;">삭제</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+    <% } %>
+  </div>
+
+</body>
+</html>

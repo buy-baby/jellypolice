@@ -705,14 +705,6 @@ app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
 // =========================
 // 16) Admin - FAQ (D1 Worker API)
 // =========================
-// 필요 API (Worker에 구현 필요):
-// GET    /api/faqs?limit=5               (public)
-// GET    /api/admin/faqs                (admin list)
-// POST   /api/admin/faqs                (admin create)
-// GET    /api/admin/faqs/:id            (admin detail)
-// PUT    /api/admin/faqs/:id            (admin update)
-// DELETE /api/admin/faqs/:id            (admin delete)
-
 app.get("/admin/faqs", requireAdmin, async (req, res) => {
   try {
     const result = await d1Api("GET", "/api/admin/faqs");
@@ -796,6 +788,48 @@ app.post("/admin/faqs/:id/delete", requireAdmin, async (req, res) => {
     return res.status(500).send("FAQ 삭제에 실패했습니다.");
   }
 });
+
+// Admin board
+app.get("/admin/board", requireAdmin, async (req, res) => {
+  try {
+    // posts + users join (닉네임/아이디 표시)
+    const posts = await dbAll(`
+      SELECT
+        p.id,
+        p.title,
+        p.created_at,
+        u.nickname AS author_nickname,
+        u.username AS author_username
+      FROM board_posts p
+      LEFT JOIN users u ON p.user_id = u.id
+      ORDER BY p.id DESC
+      LIMIT 200
+    `);
+
+    res.render("admin/board/index", { posts: posts || [] });
+  } catch (e) {
+    console.error("admin board error:", e);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/admin/board/:id/delete", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.redirect("/admin/board");
+
+    // (선택) 이미지/첨부도 함께 삭제하려면 여기서 처리
+    await dbRun(`DELETE FROM board_posts WHERE id = ?`, [id]);
+    // 댓글 테이블이 있다면 같이 삭제
+    await dbRun(`DELETE FROM board_comments WHERE post_id = ?`, [id]).catch(()=>{});
+
+    res.redirect("/admin/board");
+  } catch (e) {
+    console.error("admin board delete error:", e);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 // =========================
 // 17) Public Pages (Intro, Apply, Notice, Main 등)

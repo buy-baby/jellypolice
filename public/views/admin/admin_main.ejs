@@ -10,10 +10,10 @@
 <body>
 
   <%- include("../partials/admin_header") %>
+
   <div class="admin-container">
 
     <div class="admin-grid">
-
       <a href="/admin/inquiry" class="admin-box">
         <h2>📄 민원 열람</h2>
         <p>사용자들이 제출한 민원을 확인합니다.</p>
@@ -28,8 +28,25 @@
         <h2>📢 공지사항</h2>
         <p>공지사항을 작성, 삭제, 수정합니다.</p>
       </a>
-
     </div>
+
+    <div class="admin-grid admin-grid--second">
+      <a href="/admin/faqs" class="admin-box">
+        <h2>❓ FAQ 관리</h2>
+        <p>FAQ 항목을 추가/수정/삭제합니다.</p>
+      </a>
+
+      <a href="/admin/board" class="admin-box">
+        <h2>📝 게시판 관리</h2>
+        <p>자유 게시판 글/댓글을 관리합니다.</p>
+      </a>
+
+      <div class="admin-box admin-box--disabled" aria-disabled="true">
+        <h2>🧩 기능 추가 중</h2>
+        <p>추가 기능을 준비 중입니다.</p>
+      </div>
+    </div>
+
   </div>
 
   <div class="admin-edit-box">
@@ -40,7 +57,6 @@
       <a href="/admin/edit/rank" class="edit-btn">직급표</a>
       <a href="/admin/edit/department" class="edit-btn">부서 소개</a>
       <a href="/admin/edit/apply/conditions" class="edit-btn">채용 안내</a>
-
     </div>
   </div>
 
