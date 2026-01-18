@@ -12,7 +12,7 @@ const path = require("path");
 const multer = require("multer");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const session = require("express-session");
 
 const passport = require("passport");
@@ -812,6 +812,34 @@ app.get("/", async (req, res) => {
       boardPreview = [];
   }
 
+  // -------------------- Public File Proxy (Board Images) --------------------
+app.get("/files/board/:imageId", async (req, res) => {
+  try {
+    const imageId = Number(req.params.imageId);
+    if (!imageId) return res.status(400).send("bad id");
+
+    const meta = await d1Api("GET", `/api/board/images/${imageId}`);
+    if (!meta || !meta.file_key) return res.status(404).send("not found");
+
+    const key = meta.file_key;
+
+    const obj = await r2.send(new GetObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+    }));
+
+    const contentType = obj.ContentType || meta.content_type || "application/octet-stream";
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+
+    obj.Body.pipe(res);
+  } catch (e) {
+    console.error("❌ /files/board/:imageId error:", e?.message || e);
+    return res.status(404).send("not found");
+  }
+});
+
+
     // 공지
     let notices = [];
     try {
@@ -1061,7 +1089,7 @@ app.post("/suggest", requireLogin, async (req, res) => {
 // -------------------- Free Board Pages --------------------
 
 // 목록
-app.get("/board", requireLogin, async (req, res) => {
+app.get("/board", async (req, res) => {
   try {
     const page = Math.max(Number(req.query.page || 1), 1);
     const limit = 10;
@@ -1162,7 +1190,7 @@ app.post("/board/write", requireLogin, upload.array("images", 5), async (req, re
 });
 
 // 상세
-app.get("/board/:id", requireLogin, async (req, res) => {
+app.get("/board/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
     const data = await d1Api("GET", `/api/board/posts/${id}`);

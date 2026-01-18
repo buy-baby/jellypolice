@@ -850,6 +850,24 @@ router.post("/api/audit-logs", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
+// 게시판 이미지 메타 단일 조회 (프록시용)
+router.get("/api/board/images/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const row = await env.DB.prepare(`
+    SELECT id, post_id, file_name, file_key, content_type, size, created_at
+    FROM free_post_images
+    WHERE id = ?
+  `).bind(id).first();
+
+  if (!row) return json({ error: "not_found" }, { status: 404 });
+  return json(row);
+});
+
+
 router.all("*", () => json({ error: "not_found" }, { status: 404 }));
 
 export default {

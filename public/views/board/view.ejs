@@ -24,18 +24,16 @@
 
       <div class="board-post-content"><%= post.content %></div>
 
-      <!-- 이미지 표시: R2 접근 방식에 따라 src 바꿔야 함 -->
-      <% if (images && images.length > 0) { %>
-        <div class="board-images">
-          <% images.forEach(img => { %>
-            <div class="board-image">
-              <div class="board-image-name"><%= img.file_name || "image" %></div>
-              <!-- TODO: R2 이미지 제공 URL/프록시 라우트로 교체 -->
-              <div style="color:#666; font-size:13px;">file_key: <%= img.file_key %></div>
-            </div>
-          <% }) %>
-        </div>
-      <% } %>
+        <% if (images && images.length > 0) { %>
+            <div class="board-images">
+            <% images.forEach(img => { %>
+              <a class="board-image" href="/files/board/<%= img.id %>" target="_blank" rel="noreferrer">
+                <img src="/files/board/<%= img.id %>" alt="<%= img.file_name || 'image' %>">
+              </a>
+            <% }) %>
+          </div>
+        <% } %>
+
 
       <hr style="border:0; border-top:1px solid rgba(0,0,0,0.15); margin:18px 0;">
 

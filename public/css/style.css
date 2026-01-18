@@ -495,6 +495,27 @@ nav, .navbar, .topbar{
 .board-comment-head{ display:flex; justify-content:space-between; gap:10px; font-size: 13px; color:#333; opacity:0.9; margin-bottom: 6px; }
 .board-comment-body{ white-space:pre-wrap; line-height:1.5; }
 
+.board-images{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.board-image{
+  display:block;
+  border-radius: 12px;
+  overflow:hidden;
+  border: 1px solid rgba(0,0,0,0.12);
+  background:#fff;
+}
+.board-image img{
+  width:100%;
+  height: 160px;
+  object-fit: cover;
+  display:block;
+}
+
+
 
 /* ============================================================
    ✅ 여기부터 "모바일에서 메인만 안 깨지게" 덮어쓰기 추가
