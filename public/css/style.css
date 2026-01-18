@@ -373,17 +373,6 @@ nav, .navbar, .topbar{
   text-decoration: underline;
 }
 
-/* ===== Free Board (preview + pages) ===== */
-.board-panel{
-  width: 360px;
-  background: #f7fbff;
-  border: 3px solid #9fd3e6;
-  border-radius: 16px;
-  padding: 16px 18px 14px;
-  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
-  margin-top: 16px;
-}
-
 .board-head{
   display:flex;
   align-items:center;
@@ -605,14 +594,27 @@ nav, .navbar, .topbar{
     padding: 14px 12px;
   }
 
-  /* (D) 공지사항 패널: 고정 폭/고정 높이 풀어주기 */
-  .notice-panel{
-    width: 100%;
-    flex: 1 1 auto;
-    min-height: 200px;
-    margin-left: 0;
-    padding: 16px 14px 12px;
-  }
+  /* 오른쪽 컬럼: 공지 + 자유게시판 세로 스택 */
+.home-side{
+  width: 360px;
+  flex: 0 0 360px;
+  margin-left: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-side .notice-panel{
+  width: 100%;
+  flex: none;
+  margin-left: 0;
+}
+
+.home-side .board-panel{
+  width: 100%;
+  flex: none;
+}
 
   .notice-title{
     font-size: 22px;

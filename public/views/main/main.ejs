@@ -91,51 +91,7 @@
 
   <div class="home-wrap home-wrap--responsive">
 
-    <!-- ✅ 공지사항: 왼쪽 위(작게) -->
-    <aside class="notice-panel home-notice">
-      <div class="notice-head">
-        <div class="notice-title">공지사항</div>
-        <a class="notice-more" href="/notice">더보기</a>
-      </div>
-
-      <div class="notice-list">
-        <% if (!notices || notices.length === 0) { %>
-          <div class="notice-empty">등록된 공지사항이 없습니다.</div>
-        <% } else { %>
-          <% notices.slice(0,5).forEach(n => { %>
-            <a class="notice-item" href="/notice/<%= n.id %>">
-              <div class="notice-item-title"><%= n.title %></div>
-              <div class="notice-item-snippet"><%= (n.content || "").slice(0, 40) %>...</div>
-            </a>
-          <% }) %>
-        <% } %>
-      </div>
-    </aside>
-    
-    <section class="board-panel">
-    <div class="board-head">
-      <div class="board-title">자유 게시판</div>
-      <a class="board-more" href="/board">더보기</a>
-    </div>
-
-    <div class="board-preview">
-      <% if (!boardPreview || boardPreview.length === 0) { %>
-      <div class="board-empty">등록된 글이 없습니다.</div>
-      <% } else { %>
-        <% boardPreview.slice(0,5).forEach(p => { %>
-          <a class="board-preview-item" href="/board/<%= p.id %>">
-            <div class="board-preview-item-title"><%= p.title %></div>
-            <div class="board-preview-item-meta">
-              <%= p.author_nickname || p.author_username || "알 수 없음" %> · <%= (p.created_at || "").slice(0,10) %>
-            </div>
-          </a>
-        <% }) %>
-      <% } %>
-    </div>
-    </section>
-
-
-    <!--FAQ-->
+    <!-- ✅ 중앙(FAQ 영역) -->
     <div class="home-main">
 
       <section class="faq-panel home-faq">
@@ -145,34 +101,20 @@
         </div>
 
         <div class="faq-list">
-          <div class="faq-list">
-  <% if (!faqs || faqs.length === 0) { %>
-    <div class="faq-empty">등록된 FAQ가 없습니다.</div>
-  <% } else { %>
-    <% faqs.slice(0,5).forEach((item, idx) => { %>
-      <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
-        <summary class="faq-q">
-          <span class="faq-bullet">▶</span>
-          <span class="faq-q-text"><%= item.title %></span>
-          <span class="faq-arrow">›</span>
-        </summary>
-        <div class="faq-a"><%= item.content %></div>
-      </details>
-    <% }) %>
-  <% } %>
-</div>
-
-
-          <% (faqs || []).slice(0,5).forEach((item, idx) => { %>
-            <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
-              <summary class="faq-q">
-                <span class="faq-bullet">▶</span>
-                <span class="faq-q-text"><%= item.q %></span>
-                <span class="faq-arrow">›</span>
-              </summary>
-              <div class="faq-a"><%= item.a %></div>
-            </details>
-          <% }) %>
+          <% if (!faqs || faqs.length === 0) { %>
+            <div class="faq-empty">등록된 FAQ가 없습니다.</div>
+          <% } else { %>
+            <% (faqs || []).slice(0,5).forEach((item, idx) => { %>
+              <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
+                <summary class="faq-q">
+                  <span class="faq-bullet">▶</span>
+                  <span class="faq-q-text"><%= item.title %></span>
+                  <span class="faq-arrow">›</span>
+                </summary>
+                <div class="faq-a"><%= item.content %></div>
+              </details>
+            <% }) %>
+          <% } %>
         </div>
       </section>
 
@@ -180,6 +122,54 @@
       <div class="home-spacer"></div>
     </div>
 
+    <!-- ✅ 오른쪽 컬럼: 공지 + 자유게시판을 세로로 쌓기 -->
+    <aside class="home-side">
+
+      <!-- ✅ 공지사항 -->
+      <section class="notice-panel home-notice">
+        <div class="notice-head">
+          <div class="notice-title">공지사항</div>
+          <a class="notice-more" href="/notice">더보기</a>
+        </div>
+
+        <div class="notice-list">
+          <% if (!notices || notices.length === 0) { %>
+            <div class="notice-empty">등록된 공지사항이 없습니다.</div>
+          <% } else { %>
+            <% notices.slice(0,5).forEach(n => { %>
+              <a class="notice-item" href="/notice/<%= n.id %>">
+                <div class="notice-item-title"><%= n.title %></div>
+                <div class="notice-item-snippet"><%= (n.content || "").slice(0, 40) %>...</div>
+              </a>
+            <% }) %>
+          <% } %>
+        </div>
+      </section>
+
+      <!-- ✅ 자유게시판 (공지 바로 아래, 같은 폭) -->
+      <section class="board-panel">
+        <div class="board-head">
+          <div class="board-title">자유 게시판</div>
+          <a class="board-more" href="/board">더보기</a>
+        </div>
+
+        <div class="board-preview">
+          <% if (!boardPreview || boardPreview.length === 0) { %>
+            <div class="board-empty">등록된 글이 없습니다.</div>
+          <% } else { %>
+            <% boardPreview.slice(0,5).forEach(p => { %>
+              <a class="board-preview-item" href="/board/<%= p.id %>">
+                <div class="board-preview-item-title"><%= p.title %></div>
+                <div class="board-preview-item-meta">
+                  <%= p.author_nickname || p.author_username || "알 수 없음" %> · <%= (p.created_at || "").slice(0,10) %>
+                </div>
+              </a>
+            <% }) %>
+          <% } %>
+        </div>
+      </section>
+
+    </aside>
   </div>
 
   <!-- 드롭다운 JS -->
