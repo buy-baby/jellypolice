@@ -1,4 +1,10 @@
-// server.js (전체본 - 감사로그 적용: 로그인/어드민접속 로그 제외)
+// server.js (정리본)
+// - 메인 FAQ: D1 Worker API(d1Api)로 가져오기
+// - Admin FAQ: D1 Worker API로 CRUD
+// - getNoticesSomehow / db.prepare 제거 (ReferenceError 방지)
+// - /healthz 추가 (Render health check 안정화)
+// - /my 중복 라우트 제거
+// - 라우트 섹션별 정렬
 
 const express = require("express");
 const fs = require("fs");
@@ -25,13 +31,25 @@ const {
   listNotices, addNotice, deleteNotice,
   getNotice, updateNotice,
   addAuditLog,
-  listAuditLogs, // (지금은 사용 안 해도 OK, 나중에 로그 페이지 만들 때 씀)
+  listAuditLogs, // (지금은 사용 안 해도 OK)
 } = require("./src/storage");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ------------------------- Cloudflare R2 (파일 저장용) -------------------------
+// =========================
+// 0) 안정화: 런타임 에러 로그
+// =========================
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED REJECTION:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+
+// =========================
+// 1) Cloudflare R2 (파일 저장용)
+// =========================
 const r2 = new S3Client({
   region: "auto",
   endpoint: process.env.R2_ENDPOINT,
@@ -42,28 +60,22 @@ const r2 = new S3Client({
 });
 const R2_BUCKET = process.env.R2_BUCKET_NAME;
 
-// ------------------------- ✅ Redis(Valkey) 세션 스토어 (버전 호환) -------------------------
+// =========================
+// 2) Redis(Valkey) 세션 스토어 (버전 호환)
+// =========================
 const { createClient } = require("redis");
-
-// connect-redis 버전별 export 형태가 달라서 안전하게 처리
 const connectRedisImport = require("connect-redis");
 
-// v6+: { default: RedisStore } 형태일 수 있음
-// v5: connectRedis(session) 함수 형태일 수 있음
 function buildRedisStore(sessionModule) {
-  // case1) default export가 클래스
   if (connectRedisImport && typeof connectRedisImport.default === "function") {
     return connectRedisImport.default;
   }
-  // case2) 자체가 클래스
   if (connectRedisImport && typeof connectRedisImport === "function" && connectRedisImport.name === "RedisStore") {
     return connectRedisImport;
   }
-  // case3) connectRedis(session) => RedisStore
   if (connectRedisImport && typeof connectRedisImport === "function") {
     return connectRedisImport(sessionModule);
   }
-  // case4) { RedisStore } 형태
   if (connectRedisImport && typeof connectRedisImport.RedisStore === "function") {
     return connectRedisImport.RedisStore;
   }
@@ -98,7 +110,9 @@ if (redisUrl) {
   console.warn("⚠️ REDIS_URL is not set. Falling back to MemoryStore (dev only).");
 }
 
-// ------------------------- D1 API helper (Worker 호출) -------------------------
+// =========================
+// 3) D1 API helper (Worker 호출)
+// =========================
 async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TOKEN || "") {
   const base = (process.env.D1_API_BASE || "").replace(/\/+$/, "");
   if (!base) throw new Error("D1_API_BASE is not set");
@@ -118,11 +132,12 @@ async function d1Api(method, apiPath, body = null, token = process.env.D1_API_TO
   if (!res.ok) {
     throw new Error(`D1 API ${method} ${apiPath} failed: ${res.status} ${text}`);
   }
-
   return text ? JSON.parse(text) : null;
 }
 
-// ------------------------- Middleware -------------------------
+// =========================
+// 4) Express 기본 설정 / Middleware
+// =========================
 app.set("trust proxy", 1);
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -134,7 +149,6 @@ app.set("views", path.join(__dirname, "public", "views"));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// ✅ 세션: RedisStore 적용 (경고 제거)
 app.use(session({
   store: redisStore || undefined,
   secret: process.env.SESSION_SECRET || "jellypolice-session-secret",
@@ -155,7 +169,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// ------------------------- ✅ 감사 로그 헬퍼 -------------------------
+// =========================
+// 5) 감사 로그 헬퍼
+// =========================
 function getClientIp(req) {
   return (req.ip || "").toString();
 }
@@ -183,12 +199,13 @@ async function auditLog(req, {
       detail,
     });
   } catch (e) {
-    // 로그 실패가 본 기능을 망치면 안 됨
     console.error("❌ auditLog failed:", e?.message || e);
   }
 }
 
-// ------------------------- UTC -> KST -------------------------
+// =========================
+// 6) 날짜 유틸 (KST)
+// =========================
 function formatKST(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -205,7 +222,6 @@ function formatKST(iso) {
 }
 app.locals.formatKST = formatKST;
 
-// ---------------------- KST Date only -------------------------
 function formatKSTDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -218,7 +234,9 @@ function formatKSTDate(iso) {
 }
 app.locals.formatKSTDate = formatKSTDate;
 
-// ------------------------ Discord Refresh Check --------------------------
+// =========================
+// 7) Discord 강제 갱신 관련
+// =========================
 function canRefreshDiscord(lastIso) {
   if (!lastIso) return true;
   const last = new Date(lastIso).getTime();
@@ -236,7 +254,9 @@ function shouldForceDiscordRefresh(req) {
   return app.locals.canRefreshDiscord(last);
 }
 
-// ------------------------- Auth Guards -------------------------
+// =========================
+// 8) Auth Guards
+// =========================
 const requireLogin = (req, res, next) => {
   if (req.session && req.session.user && req.session.user.id) return next();
   const nextUrl = encodeURIComponent(req.originalUrl || "/");
@@ -252,7 +272,9 @@ const requireAdmin = (req, res, next) => {
   return res.status(403).send("접근 권한이 없습니다.");
 };
 
-// ------------------------- Passport (Discord) -------------------------
+// =========================
+// 9) Passport (Discord)
+// =========================
 app.use(passport.initialize());
 
 passport.use(
@@ -276,9 +298,12 @@ passport.use(
   )
 );
 
-// ------------------------- ✅ 강제 갱신 전역 미들웨어 -------------------------
+// =========================
+// 10) 강제 갱신 전역 미들웨어
+// =========================
 app.use((req, res, next) => {
   const allowPrefixes = [
+    "/healthz",
     "/login",
     "/logout",
     "/register",
@@ -305,7 +330,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ------------------------- Debug Routes -------------------------
+// =========================
+// 11) Debug / Health
+// =========================
+app.get("/healthz", (req, res) => res.status(200).send("ok"));
+
 app.get("/__routes", (req, res) => {
   res.type("text").send(
 `OK
@@ -317,7 +346,9 @@ app.get("/__routes", (req, res) => {
   );
 });
 
-// ------------------------- Auth Required Page -------------------------
+// =========================
+// 12) Auth Pages
+// =========================
 app.get("/auth/required", (req, res) => {
   const nextUrl = req.query.next || "/";
   res.render("auth/required", {
@@ -326,13 +357,13 @@ app.get("/auth/required", (req, res) => {
   });
 });
 
-// ------------------------- Discord Link (Register Flow) -------------------------
+// Discord Link (Register Flow)
 app.get("/auth/discord/link", (req, res, next) => {
   req.session.discordFlow = { mode: "register", returnTo: "/register" };
   return passport.authenticate("discord-link", { session: false })(req, res, next);
 });
 
-// ------------------------- ✅ Discord Refresh (Forced Flow) -------------------------
+// Discord Refresh (Forced Flow)
 app.get("/auth/discord/refresh", requireLogin, (req, res, next) => {
   if (!req.session.discordFlow || req.session.discordFlow.mode !== "refresh") {
     req.session.discordFlow = { mode: "refresh", returnTo: req.query.next || "/" };
@@ -340,7 +371,7 @@ app.get("/auth/discord/refresh", requireLogin, (req, res, next) => {
   return passport.authenticate("discord-link", { session: false })(req, res, next);
 });
 
-// ------------------------- Discord Callback (Both flows) -------------------------
+// Discord Callback (Both flows)
 app.get("/auth/discord/callback", (req, res, next) => {
   passport.authenticate("discord-link", { session: false }, async (err, user) => {
     if (err) {
@@ -356,6 +387,7 @@ app.get("/auth/discord/callback", (req, res, next) => {
     const flow = req.session.discordFlow || { mode: "register", returnTo: "/register" };
     delete req.session.discordFlow;
 
+    // register flow
     if (flow.mode === "register") {
       req.session.discordLink = {
         discord_id: user.discord_id,
@@ -364,6 +396,7 @@ app.get("/auth/discord/callback", (req, res, next) => {
       return res.redirect(flow.returnTo || "/register");
     }
 
+    // refresh flow
     if (flow.mode === "refresh") {
       try {
         const me = req.session.user;
@@ -384,7 +417,6 @@ app.get("/auth/discord/callback", (req, res, next) => {
         req.session.user.discord_last_verified_at =
           result?.discord_last_verified_at || new Date().toISOString();
 
-        // ✅ 감사로그: 디스코드 연동 갱신
         await auditLog(req, {
           action: "discord_refresh",
           targetType: "user",
@@ -412,7 +444,9 @@ app.get("/auth/discord/unlink", (req, res) => {
   return res.redirect("/register");
 });
 
-// ------------------------- Register (D1) -------------------------
+// =========================
+// 13) Register / Login / Logout
+// =========================
 app.get("/register", (req, res) => {
   res.render("auth/register", {
     error: null,
@@ -423,20 +457,17 @@ app.get("/register", (req, res) => {
 
 app.post("/register", async (req, res) => {
   try {
-    const nickname   = (req.body.nickname || "").trim();
-    const username   = (req.body.username || "").trim();
-    const password   = (req.body.password || "");
-
+    const nickname = (req.body.nickname || "").trim();
+    const username = (req.body.username || "").trim();
+    const password = (req.body.password || "");
     const discordLink = req.session.discordLink || null;
 
     if (!nickname || !username || !password) {
       return res.render("auth/register", { error: "모든 항목을 입력해주세요.", form: req.body, discordLink });
     }
-
     if (!req.body.agree) {
       return res.render("auth/register", { error: "약관 및 개인정보 처리방침에 동의해야 가입할 수 있습니다.", form: req.body, discordLink });
     }
-
     if (!discordLink || !discordLink.discord_id || !discordLink.discord_name) {
       return res.render("auth/register", { error: "디스코드 계정을 연결해야 가입할 수 있습니다.", form: req.body, discordLink: null });
     }
@@ -450,16 +481,10 @@ app.post("/register", async (req, res) => {
       discord_name: discordLink.discord_name,
     });
 
-    // ✅ 감사로그: 회원가입 (로그인 전이라 actor가 null일 수 있음)
     await auditLog(req, {
       action: "auth_register",
       targetType: "auth",
-      detail: {
-        username,
-        nickname,
-        discord_id: discordLink.discord_id,
-        discord_name: discordLink.discord_name,
-      },
+      detail: { username, nickname, discord_id: discordLink.discord_id, discord_name: discordLink.discord_name },
     });
 
     delete req.session.discordLink;
@@ -486,7 +511,6 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// ------------------------- Login (D1) -------------------------
 app.get("/login", (req, res) => {
   const nextUrl = req.query.next || "/";
   res.render("auth/login", { error: null, nextUrl });
@@ -527,15 +551,15 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ------------------------- Logout -------------------------
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/"));
 });
 
-// ------------------------- Admin Main -------------------------
+// =========================
+// 14) Admin (기본)
+// =========================
 app.get("/admin", requireAdmin, (_, res) => res.render("admin/admin_main"));
 
-// ------------------------- Admin Manage Users (D1) -------------------------
 app.get("/admin/users", requireAdmin, async (req, res) => {
   try {
     const users = await d1Api("GET", "/api/admin/users");
@@ -557,7 +581,6 @@ app.post("/admin/users/:id/role", requireAdmin, async (req, res) => {
 
     await d1Api("PUT", `/api/admin/users/${id}/role`, { role });
 
-    // ✅ 감사로그: 유저 권한 변경
     await auditLog(req, {
       action: "user_role_change",
       targetType: "user",
@@ -572,7 +595,9 @@ app.post("/admin/users/:id/role", requireAdmin, async (req, res) => {
   }
 });
 
-// ------------------------- Admin Notice management -------------------------
+// =========================
+// 15) Admin - Notices
+// =========================
 app.get("/admin/notices", requireAdmin, async (_, res) => {
   const notices = await listNotices(20);
   res.render("admin/notices", { notices });
@@ -581,7 +606,6 @@ app.get("/admin/notices", requireAdmin, async (_, res) => {
 app.post("/admin/notices", requireAdmin, async (req, res) => {
   await addNotice({ title: req.body.title || "", content: req.body.content || "" });
 
-  // ✅ 감사로그: 공지 작성
   await auditLog(req, {
     action: "notice_create",
     targetType: "notice",
@@ -595,7 +619,6 @@ app.get("/admin/notices/delete/:id", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await deleteNotice(id);
 
-  // ✅ 감사로그: 공지 삭제 (GET 삭제도 로그는 남김)
   await auditLog(req, {
     action: "notice_delete",
     targetType: "notice",
@@ -617,7 +640,6 @@ app.post("/admin/notices/:id/edit", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await updateNotice(id, { title: req.body.title || "", content: req.body.content || "" });
 
-  // ✅ 감사로그: 공지 수정
   await auditLog(req, {
     action: "notice_update",
     targetType: "notice",
@@ -632,7 +654,6 @@ app.post("/admin/notices/:id/delete", requireAdmin, async (req, res) => {
   const id = Number(req.params.id);
   await deleteNotice(id);
 
-  // ✅ 감사로그: 공지 삭제
   await auditLog(req, {
     action: "notice_delete",
     targetType: "notice",
@@ -648,7 +669,6 @@ app.post("/admin/notices/:id/pin", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     await updateNotice(id, { pinned: 1 });
 
-    // ✅ 감사로그: 공지 고정/해제 (action 하나로 통일)
     await auditLog(req, {
       action: "notice_pin",
       targetType: "notice",
@@ -668,7 +688,6 @@ app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
     const id = Number(req.params.id);
     await updateNotice(id, { pinned: 0 });
 
-    // ✅ 감사로그: 공지 고정/해제
     await auditLog(req, {
       action: "notice_pin",
       targetType: "notice",
@@ -683,88 +702,131 @@ app.post("/admin/notices/:id/unpin", requireAdmin, async (req, res) => {
   }
 });
 
-// ------------------------- Public Pages -------------------------
-app.get("/", async (req, res) => {
-  // notice
-  const notices = await getNoticesSomehow();
+// =========================
+// 16) Admin - FAQ (D1 Worker API)
+// =========================
+// 필요 API (Worker에 구현 필요):
+// GET    /api/faqs?limit=5               (public)
+// GET    /api/admin/faqs                (admin list)
+// POST   /api/admin/faqs                (admin create)
+// GET    /api/admin/faqs/:id            (admin detail)
+// PUT    /api/admin/faqs/:id            (admin update)
+// DELETE /api/admin/faqs/:id            (admin delete)
 
-  // faqs 
-  let faqs = [];
-  try {
-    const r = await db.prepare(
-      "SELECT id, title, content FROM faqs ORDER BY id DESC"
-    ).all();
-    faqs = r?.results ?? r ?? []; 
-  } catch (e) {
-    faqs = [];
-  }
-
-  res.render("main/main", { notices, faqs });
-});
-
-
-/** 목록 + 추가 폼 */
 app.get("/admin/faqs", requireAdmin, async (req, res) => {
-  const r = await db.prepare(
-    "SELECT id, title, content, created_at FROM faqs ORDER BY id DESC"
-  ).all();
-  const faqs = r?.results ?? r ?? [];
-  res.render("admin/faqs/index", { faqs });
+  try {
+    const result = await d1Api("GET", "/api/admin/faqs");
+    const faqs = Array.isArray(result) ? result : (result?.faqs || []);
+    return res.render("admin/faqs/index", { faqs });
+  } catch (e) {
+    console.error("❌ admin faqs list error:", e?.message || e);
+    return res.render("admin/faqs/index", { faqs: [] });
+  }
 });
 
-/** 추가 */
 app.post("/admin/faqs", requireAdmin, async (req, res) => {
-  const { title, content } = req.body;
-  if (!title || !content) return res.redirect("/admin/faqs");
+  try {
+    const title = (req.body.title || "").trim();
+    const content = (req.body.content || "").trim();
+    if (!title || !content) return res.redirect("/admin/faqs");
 
-  await db.prepare(
-    "INSERT INTO faqs (title, content, created_at, updated_at) VALUES (?, ?, datetime('now'), datetime('now'))"
-  ).bind(title.trim(), content.trim()).run?.()
-   ?? db.prepare(
-    "INSERT INTO faqs (title, content, created_at, updated_at) VALUES (?, ?, datetime('now'), datetime('now'))"
-  ).run(title.trim(), content.trim());
+    await d1Api("POST", "/api/admin/faqs", { title, content });
 
-  res.redirect("/admin/faqs");
+    await auditLog(req, {
+      action: "faq_create",
+      targetType: "faq",
+      detail: { title },
+    });
+
+    return res.redirect("/admin/faqs");
+  } catch (e) {
+    console.error("❌ admin faq create error:", e?.message || e);
+    return res.status(500).send("FAQ 추가에 실패했습니다.");
+  }
 });
 
-/** 수정 페이지 */
 app.get("/admin/faqs/:id/edit", requireAdmin, async (req, res) => {
-  const id = Number(req.params.id);
-  const r = await db.prepare(
-    "SELECT id, title, content FROM faqs WHERE id = ?"
-  ).bind(id).first?.()
-   ?? db.prepare("SELECT id, title, content FROM faqs WHERE id = ?").get(id);
-
-  if (!r) return res.redirect("/admin/faqs");
-  res.render("admin/faqs/edit", { faq: r });
+  try {
+    const id = Number(req.params.id);
+    const faq = await d1Api("GET", `/api/admin/faqs/${id}`);
+    if (!faq) return res.redirect("/admin/faqs");
+    return res.render("admin/faqs/edit", { faq });
+  } catch (e) {
+    console.error("❌ admin faq edit page error:", e?.message || e);
+    return res.redirect("/admin/faqs");
+  }
 });
 
-/** 수정 저장 */
 app.post("/admin/faqs/:id/edit", requireAdmin, async (req, res) => {
-  const id = Number(req.params.id);
-  const { title, content } = req.body;
+  try {
+    const id = Number(req.params.id);
+    const title = (req.body.title || "").trim();
+    const content = (req.body.content || "").trim();
 
-  await db.prepare(
-    "UPDATE faqs SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?"
-  ).bind(title.trim(), content.trim(), id).run?.()
-   ?? db.prepare(
-    "UPDATE faqs SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?"
-  ).run(title.trim(), content.trim(), id);
+    await d1Api("PUT", `/api/admin/faqs/${id}`, { title, content });
 
-  res.redirect("/admin/faqs");
+    await auditLog(req, {
+      action: "faq_update",
+      targetType: "faq",
+      targetId: id,
+      detail: { title },
+    });
+
+    return res.redirect("/admin/faqs");
+  } catch (e) {
+    console.error("❌ admin faq update error:", e?.message || e);
+    return res.status(500).send("FAQ 수정에 실패했습니다.");
+  }
 });
 
-/** 삭제 */
 app.post("/admin/faqs/:id/delete", requireAdmin, async (req, res) => {
-  const id = Number(req.params.id);
+  try {
+    const id = Number(req.params.id);
+    await d1Api("DELETE", `/api/admin/faqs/${id}`);
 
-  await db.prepare("DELETE FROM faqs WHERE id = ?").bind(id).run?.()
-   ?? db.prepare("DELETE FROM faqs WHERE id = ?").run(id);
+    await auditLog(req, {
+      action: "faq_delete",
+      targetType: "faq",
+      targetId: id,
+    });
 
-  res.redirect("/admin/faqs");
+    return res.redirect("/admin/faqs");
+  } catch (e) {
+    console.error("❌ admin faq delete error:", e?.message || e);
+    return res.status(500).send("FAQ 삭제에 실패했습니다.");
+  }
 });
 
+// =========================
+// 17) Public Pages (Intro, Apply, Notice, Main 등)
+// =========================
+app.get("/", async (req, res) => {
+  try {
+    // 공지 (storage)
+    let notices = [];
+    try {
+      notices = await listNotices(5);
+    } catch (e) {
+      console.error("❌ main notices load error:", e);
+      notices = [];
+    }
 
+    // FAQ (D1 Worker)
+    let faqs = [];
+    try {
+      const result = await d1Api("GET", "/api/faqs?limit=5");
+      faqs = Array.isArray(result) ? result : (result?.faqs || []);
+    } catch (e) {
+      console.error("❌ main faqs load error:", e?.message || e);
+      faqs = [];
+    }
+
+    return res.render("main/main", { notices, faqs });
+  } catch (e) {
+    console.error("❌ main route fatal error:", e);
+    return res.status(500).send("메인 페이지를 불러오지 못했습니다.");
+  }
+});
 
 app.get("/intro/agency", async (_, res) => {
   const data = await getAgency();
@@ -781,111 +843,6 @@ app.get("/intro/department", async (_, res) => {
   res.render("intro/intro_department", { data });
 });
 
-// ------------------------- Admin Edit Agency -------------------------
-app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
-  const data = await getAgency();
-  res.render("admin/edit_agency", { data });
-});
-
-app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
-  await setAgency({ title: req.body.title || "", content: req.body.content || "" });
-
-  // ✅ 감사로그: 경찰청 소개 수정
-  await auditLog(req, {
-    action: "agency_update",
-    targetType: "page",
-    targetId: "agency",
-  });
-
-  res.redirect("/intro/agency");
-});
-
-// ------------------------- Admin Edit Department -------------------------
-app.get("/admin/edit/department", requireAdmin, async (_, res) => {
-  const data = await getDepartment();
-  res.render("admin/edit_department", { data });
-});
-
-app.post("/admin/edit/department", requireAdmin, async (req, res) => {
-  const teams = Object.values(req.body.teams || {}).map((t) => ({
-    name: t.name || "",
-    desc: t.desc || "",
-  }));
-
-  await setDepartment({ title: req.body.title || "부서 소개", teams });
-
-  // ✅ 감사로그: 부서 소개 수정
-  await auditLog(req, {
-    action: "department_update",
-    targetType: "page",
-    targetId: "department",
-  });
-
-  res.redirect("/intro/department");
-});
-
-// ------------------------- Admin Edit Rank -------------------------
-app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
-  const data = await getRank();
-  res.render("admin/edit_rank", { data });
-});
-
-app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
-  const origin = await getRank();
-
-  Object.keys(origin.high || {}).forEach((k) => { origin.high[k] = req.body[`high_${k}`] || ""; });
-  Object.keys(origin.mid || {}).forEach((k) => { origin.mid[k] = req.body[`mid_${k}`] || ""; });
-
-  Object.keys(origin.normal || {}).forEach((rank) => {
-    origin.normal[rank] = [1, 2, 3, 4, 5].map((i) => req.body[`normal_${rank}_${i}`] || "");
-  });
-
-  origin.probation = [1, 2, 3, 4, 5].map((i) => req.body[`probation_${i}`] || "");
-
-  await setRank(origin);
-
-  // ✅ 감사로그: 직급표 수정
-  await auditLog(req, {
-    action: "rank_update",
-    targetType: "page",
-    targetId: "rank",
-  });
-
-  res.redirect("/intro/rank");
-});
-
-// ------------------------- Admin Edit Apply Conditions -------------------------
-app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
-  const data = await getApplyConditions();
-  res.render("admin/edit_apply_conditions", { data });
-});
-
-app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
-  const next = {
-    title: req.body.title || "젤리 경찰청 채용 안내",
-    cards: {
-      eligibility: { title: req.body.eligibility_title || "지원 자격 안내", content: req.body.eligibility_content || "" },
-      disqualify: { title: req.body.disqualify_title || "지원 불가 사유", content: req.body.disqualify_content || "" },
-      preference: { title: req.body.preference_title || "지원 우대 사항", content: req.body.preference_content || "" },
-    },
-    side: { linkText: req.body.side_linkText || "링크1", linkUrl: req.body.side_linkUrl || "#" },
-  };
-
-  await setApplyConditions(next);
-
-  // ✅ 감사로그: 채용 안내 수정
-  await auditLog(req, {
-    action: "apply_conditions_update",
-    targetType: "page",
-    targetId: "apply_conditions",
-  });
-
-  return res.redirect("/apply/conditions");
-});
-
-// -------------------- Citizen Pages --------------------
-app.get("/inquiry", requireLogin, (_, res) => res.render("inquiry/index"));
-app.get("/suggest", requireLogin, (_, res) => res.render("suggest/suggest"));
 app.get("/apply", (_, res) => res.render("apply/index"));
 
 app.get("/apply/conditions", async (_, res) => {
@@ -922,7 +879,9 @@ app.get("/notice/:id", async (req, res) => {
   }
 });
 
-// -------------------- Admin Inquiry / Suggest --------------------
+// =========================
+// 18) Admin Inquiry / Suggest
+// =========================
 app.get("/admin/inquiry", requireAdmin, async (_, res) => {
   const complaints = await listComplaints();
   res.render("admin/inquiry_list", { complaints });
@@ -945,7 +904,6 @@ app.post("/admin/inquiry/:id/status", requireAdmin, async (req, res) => {
 
     await d1Api("PUT", `/api/complaints/${id}/status`, { status });
 
-    // ✅ 감사로그: 민원 상태 변경
     await auditLog(req, {
       action: "complaint_status_update",
       targetType: "complaint",
@@ -975,7 +933,12 @@ app.get("/admin/suggest/view/:id", requireAdmin, async (req, res) => {
   res.render("admin/suggest_view", { s });
 });
 
-// -------------------- Citizen Submit (민원/건의) --------------------
+// =========================
+// 19) Citizen Pages (민원/건의)
+// =========================
+app.get("/inquiry", requireLogin, (_, res) => res.render("inquiry/index"));
+app.get("/suggest", requireLogin, (_, res) => res.render("suggest/suggest"));
+
 app.get("/inquiry/success", (_, res) => res.render("inquiry/success"));
 app.get("/suggest/success", (_, res) => res.render("suggest/success"));
 
@@ -1018,14 +981,10 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       fileKey,
     });
 
-    // 감사로그: 민원 접수
     await auditLog(req, {
       action: "complaint_create",
       targetType: "complaint",
-      detail: {
-        name: req.body.name || "",
-        hasFile: !!req.file,
-      },
+      detail: { name: req.body.name || "", hasFile: !!req.file },
     });
 
     // 디스코드 알림
@@ -1033,12 +992,11 @@ app.post("/submit", requireLogin, upload.single("file"), async (req, res) => {
       const me = req.session.user;
       const roleId = process.env.DISCORD_ROLE_MENTION_ID;
       const roleMention = roleId ? `<@&${roleId}>` : "";
-
       const author = me?.nickname || me?.username || "알 수 없음";
 
       await sendDiscordWebhook(process.env.DISCORD_WEBHOOK_COMPLAINT, {
         content: `${roleMention} ${author}님이 민원을 작성하였습니다`,
-        allowed_mentions: { roles: [roleId] },
+        allowed_mentions: { roles: roleId ? [roleId] : [] },
       });
     } catch (e) {
       console.error("❌ complaint webhook error:", e?.message || e);
@@ -1063,16 +1021,13 @@ app.post("/suggest", requireLogin, async (req, res) => {
       created,
     });
 
-    // ✅ 감사로그: 건의 접수
     await auditLog(req, {
       action: "suggestion_create",
       targetType: "suggestion",
-      detail: {
-        name: req.body.name || "",
-      },
+      detail: { name: req.body.name || "" },
     });
 
-    // ✅ 디스코드 알림(실패해도 건의 접수는 성공 처리)
+    // 디스코드 알림(실패해도 건의 접수는 성공 처리)
     try {
       const me = req.session.user;
       const roleMention = "<@&1460793406535237733>";
@@ -1093,25 +1048,13 @@ app.post("/suggest", requireLogin, async (req, res) => {
   }
 });
 
-app.get("/my", requireLogin, async (req, res) => {
-  try {
-    const me = req.session.user;
-
-    return res.render("my/index", {
-      me,
-    });
-  } catch (e) {
-    console.error("❌ /my error:", e);
-    return res.status(500).send("마이페이지를 불러오지 못했습니다.");
-  }
-});
-
+// =========================
+// 20) My Pages (중복 제거)
+// =========================
 app.get("/my", requireLogin, (req, res) => {
   res.render("my/index", { me: req.session.user });
 });
 
-
-// -------------------- My Pages --------------------
 app.get("/my/inquiry", requireLogin, async (req, res) => {
   try {
     const userId = String(req.session.user.id);
@@ -1172,12 +1115,112 @@ app.get("/my/suggest/:id", requireLogin, async (req, res) => {
   }
 });
 
+// 호환 리다이렉트
 app.get("/my/complaints", (req, res) => res.redirect("/my/inquiry"));
 app.get("/my/complaints/:id", (req, res) => res.redirect(`/my/inquiry/${req.params.id}`));
 app.get("/my/suggestions", (req, res) => res.redirect("/my/suggest"));
 app.get("/my/suggestions/:id", (req, res) => res.redirect(`/my/suggest/${req.params.id}`));
 
-// --- 약관, 개인정보 처리 방침---
+// =========================
+// 21) Admin Edit Pages (Agency/Department/Rank/Apply Conditions)
+// =========================
+app.get("/admin/edit/agency", requireAdmin, async (_, res) => {
+  const data = await getAgency();
+  res.render("admin/edit_agency", { data });
+});
+
+app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
+  await setAgency({ title: req.body.title || "", content: req.body.content || "" });
+
+  await auditLog(req, {
+    action: "agency_update",
+    targetType: "page",
+    targetId: "agency",
+  });
+
+  res.redirect("/intro/agency");
+});
+
+app.get("/admin/edit/department", requireAdmin, async (_, res) => {
+  const data = await getDepartment();
+  res.render("admin/edit_department", { data });
+});
+
+app.post("/admin/edit/department", requireAdmin, async (req, res) => {
+  const teams = Object.values(req.body.teams || {}).map((t) => ({
+    name: t.name || "",
+    desc: t.desc || "",
+  }));
+
+  await setDepartment({ title: req.body.title || "부서 소개", teams });
+
+  await auditLog(req, {
+    action: "department_update",
+    targetType: "page",
+    targetId: "department",
+  });
+
+  res.redirect("/intro/department");
+});
+
+app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
+  const data = await getRank();
+  res.render("admin/edit_rank", { data });
+});
+
+app.post("/admin/edit/rank", requireAdmin, async (req, res) => {
+  const origin = await getRank();
+
+  Object.keys(origin.high || {}).forEach((k) => { origin.high[k] = req.body[`high_${k}`] || ""; });
+  Object.keys(origin.mid || {}).forEach((k) => { origin.mid[k] = req.body[`mid_${k}`] || ""; });
+
+  Object.keys(origin.normal || {}).forEach((rank) => {
+    origin.normal[rank] = [1, 2, 3, 4, 5].map((i) => req.body[`normal_${rank}_${i}`] || "");
+  });
+
+  origin.probation = [1, 2, 3, 4, 5].map((i) => req.body[`probation_${i}`] || "");
+
+  await setRank(origin);
+
+  await auditLog(req, {
+    action: "rank_update",
+    targetType: "page",
+    targetId: "rank",
+  });
+
+  res.redirect("/intro/rank");
+});
+
+app.get("/admin/edit/apply/conditions", requireAdmin, async (_, res) => {
+  const data = await getApplyConditions();
+  res.render("admin/edit_apply_conditions", { data });
+});
+
+app.post("/admin/edit/apply/conditions", requireAdmin, async (req, res) => {
+  const next = {
+    title: req.body.title || "젤리 경찰청 채용 안내",
+    cards: {
+      eligibility: { title: req.body.eligibility_title || "지원 자격 안내", content: req.body.eligibility_content || "" },
+      disqualify: { title: req.body.disqualify_title || "지원 불가 사유", content: req.body.disqualify_content || "" },
+      preference: { title: req.body.preference_title || "지원 우대 사항", content: req.body.preference_content || "" },
+    },
+    side: { linkText: req.body.side_linkText || "링크1", linkUrl: req.body.side_linkUrl || "#" },
+  };
+
+  await setApplyConditions(next);
+
+  await auditLog(req, {
+    action: "apply_conditions_update",
+    targetType: "page",
+    targetId: "apply_conditions",
+  });
+
+  return res.redirect("/apply/conditions");
+});
+
+// =========================
+// 22) Legal
+// =========================
 app.get("/terms", (req, res) => {
   res.render("legal/terms");
 });
@@ -1186,11 +1229,15 @@ app.get("/privacy", (req, res) => {
   res.render("legal/privacy");
 });
 
-// error check
+// =========================
+// 23) Global Error Handler
+// =========================
 app.use((err, req, res, next) => {
   console.error("🔥 GLOBAL ERROR:", err);
   res.status(500).send("Internal Server Error");
 });
 
-// -------------------- Server --------------------
+// =========================
+// 24) Server
+// =========================
 app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));

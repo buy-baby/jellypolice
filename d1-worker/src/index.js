@@ -1,5 +1,6 @@
 import { Router } from "itty-router";
 import bcrypt from "bcryptjs";
+
 const router = Router();
 
 function json(data, init = {}) {
@@ -25,12 +26,12 @@ async function readBody(request) {
 }
 function isAdmin(request, env) {
   const token = env.API_TOKEN || "";
-  if (!token) return true;
+  if (!token) return true; // 토큰 미설정이면 전체 허용(개발용)
   const auth = request.headers.get("authorization") || "";
   return auth === `Bearer ${token}`;
 }
 
-// -------------------DEFAULT----------------------
+// ------------------- DEFAULT ----------------------
 const DEFAULT_PAGES = {
   agency: {
     title: "젤리경찰청 기관 소개",
@@ -58,27 +59,14 @@ const DEFAULT_PAGES = {
       { name: "항공팀(ASD)", desc: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
     ],
   },
-
   apply_conditions: {
     title: "젤리 경찰청 채용 안내",
     cards: {
-      eligibility: {
-        title: "지원 자격 안내",
-        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-      },
-      disqualify: {
-        title: "지원 불가 사유",
-        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-      },
-      preference: {
-        title: "지원 우대 사항",
-        content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다.",
-      },
+      eligibility: { title: "지원 자격 안내", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+      disqualify: { title: "지원 불가 사유", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
+      preference: { title: "지원 우대 사항", content: "※ 세부 내용은 관리자 페이지에서 수정 가능합니다." },
     },
-    side: {
-      linkText: "링크1",
-      linkUrl: "#",
-    },
+    side: { linkText: "링크1", linkUrl: "#" },
   },
 };
 
@@ -152,6 +140,109 @@ router.put("/api/apply/conditions", async (req, env) => {
   return ok();
 });
 
+// =======================================================
+// ✅ FAQ (Public + Admin)
+// - Public:  GET /api/faqs?limit=5
+// - Admin :  GET /api/admin/faqs
+//            POST /api/admin/faqs
+//            GET /api/admin/faqs/:id
+//            PUT /api/admin/faqs/:id
+//            DELETE /api/admin/faqs/:id
+// =======================================================
+
+router.get("/api/faqs", async (req, env) => {
+  const url = new URL(req.url);
+  const limit = Math.min(Number(url.searchParams.get("limit") || 5), 20);
+
+  const { results } = await env.DB.prepare(
+    "SELECT id, title, content, created_at, updated_at FROM faqs ORDER BY id DESC LIMIT ?"
+  )
+    .bind(limit)
+    .all();
+
+  return json(results || []);
+});
+
+router.get("/api/admin/faqs", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const { results } = await env.DB.prepare(
+    "SELECT id, title, content, created_at, updated_at FROM faqs ORDER BY id DESC LIMIT 500"
+  ).all();
+
+  return json(results || []);
+});
+
+router.post("/api/admin/faqs", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const body = await readBody(req);
+  const title = (body.title || "").trim();
+  const content = (body.content || "").trim();
+  if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
+
+  const now = new Date().toISOString();
+
+  const r = await env.DB.prepare(
+    "INSERT INTO faqs(title, content, created_at, updated_at) VALUES(?, ?, ?, ?)"
+  )
+    .bind(title, content, now, now)
+    .run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+router.get("/api/admin/faqs/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const row = await env.DB.prepare(
+    "SELECT id, title, content, created_at, updated_at FROM faqs WHERE id = ?"
+  )
+    .bind(id)
+    .first();
+
+  if (!row) return json({ error: "not_found" }, { status: 404 });
+  return json(row);
+});
+
+router.put("/api/admin/faqs/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const title = (body.title || "").trim();
+  const content = (body.content || "").trim();
+  if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
+
+  const now = new Date().toISOString();
+
+  const r = await env.DB.prepare(
+    "UPDATE faqs SET title = ?, content = ?, updated_at = ? WHERE id = ?"
+  )
+    .bind(title, content, now, id)
+    .run();
+
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+  return ok();
+});
+
+router.delete("/api/admin/faqs/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const r = await env.DB.prepare("DELETE FROM faqs WHERE id = ?").bind(id).run();
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+
+  return ok();
+});
+
 // ---- Notices ----
 router.get("/api/notices", async (req, env) => {
   const url = new URL(req.url);
@@ -175,8 +266,6 @@ router.post("/api/notices", async (req, env) => {
   if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
 
   const created = new Date().toISOString();
-
-  // pinned는 기본 0 (혹시 body로 들어와도 안전하게 처리)
   const pinned = Number(body.pinned) === 1 ? 1 : 0;
 
   const r = await env.DB.prepare(
@@ -210,7 +299,7 @@ router.put("/api/notices/:id", async (req, env) => {
 
   const body = await readBody(req);
 
-  // ✅ 1) pinned만 바꾸는 요청 지원 (핀/언핀)
+  // pinned만 바꾸는 요청 지원
   if (Object.prototype.hasOwnProperty.call(body, "pinned")) {
     const pinned = Number(body.pinned) === 1 ? 1 : 0;
 
@@ -224,7 +313,7 @@ router.put("/api/notices/:id", async (req, env) => {
     return ok();
   }
 
-  // ✅ 2) 기존대로 title/content 수정도 지원
+  // title/content 수정
   const title = (body.title || "").trim();
   const content = (body.content || "").trim();
   if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
@@ -306,7 +395,6 @@ router.post("/api/complaints", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-
 const ALLOWED_COMPLAINT_STATUS = new Set([
   "미접수",
   "접수 중",
@@ -378,7 +466,6 @@ router.post("/api/suggestions", async (req, env) => {
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
 
-
 // ---- register ----
 router.post("/api/auth/register", async (req, env) => {
   const body = await readBody(req);
@@ -394,11 +481,9 @@ router.post("/api/auth/register", async (req, env) => {
   if (!nickname || !username || !password) {
     return json({ error: "all_fields_required" }, { status: 400 });
   }
-
   if (!agree) {
     return json({ error: "terms_not_agreed" }, { status: 400 });
   }
-
   if (!discord_id || !discord_name) {
     return json({ error: "discord_required" }, { status: 400 });
   }
@@ -422,19 +507,20 @@ router.post("/api/auth/register", async (req, env) => {
   const passwordHash = await bcrypt.hash(password, 10);
   const createdAt = new Date().toISOString();
   const agreedAt = new Date().toISOString();
-  const now = new Date().toISOString(); // ✅ 가입 시점에 갱신 시각 저장
+  const now = new Date().toISOString();
 
   const r = await env.DB.prepare(
     `INSERT INTO users(
       nickname, username, passwordHash, role, createdAt, agreed, agreedAt,
       discord_id, discord_name, discord_last_verified_at
     )
-    VALUES(?, ?, ?, ?, 'user', ?, 1, ?, ?, ?, ?)`
+    VALUES(?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`
   )
     .bind(
       nickname,
       username,
       passwordHash,
+      "user",
       createdAt,
       agreedAt,
       discord_id,
@@ -476,7 +562,6 @@ router.post("/api/auth/login", async (req, env) => {
     username: user.username,
     role: user.role,
     createdAt: user.createdAt,
-
     discord_id: user.discord_id || "",
     discord_name: user.discord_name || "",
     discord_last_verified_at: user.discord_last_verified_at || "",
@@ -499,8 +584,7 @@ router.get("/api/admin/users", async (req, env) => {
   return json(results || []);
 });
 
-
-// ✅ 디스코드 표시명/갱신시각 업데이트 (서버만 호출: 관리자 토큰 필요)
+// ✅ 디스코드 표시명/갱신시각 업데이트
 router.put("/api/users/:id/discord", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
@@ -558,7 +642,6 @@ router.post("/api/audit-logs", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
   const body = await readBody(req);
-
   const created = new Date().toISOString();
 
   const actor_user_id = body.actor_user_id ?? null;
@@ -594,7 +677,6 @@ router.post("/api/audit-logs", async (req, env) => {
 
   return json({ ok: true, id: r.meta?.last_row_id ?? null });
 });
-
 
 router.all("*", () => json({ error: "not_found" }, { status: 404 }));
 
