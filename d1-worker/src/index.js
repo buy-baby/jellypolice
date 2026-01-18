@@ -1061,6 +1061,7 @@ router.get("/api/admin/board/posts", async (req, env) => {
       created_at, updated_at,
       deleted
     FROM free_posts
+    WHERE deleted = 0
     ORDER BY id DESC
     LIMIT ?
   `).bind(limit).all();

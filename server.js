@@ -822,6 +822,20 @@ app.post("/admin/board/:id/delete", requireAdmin, async (req, res) => {
     return res.status(500).send("게시글 삭제에 실패했습니다.");
   }
 });
+// 삭제 과정 전체 로그
+app.post("/admin/board/:id/delete", requireAdmin, async (req, res) => {
+  console.log("🧨 delete hit:", req.params.id); // 1) 라우트 타는지
+  try {
+    const id = Number(req.params.id);
+    const r = await d1Api("DELETE", `/api/admin/board/posts/${id}`);
+    console.log("🧨 d1 delete result:", r);      // 2) 워커 응답
+    return res.redirect("/admin/board");
+  } catch (e) {
+    console.error("❌ admin board delete error:", e?.message || e);
+    return res.status(500).send("게시글 삭제에 실패했습니다.");
+  }
+});
+
 
 
 // =========================
