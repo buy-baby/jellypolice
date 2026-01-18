@@ -90,11 +90,8 @@
   <!-- ============================ 중앙 화면 =========================== -->
 
   <div class="home-wrap home-wrap--responsive">
-    <div class="home-main">
-      <!-- ⚠️ 모바일에서 과도한 공간의 주범이라 inline height 제거하고 클래스로 처리 -->
-      <div class="home-spacer"></div>
-    </div>
 
+    <!-- ✅ 공지사항: 왼쪽 위(작게) -->
     <aside class="notice-panel home-notice">
       <div class="notice-head">
         <div class="notice-title">공지사항</div>
@@ -114,6 +111,49 @@
         <% } %>
       </div>
     </aside>
+
+    <!-- ✅ FAQ: 중앙~오른쪽(크게) -->
+    <div class="home-main">
+
+      <section class="faq-panel home-faq">
+        <div class="faq-head">
+          <div class="faq-title">자주 묻는 질문 (FAQ)</div>
+          <div class="faq-desc">자주 문의되는 내용을 정리했습니다.</div>
+        </div>
+
+        <div class="faq-list">
+          <% const faqItems = (typeof faqs !== "undefined" && faqs && faqs.length)
+              ? faqs
+              : [
+                  { q: "민원 접수는 어떻게 하나요?", a: "상단 메뉴 '고객센터 > 민원실'에서 접수할 수 있습니다." },
+                  { q: "접수한 민원은 어디서 확인할 수 있나요?", a: "로그인 후 '나의 민원'에서 진행 상태를 확인할 수 있습니다." },
+                  { q: "파일 첨부가 가능한가요?", a: "민원 접수 시 이미지/파일 첨부가 가능합니다." },
+                  { q: "비밀번호를 잊어버렸어요. 어떻게 하나요?", a: "계정 메뉴에서 비밀번호 재설정 기능을 이용해 주세요." },
+                  { q: "경찰청에 문의하려면 어디로 연락하면 되나요?", a: "고객센터 메뉴의 안내 채널을 이용해 주세요." }
+                ];
+          %>
+
+          <% faqItems.slice(0,5).forEach((item, idx) => { %>
+            <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
+              <summary class="faq-q">
+                <span class="faq-bullet">▶</span>
+                <span class="faq-q-text"><%= item.q %></span>
+                <span class="faq-arrow">›</span>
+              </summary>
+              <div class="faq-a"><%= item.a %></div>
+            </details>
+          <% }) %>
+        </div>
+
+        <div class="faq-footer">
+          <a class="faq-cta" href="/inquiry">민원 접수하기 <span class="faq-cta-arrow">›</span></a>
+        </div>
+      </section>
+
+      <!-- 기존 스페이서(PC에서는 0으로, 모바일에서만 약간 여백) -->
+      <div class="home-spacer"></div>
+    </div>
+
   </div>
 
   <!-- 드롭다운 JS -->
