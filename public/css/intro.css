@@ -188,3 +188,112 @@
   font-size: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
+
+/* =========================
+   부서 소개: 로고 포함 버전 (override)
+   ========================= */
+
+/* 부서 박스: 로고가 왼쪽 위에 고정될 수 있게 */
+.dept-box{
+  position: relative;          /* ✅ 로고 absolute 기준 */
+  margin-bottom: 40px;
+
+  /* 로고 자리 확보(왼쪽/위) */
+  padding: 26px 30px 26px 130px;
+
+  border-left: 6px solid #1a4bd9;
+  background: #f2f5fc;
+  border-radius: 10px;
+
+  /* ✅ 기본 높이를 크게: 내용이 짧아도 넉넉하게 */
+  min-height: 170px;
+  box-sizing: border-box;
+}
+
+/* 로고 컨테이너: 왼쪽 위 고정 */
+.dept-logo{
+  position: absolute;
+  top: 18px;
+  left: 18px;
+
+  width: 86px;
+  height: 86px;
+
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.10);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 로고 이미지 크기 고정 */
+.dept-logo img{
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  display: block;
+}
+
+/* 제목/내용은 기존 느낌 유지 + 살짝 정돈 */
+.dept-title{
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #0b3fa7;
+  font-weight: 800;
+}
+
+.dept-text{
+  font-size: 16px;
+  color: #333;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.dept-box{
+  position: relative;
+  margin-bottom: 40px;
+  padding: 92px 30px 25px;
+  border-left: 6px solid #1a4bd9;
+  background: #f2f5fc;
+  border-radius: 10px;
+}
+
+.dept-logo{
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 520px){
+  .intro-container{
+    width: calc(100% - 24px);
+    padding: 24px 16px;
+  }
+
+  .dept-box{
+    padding: 20px 16px 20px 96px;
+    min-height: 140px;
+  }
+
+  .dept-logo{
+    top: 14px;
+    left: 14px;
+    width: 66px;
+    height: 66px;
+    border-radius: 12px;
+  }
+
+  .dept-logo img{
+    width: 44px;
+    height: 44px;
+  }
+
+  .dept-title{ font-size: 20px; }
+  .dept-text{ font-size: 15px; }
+}

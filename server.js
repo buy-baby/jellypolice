@@ -1372,16 +1372,25 @@ app.post("/admin/edit/agency", requireAdmin, async (req, res) => {
   res.redirect("/intro/agency");
 });
 
-app.get("/admin/edit/department", requireAdmin, async (_, res) => {
-  const data = await getDepartment();
-  res.render("admin/edit_department", { data });
-});
-
 app.post("/admin/edit/department", requireAdmin, async (req, res) => {
-  const teams = Object.values(req.body.teams || {}).map((t) => ({
-    name: t.name || "",
-    desc: t.desc || "",
-  }));
+  const rawTeams = Object.values(req.body.teams || {});
+
+  const logoMap = {
+    "인사팀": "/images/departments/hr.png",
+    "감사팀": "/images/departments/audit.png",
+    "특수 검거 기동대(SCP)": "/images/departments/scp.png",
+    "특공대(SOU)": "/images/departments/sou.png",
+    "항공팀(ASU)": "/images/departments/asu.png",
+  };
+
+  const teams = rawTeams.map((t) => {
+    const name = (t.name || "").trim();
+    return {
+      name,
+      desc: (t.desc || "").trim(),
+      logo: logoMap[name] || "/images/departments/default.png",
+    };
+  });
 
   await setDepartment({ title: req.body.title || "부서 소개", teams });
 
@@ -1391,8 +1400,9 @@ app.post("/admin/edit/department", requireAdmin, async (req, res) => {
     targetId: "department",
   });
 
-  res.redirect("/intro/department");
+  return res.redirect("/intro/department");
 });
+
 
 app.get("/admin/edit/rank", requireAdmin, async (_, res) => {
   const data = await getRank();
