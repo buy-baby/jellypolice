@@ -1,0 +1,43 @@
+/* faq.css (admin/faqs 전용) */
+
+/* 기본값: style.css 대체용 */
+body.page-admin{
+  font-family: "Noto Sans KR", sans-serif;
+  margin: 0;
+  background: #f6f9ff;
+}
+
+/* index.ejs 스타일 */
+.admin-wrap{ max-width: 1100px; margin: 24px auto; padding: 0 18px; }
+.admin-card{ background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:14px; padding:18px; box-shadow:0 10px 22px rgba(0,0,0,.06); }
+.admin-title{ font-size:24px; font-weight:900; margin:0 0 12px; }
+.admin-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.admin-grid textarea{ min-height: 140px; resize: vertical; }
+.admin-grid input, .admin-grid textarea{
+  width:100%; box-sizing:border-box; padding:12px 12px; border-radius:10px;
+  border:1px solid rgba(0,0,0,.15);
+  font-family: inherit;
+}
+.admin-actions{ margin-top: 12px; display:flex; gap:10px; }
+
+.btn{
+  padding: 10px 14px; border-radius:10px; border:0; cursor:pointer;
+  font-weight:900; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+}
+.btn-primary{ background:#1a4bd9; color:#fff; }
+.btn-ghost{ background:#eef2f9; color:#0b3fa7; }
+
+.list{ margin-top: 18px; display:flex; flex-direction:column; gap:10px; }
+.row{
+  background:#f7fbff; border:1px solid rgba(0,0,0,.12); border-radius:12px;
+  padding: 12px 12px;
+}
+.row-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.row-title{ font-weight:900; color:#0b3fa7; }
+.row-content{ margin-top:8px; color:#222; opacity:.9; line-height:1.55; white-space: pre-wrap; }
+.row-btns{ display:flex; gap:8px; }
+.btn-danger{ background:#ffebee; color:#b71c1c; }
+
+/* edit.ejs에서 쓰는 것 (겹치는 건 그대로 사용됨) */
+textarea{ min-height: 200px; resize: vertical; }
+.actions{ margin-top: 12px; display:flex; gap:10px; }
