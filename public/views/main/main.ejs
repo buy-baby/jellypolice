@@ -140,7 +140,7 @@
 </div>
 
 
-          <% faqItems.slice(0,5).forEach((item, idx) => { %>
+          <% (faqs || []).slice(0,5).forEach((item, idx) => { %>
             <details class="faq-item" <%= idx === 0 ? "open" : "" %>>
               <summary class="faq-q">
                 <span class="faq-bullet">▶</span>
