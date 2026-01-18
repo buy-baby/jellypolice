@@ -144,8 +144,9 @@ body {
   min-width: 0;
   min-height: 0;
 
-  /* "진짜 살짝만" 폭 줄이기 */
-  max-width: 980px; /* 원하면 940~1020 사이로 조절 */
+  /* 기존 980px → 조금만 더 줄이기 */
+  max-width: 940px;   /* 920~960 사이 취향 */
+  flex-basis: 940px;  /* 폭 기준을 확실히 잡아줌 */
 }
 
 nav, .navbar, .topbar {
@@ -291,13 +292,14 @@ nav, .navbar, .topbar {
 
 .faq-panel{
   width: 100%;
-  min-height: 420px; /* ✅ px 단위 누락 버그 수정 */
+  min-height: 654px;
   background: #ffffff;
   border: 3px solid #9fd3e6;
   border-radius: 16px;
   padding: 22px 22px 18px;
   box-shadow: 0 10px 22px rgba(0,0,0,0.06);
 }
+
 
 .faq-head{ margin-bottom: 14px; }
 
