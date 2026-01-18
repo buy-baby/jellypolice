@@ -254,7 +254,7 @@
 .dept-box{
   position: relative;
   margin-bottom: 40px;
-  padding: 92px 30px 25px;
+  padding: 170px 30px 30px;
   border-left: 6px solid #1a4bd9;
   background: #f2f5fc;
   border-radius: 10px;
@@ -263,9 +263,9 @@
 .dept-logo{
   position: absolute;
   top: 22px;
-  left: 22px;
-  width: 54px;
-  height: 54px;
+  left: 300px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
 }
 
