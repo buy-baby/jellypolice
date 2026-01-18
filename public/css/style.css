@@ -126,6 +126,7 @@ body {
   padding: 24px 18px;
   z-index: 1;
   position: relative;
+  justify-content: flex-start;
 }
 
 /* ✅ 왼쪽 컬럼: 공지 + 게시판 */
@@ -143,10 +144,9 @@ body {
   flex: 1;
   min-width: 0;
   min-height: 0;
-
-  /* 기존 980px → 조금만 더 줄이기 */
-  max-width: 900px;   /* 920~960 사이 취향 */
-  flex-basis: 940px;  /* 폭 기준을 확실히 잡아줌 */
+  margin-left: auto;
+  max-width: 940px;
+  flex-basis: 940px;
 }
 
 nav, .navbar, .topbar {
