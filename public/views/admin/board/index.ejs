@@ -16,11 +16,6 @@
       <h1>게시판 관리</h1>
     </div>
 
-    <div class="admin-page-actions">
-      <a class="btn-edit" href="/admin">← 관리자 메인</a>
-      <a class="btn-edit" href="/board" style="background:#1a4bd9;">게시판 보기</a>
-    </div>
-
     <% if (!posts || posts.length === 0) { %>
       <div class="admin-empty">등록된 게시글이 없습니다.</div>
     <% } else { %>

@@ -867,10 +867,186 @@ router.get("/api/board/images/:id", async (req, env) => {
   return json(row);
 });
 // =========================
-// Board (Admin)
+// FREE BOARD (Public + Admin)
+// tables: free_posts / free_post_comments / free_post_images
 // =========================
 
-// 관리자: 게시글 목록
+// ----- Public: posts list -----
+router.get("/api/board/posts", async (req, env) => {
+  const url = new URL(req.url);
+  const limit = Math.min(Number(url.searchParams.get("limit") || 20), 50);
+
+  const { results } = await env.DB.prepare(`
+    SELECT
+      id, user_id,
+      author_username, author_nickname,
+      title,
+      created_at, updated_at
+    FROM free_posts
+    WHERE deleted = 0
+    ORDER BY id DESC
+    LIMIT ?
+  `).bind(limit).all();
+
+  return json(results || []);
+});
+
+// ----- Public: post detail (with images + comments) -----
+router.get("/api/board/posts/:id", async (req, env) => {
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const post = await env.DB.prepare(`
+    SELECT
+      id, user_id,
+      author_username, author_nickname,
+      title, content,
+      created_at, updated_at
+    FROM free_posts
+    WHERE id = ? AND deleted = 0
+  `).bind(id).first();
+
+  if (!post) return json({ error: "not_found" }, { status: 404 });
+
+  const { results: images } = await env.DB.prepare(`
+    SELECT
+      id, post_id,
+      file_name, file_key,
+      content_type, size,
+      created_at
+    FROM free_post_images
+    WHERE post_id = ?
+    ORDER BY id ASC
+  `).bind(id).all();
+
+  const { results: comments } = await env.DB.prepare(`
+    SELECT
+      id, post_id, user_id,
+      author_username, author_nickname,
+      content, created_at
+    FROM free_post_comments
+    WHERE post_id = ? AND deleted = 0
+    ORDER BY id ASC
+  `).bind(id).all();
+
+  return json({
+    post,
+    images: images || [],
+    comments: comments || [],
+  });
+});
+
+// ----- Public: create post (server will call; we keep it open like complaints/suggestions) -----
+router.post("/api/board/posts", async (req, env) => {
+  const body = await readBody(req);
+
+  const title = String(body.title || "").trim();
+  const content = String(body.content || "").trim();
+  if (!title || !content) return json({ error: "title/content required" }, { status: 400 });
+
+  const created_at = body.created_at || new Date().toISOString();
+  const updated_at = body.updated_at || created_at;
+
+  const user_id = body.user_id ?? null;
+  const author_username = String(body.author_username || "").slice(0, 60);
+  const author_nickname = String(body.author_nickname || "").slice(0, 60);
+
+  const r = await env.DB.prepare(`
+    INSERT INTO free_posts(
+      user_id, author_username, author_nickname,
+      title, content,
+      created_at, updated_at,
+      deleted
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+  `).bind(
+    user_id, author_username, author_nickname,
+    title, content,
+    created_at, updated_at
+  ).run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+// ----- Public: add images to post -----
+router.post("/api/board/posts/:id/images", async (req, env) => {
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const files = Array.isArray(body.files) ? body.files : [];
+
+  // files: [{ file_name, file_key, content_type, size }]
+  if (files.length === 0) return json({ error: "files_required" }, { status: 400 });
+
+  const created_at = new Date().toISOString();
+
+  // 존재 확인(삭제된 글이면 막기)
+  const exists = await env.DB.prepare(
+    "SELECT id FROM free_posts WHERE id = ? AND deleted = 0"
+  ).bind(id).first();
+  if (!exists) return json({ error: "not_found" }, { status: 404 });
+
+  for (const f of files) {
+    const file_key = String(f.file_key || "").trim();
+    if (!file_key) continue;
+
+    await env.DB.prepare(`
+      INSERT INTO free_post_images(
+        post_id, file_name, file_key, content_type, size, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      id,
+      String(f.file_name || "").slice(0, 260),
+      file_key,
+      String(f.content_type || "").slice(0, 80),
+      Number(f.size || 0) || 0,
+      created_at
+    ).run();
+  }
+
+  return json({ ok: true });
+});
+
+// ----- Public: add comment -----
+router.post("/api/board/posts/:id/comments", async (req, env) => {
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const body = await readBody(req);
+  const content = String(body.content || "").trim();
+  if (!content) return json({ error: "content_required" }, { status: 400 });
+
+  // 존재 확인(삭제된 글이면 막기)
+  const exists = await env.DB.prepare(
+    "SELECT id FROM free_posts WHERE id = ? AND deleted = 0"
+  ).bind(id).first();
+  if (!exists) return json({ error: "not_found" }, { status: 404 });
+
+  const created_at = body.created_at || new Date().toISOString();
+
+  const user_id = body.user_id ?? null;
+  const author_username = String(body.author_username || "").slice(0, 60);
+  const author_nickname = String(body.author_nickname || "").slice(0, 60);
+
+  const r = await env.DB.prepare(`
+    INSERT INTO free_post_comments(
+      post_id, user_id, author_username, author_nickname,
+      content, created_at, deleted
+    ) VALUES (?, ?, ?, ?, ?, ?, 0)
+  `).bind(
+    id,
+    user_id,
+    author_username,
+    author_nickname,
+    content,
+    created_at
+  ).run();
+
+  return json({ ok: true, id: r.meta?.last_row_id ?? null });
+});
+
+
+// ----- Admin: posts list -----
 router.get("/api/admin/board/posts", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
@@ -879,41 +1055,53 @@ router.get("/api/admin/board/posts", async (req, env) => {
 
   const { results } = await env.DB.prepare(`
     SELECT
-      p.id,
-      p.title,
-      p.created_at,
-      u.username AS author_username,
-      u.nickname AS author_nickname
-    FROM board_posts p
-    LEFT JOIN users u ON p.user_id = u.id
-    ORDER BY p.id DESC
+      id, user_id,
+      author_username, author_nickname,
+      title,
+      created_at, updated_at,
+      deleted
+    FROM free_posts
+    ORDER BY id DESC
     LIMIT ?
   `).bind(limit).all();
 
   return json(results || []);
 });
 
+// ----- Admin: soft delete post -----
 router.delete("/api/admin/board/posts/:id", async (req, env) => {
   if (!isAdmin(req, env)) return unauthorized();
 
   const id = Number(req.params.id);
   if (!id) return json({ error: "bad_id" }, { status: 400 });
 
-  await env.DB.prepare("DELETE FROM board_comments WHERE post_id = ?")
-    .bind(id)
-    .run();
-
-  await env.DB.prepare("DELETE FROM board_images WHERE post_id = ?")
-    .bind(id)
-    .run();
-
-  const r = await env.DB.prepare("DELETE FROM board_posts WHERE id = ?")
-    .bind(id)
-    .run();
+  const r = await env.DB.prepare(`
+    UPDATE free_posts
+    SET deleted = 1, updated_at = ?
+    WHERE id = ?
+  `).bind(new Date().toISOString(), id).run();
 
   if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
   return ok();
 });
+
+// ----- Admin: soft delete comment -----
+router.delete("/api/admin/board/comments/:id", async (req, env) => {
+  if (!isAdmin(req, env)) return unauthorized();
+
+  const id = Number(req.params.id);
+  if (!id) return json({ error: "bad_id" }, { status: 400 });
+
+  const r = await env.DB.prepare(`
+    UPDATE free_post_comments
+    SET deleted = 1
+    WHERE id = ?
+  `).bind(id).run();
+
+  if (!r.meta || r.meta.changes === 0) return json({ error: "not_found" }, { status: 404 });
+  return ok();
+});
+
 
 
 
