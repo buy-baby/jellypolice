@@ -220,8 +220,8 @@
   height: 86px;
 
   border-radius: 14px;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.10);
+  background: transparent;
+  border: transparent;
 
   display: flex;
   align-items: center;
@@ -254,7 +254,7 @@
 .dept-box{
   position: relative;
   margin-bottom: 40px;
-  padding: 170px 30px 30px;
+  padding: 100px 30px 30px;
   border-left: 6px solid #1a4bd9;
   background: #f2f5fc;
   border-radius: 10px;
@@ -262,9 +262,9 @@
 
 .dept-logo{
   position: absolute;
-  top: -5px;
+  top: 0px;
   left: 55px;
-  width: 775px;
+  width: 1000px;
   height: 180px;
   object-fit: contain;
 }
