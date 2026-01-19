@@ -262,10 +262,10 @@
 
 .dept-logo{
   position: absolute;
-  top: 22px;
-  left: 300px;
-  width: 140px;
-  height: 140px;
+  top: -5px;
+  left: 55px;
+  width: 775px;
+  height: 180px;
   object-fit: contain;
 }
 
